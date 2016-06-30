@@ -18,38 +18,6 @@ package
 			//addChild(mc);
 			//});
 			//loader.load(new URLRequest("basket_x000a_p78.swf"));
-			
-			for (var i:int = 0; i < 1000; i++)
-			{
-				var sp:Sprite = this.createCircle(5);
-				sp.x = Math.random() * 500;
-				sp.y = Math.random() * 500;
-					//	this.addChild(sp);
-			}
-		}
-		
-		private function createCircle(p_radius:int):Sprite
-		{
-			var sp:Sprite = new Sprite();
-			var bmpData:BitmapData = new BitmapData(p_radius * 2 + 1, p_radius * 2 + 1, true, 0);
-			bmpData.lock();
-			for (var i:int = -p_radius; i <= p_radius; i++)
-			{
-				for (var j:int = -p_radius; j <= p_radius; j++)
-				{
-					if (i * i + j * j <= (p_radius - 0.5) * (p_radius - 0.5))
-					{
-						bmpData.setPixel32(i + p_radius, j + p_radius, 0xffff0000);
-					}
-				}
-			}
-			bmpData.unlock();
-			var bmp:Bitmap = new Bitmap(bmpData);
-			bmp.x = -p_radius;
-			bmp.y = -p_radius;
-			//	bmp.alpha = 0.5;
-			sp.addChild(bmp);
-			return sp;
 		}
 	}
 }
@@ -114,6 +82,14 @@ class Vector3D
 		return new Vector4D(this.x, this.y, this.z, p_w);
 	}
 	
+	public function cloneFrom(p_vtr:Vector3D):Vector3D
+	{
+		this.x = p_vtr.x;
+		this.y = p_vtr.y;
+		this.z = p_vtr.z;
+		return this;
+	}
+	
 	public function lengthStr():Number
 	{
 		return this.x * this.x + this.y * this.y + this.z * this.z;
@@ -141,6 +117,41 @@ class Vector3D
 	public function minus(p_vtr:Vector3D):Vector3D
 	{
 		return new Vector3D(this.x - p_vtr.x, this.y - p_vtr.y, this.z - p_vtr.z);
+	}
+	
+	public function multiply(p_value:Number):Vector3D
+	{
+		return new Vector3D(this.x * p_value, this.y * p_value, this.z * p_value);
+	}
+	
+	public function divide(p_value:Number):Vector3D
+	{
+		var invM:Number = 0;
+		if (p_value != 0)
+		{
+			invM = 1 / p_value;
+		}
+		return this.multiply(invM);
+	}
+	
+	public function addEql(p_vtr:Vector3D):Vector3D
+	{
+		return this.cloneFrom(this.add(p_vtr));
+	}
+	
+	public function minusEql(p_vtr:Vector3D):Vector3D
+	{
+		return this.cloneFrom(this.minus(p_vtr));
+	}
+	
+	public function multiplyEql(p_value:Number):Vector3D
+	{
+		return this.cloneFrom(this.multiply(p_value));
+	}
+	
+	public function divideEql(p_value:Number):Vector3D
+	{
+		return this.cloneFrom(this.divide(p_value));
 	}
 	
 	public function dot(p_vtr:Vector3D):Number
@@ -299,15 +310,7 @@ class Matrix4D
 	
 	public function productEqual(p_mx:Matrix4D):Matrix4D
 	{
-		var result:Matrix4D = new Matrix4D();
-		for (var i:int = 0; i <= 3; i++)
-		{
-			for (var j:int = 0; j <= 3; j++)
-			{
-				result.e[i][j] = this.e[0][j] * p_mx.e[i][0] + this.e[1][j] * p_mx.e[i][1] + this.e[2][j] * p_mx.e[i][2] + this.e[3][j] * p_mx.e[i][3];
-			}
-		}
-		return this.cloneFrom(result);
+		return this.cloneFrom(this.product(p_mx));
 	}
 	
 	public function inverse3x3():Matrix4D
@@ -327,7 +330,7 @@ class Matrix4D
 		var invDet:Number = 1 / det;
 		for (i = 0; i <= 2; i++)
 		{
-			for (var j:int = 0; j <= 2; j++)
+			for (j = 0; j <= 2; j++)
 			{
 				result.e[j][i] = ((this.e[(i + 1) % 3][(j + 1) % 3] * this.e[(i + 2) % 3][(j + 2) % 3]) - (this.e[(i + 1) % 3][(j + 2) % 3] * this.e[(i + 2) % 3][(j + 1) % 3])) * invDet;
 			}
@@ -370,6 +373,10 @@ class Camera3D
 	private var _target:Vector3D = null;
 	private var _pos:Vector3D = null;
 	private var _up:Vector3D = null;
+	private var _planeDepth:Number = 0; // dist between near plane and far plane
+	private var _planeDist:Number = 0; // near plane
+	private var _planeWidth:Number = 0; // near plane radius
+	private var _screenWidth:Number = 0; // screen radius
 	
 	public function Camera3D(p_pos:Vector3D = null, p_target:Vector3D = null, p_up:Vector3D = null):void
 	{
@@ -410,6 +417,11 @@ class Camera3D
 		this._pos = new Vector3D(0, 0, 0);
 		this._target = new Vector3D(0, 0, 1);
 		this._up = new Vector3D(0, 1, 0);
+		
+		this._planeDepth = 1;
+		this._planeDist = 1;
+		this._planeWidth = 1;
+		this._screenWidth = 1;
 	}
 	
 	public function set position(p_vtr:Vector3D):void
@@ -455,7 +467,13 @@ class Camera3D
 		mxB.e[2][3] = -this._pos.z;
 		
 		var mx:Matrix4D = mxB.product(mxA.inverse3x3());
-		return mx;
+		var mxPlane:Matrix4D = new Matrix4D();
+		mxPlane.e[0][0]  = this._screenWidth / this._planeWidth;
+		mxPlane.e[1][1]  = mxPlane.e[0][0];
+		mxPlane.e[2][2]  = 1 / this._planeDepth;
+		mxPlane.e[3][2]  = 1 / this._planeDist;
+		mxPlane.e[2][3]  = this._planeDist / this._planeDepth;
+		return mx.product(mxPlane);
 	}
 }
 
@@ -545,20 +563,44 @@ class World3D implements IDisposable
 	
 	public function refresh():void
 	{
-		for each (var child:World3DObj in this._child)
+		var child:World3DObj = null;
+		for each (child in this._child)
 		{
 			child.updateProject(this._camera.getTransform());
+		}
+		
+		this._child.sort(function(p_obj0:World3DObj, p_obj1:World3DObj):int
+		{
+			if (p_obj0.project.z > p_obj1.project.z)
+			{
+				return 1;
+			}
+			if (p_obj0.project.z < p_obj1.project.z)
+			{
+				return 1;
+			}
+			return 0;
+		});
+		
+		for each (child in this._child)
+		{
 			if (child.project.z < 0)
 			{
-				child.instance.visible = false;
+				if (child.instance.visible)
+				{
+					child.instance.visible = false;
+					this._instance.removeChild(child.instance);
+				}
 			}
 			else
 			{
+				// to do
 				var scale:Number = 300 / (child.project.z + 300);
 				child.instance.x = this._center.x + child.project.x * scale;
 				child.instance.y = this._center.y - child.project.y * scale;
-				child.instance.visible = true;
 				child.instance.alpha = scale;
+				child.instance.visible = true;
+				this._instance.addChildAt(child.instance, 0);
 			}
 		}
 	}
