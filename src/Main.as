@@ -34,6 +34,11 @@ interface IDisposable
 	function dispose():void
 }
 
+interface IContainer
+{
+	function addChild(p_child:BasicObject):BasicObject
+}
+
 class Helper
 {
 	public static function dispose(p_obj:Object):Boolean
@@ -198,6 +203,21 @@ class Vector4D
 			invW = 1 / this.w;
 		}
 		return new Vector3D(this.x * invW, this.y * invW, this.z * invW);
+	}
+	
+	public function multiply(p_value:Number):Vector4D
+	{
+		return new Vector4D(this.x * p_value, this.y * p_value, this.z * p_value, this.w * p_value);
+	}
+	
+	public function divide(p_value:Number):Vector4D
+	{
+		var invM:Number = 0;
+		if (p_value != 0)
+		{
+			invM = 1 / p_value;
+		}
+		return this.multiply(invM);
 	}
 
 }
@@ -397,6 +417,12 @@ class Camera3D
 		}
 	}
 	
+	public function move(p_pos:Vector3D):void
+	{
+		this._pos.addEql(p_pos);
+		this._target.addEql(p_pos);
+	}
+	
 	public function rotateByX(p_theta:Number):void
 	{
 		this._pos = new Matrix4D().setRotateX(p_theta).transform(this._pos.minus(this._target).clone4(1)).clone3().add(this._target);
@@ -422,6 +448,14 @@ class Camera3D
 		this._planeDist = 1;
 		this._planeWidth = 1;
 		this._screenWidth = 1;
+	}
+	
+	public function setProject(p_depth:Number, p_dist:Number, p_camWidth:Number, p_projWidth:Number):void
+	{
+		this._planeDepth = p_depth;
+		this._planeDist = p_dist;
+		this._planeWidth = p_camWidth;
+		this._screenWidth = p_projWidth;
 	}
 	
 	public function set position(p_vtr:Vector3D):void
@@ -468,34 +502,129 @@ class Camera3D
 		
 		var mx:Matrix4D = mxB.product(mxA.inverse3x3());
 		var mxPlane:Matrix4D = new Matrix4D();
-		mxPlane.e[0][0]  = this._screenWidth / this._planeWidth;
-		mxPlane.e[1][1]  = mxPlane.e[0][0];
-		mxPlane.e[2][2]  = 1 / this._planeDepth;
-		mxPlane.e[3][2]  = 1 / this._planeDist;
-		mxPlane.e[2][3]  = this._planeDist / this._planeDepth;
+		if (this._planeWidth > 0)
+		{
+			mxPlane.e[0][0] = this._screenWidth / this._planeWidth;
+		}
+		mxPlane.e[1][1] = mxPlane.e[0][0];
+		if (this._planeDepth > 0)
+		{
+			mxPlane.e[2][2] = 1 / this._planeDepth;
+		}
+		if (this._planeDist > 0)
+		{
+			mxPlane.e[3][2] = 1 / this._planeDist;
+		}
+		if (this._planeDepth > 0)
+		{
+			mxPlane.e[2][3] = -this._planeDist / this._planeDepth;
+		}
 		return mx.product(mxPlane);
 	}
 }
 
-class World3DObj implements IDisposable
+class BasicObject implements IDisposable
 {
 	private var _instance:DisplayObject = null;
-	private var _pos:Vector3D = null;
-	private var _project:Vector3D = null;
-	private var _sp:Sprite = null;
 	
-	public function World3DObj(p_inst:DisplayObject):void
+	public function BasicObject(p_inst:DisplayObject = null, p_parent:IContainer = null):void
 	{
-		this._instance = p_inst;
-		this._pos = new Vector3D();
-		this._sp = new Sprite();
-		this._sp.addChild(this._instance);
+		if (p_inst)
+		{
+			this._instance = p_inst;
+		}
+		else
+		{
+			this._instance = new Sprite() as DisplayObject;
+		}
+		if (p_parent)
+		{
+			p_parent.addChild(this);
+		}
 	}
 	
 	public function dispose():void
 	{
+		Helper.dispose(this._instance);
 		this._instance = null;
+	}
+	
+	public function get instance():DisplayObject
+	{
+		return this._instance;
+	}
+}
+
+class BasicContainer extends BasicObject implements IContainer
+{
+	protected var _child:Vector.<BasicObject> = null;
+	
+	public function BasicContainer(p_parent:BasicContainer, p_inst:Sprite = null):void
+	{
+		super(p_inst, p_parent);
+		this._child = new Vector.<BasicObject>();
+	}
+	
+	override public function dispose():void
+	{
+		Helper.dispose(this._child);
+		this._child = null;
+		super.dispose();
+	}
+	
+	protected function get container():Sprite
+	{
+		return this.instance as Sprite;
+	}
+	
+	public function addChild(p_child:BasicObject):BasicObject
+	{
+		this._child.push(p_child);
+		this.container.addChild(p_child.instance);
+		return p_child;
+	}
+}
+
+class StandObject extends BasicObject
+{
+	private var _sp:Sprite = null;
+	
+	public function StandObject(p_inst:BasicObject):void
+	{
+		super(new Sprite());
+		this._sp = new Sprite();
+		this._sp.addChild(p_inst.instance);
+	}
+	
+	override public function dispose():void
+	{
 		this._sp = null;
+		super.dispose();
+	}
+	
+	public function get stand():Sprite
+	{
+		return this._sp;
+	}
+}
+
+class World3DObj extends StandObject
+{
+	private var _pos:Vector3D = null;
+	private var _project:Vector4D = null;
+	
+	public function World3DObj(p_inst:BasicObject):void
+	{
+		super(p_inst);
+		this._pos = new Vector3D();
+		this._project = new Vector4D();
+	}
+	
+	override public function dispose():void
+	{
+		this._pos = null;
+		this._project = null;
+		super.dispose();
 	}
 	
 	public function get pos():Vector3D
@@ -503,57 +632,49 @@ class World3DObj implements IDisposable
 		return this._pos;
 	}
 	
-	public function get project():Vector3D
+	public function get project():Vector4D
 	{
 		return this._project;
 	}
 	
-	public function get instance():Sprite
-	{
-		return this._sp;
-	}
-	
 	public function updateProject(p_m:Matrix4D):void
 	{
-		this._project = p_m.transform(this._pos.clone4(1)).clone3();
+		this._project = p_m.transform(this._pos.clone4(1));
 	}
 
 }
 
-class World3D implements IDisposable
+class World3D extends BasicObject implements IContainer
 {
 	private var _camera:Camera3D = null;
 	private var _center:Vector3D = null;
 	private var _child:Vector.<World3DObj> = null;
-	private var _instance:Sprite = null;
 	
-	public function World3D(p_parent:Sprite):void
+	public function World3D(p_parent:BasicContainer):void
 	{
+		super(new Sprite(), p_parent);
 		this._camera = new Camera3D();
 		this._camera.setDefault();
 		this._center = new Vector3D();
 		this._child = new Vector.<World3DObj>();
-		this._instance = new Sprite();
-		if (p_parent)
-		{
-			p_parent.addChild(this._instance);
-		}
 	}
 	
-	public function dispose():void
+	override public function dispose():void
 	{
 		Helper.dispose(this._camera);
 		Helper.dispose(this._child);
-		Helper.dispose(this._instance);
 		this._camera = null;
+		this._center = null;
 		this._child = null;
-		this._instance = null;
+		super.dispose();
 	}
 	
-	public function addChild(p_child:World3DObj):void
+	public function addChild(p_child:BasicObject):BasicObject
 	{
-		this._child.push(p_child);
-		this._instance.addChild(p_child.instance);
+		var obj3D:World3DObj = new World3DObj(p_child);
+		this._child.push(obj3D);
+		this.container.addChild(obj3D.stand);
+		return obj3D;
 	}
 	
 	public function get camera():Camera3D
@@ -561,13 +682,31 @@ class World3D implements IDisposable
 		return this._camera;
 	}
 	
+	protected function get container():Sprite
+	{
+		return this.instance as Sprite;
+	}
+	
+	private function loopChild(p_func:Function):void
+	{
+		if (p_func.length != 1)
+		{
+			return;
+		}
+		for each (var child:World3DObj in this._child)
+		{
+			p_func(child);
+		}
+	}
+	
 	public function refresh():void
 	{
-		var child:World3DObj = null;
-		for each (child in this._child)
+		var self:World3D = this;
+		
+		this.loopChild(function(p_child:World3DObj):void
 		{
-			child.updateProject(this._camera.getTransform());
-		}
+			p_child.updateProject(self._camera.getTransform());
+		});
 		
 		this._child.sort(function(p_obj0:World3DObj, p_obj1:World3DObj):int
 		{
@@ -577,32 +716,43 @@ class World3D implements IDisposable
 			}
 			if (p_obj0.project.z < p_obj1.project.z)
 			{
-				return 1;
+				return -1;
 			}
 			return 0;
 		});
 		
-		for each (child in this._child)
+		this.loopChild(function(p_child:World3DObj):void
 		{
-			if (child.project.z < 0)
+			var posX:Number = p_child.project.x;
+			var posY:Number = p_child.project.y;
+			var posZ:Number = p_child.project.z;
+			var posW:Number = p_child.project.w;
+			if (posW <= 0)
 			{
-				if (child.instance.visible)
+				if (p_child.stand.visible)
 				{
-					child.instance.visible = false;
-					this._instance.removeChild(child.instance);
+					p_child.stand.visible = false;
+					container.removeChild(p_child.stand);
 				}
+				return;
 			}
-			else
+			if (posZ < 0 || posZ >= 1)
 			{
-				// to do
-				var scale:Number = 300 / (child.project.z + 300);
-				child.instance.x = this._center.x + child.project.x * scale;
-				child.instance.y = this._center.y - child.project.y * scale;
-				child.instance.alpha = scale;
-				child.instance.visible = true;
-				this._instance.addChildAt(child.instance, 0);
+				if (p_child.stand.visible)
+				{
+					p_child.stand.visible = false;
+					container.removeChild(p_child.stand);
+				}
+				return;
 			}
-		}
+			posX /= posW;
+			posY /= posW;
+			p_child.stand.x = self._center.x + posX;
+			p_child.stand.y = self._center.y - posY;
+			p_child.stand.alpha = 1 - posZ;
+			p_child.stand.visible = true;
+			container.addChildAt(p_child.stand, 0);
+		});
 	}
 	
 	public function setCenter(p_x:Number, p_y:Number):void
@@ -613,7 +763,7 @@ class World3D implements IDisposable
 
 }
 
-class CircleItem extends Sprite implements IDisposable
+class CircleItem extends BasicObject
 {
 	public function CircleItem(p_radius:Number, p_color:int):void
 	{
@@ -636,47 +786,76 @@ class CircleItem extends Sprite implements IDisposable
 		var bmp:Bitmap = new Bitmap(bmpData);
 		bmp.x = -p_radius;
 		bmp.y = -p_radius;
-		this.addChild(bmp);
-	}
-	
-	public function dispose():void
-	{
-		;
+		(this.instance as Sprite).addChild(bmp);
 	}
 }
 
-class ProjectWorld implements IDisposable
+class Slider extends BasicObject implements IContainer
 {
-	private static const CIRCLE_AMOUNT:int = 500;
+	private var _container:BasicContainer = null;
+	private var _content:BasicContainer = null;
+	private var _width:int = 0;
+	private var _height:int = 0;
+	
+	public function Slider(p_parent:BasicContainer, p_width:int, p_height:int):void
+	{
+		super(new Sprite(), p_parent);
+		this._container = new BasicContainer(p_parent, this.instance as Sprite);
+		this._content = new BasicContainer(this._container);
+		this._width = p_width;
+		this._height = p_height;
+		
+		var maskImg:BitmapData = new BitmapData(this._width, this._height, true, 0);
+		var mask:Bitmap = new Bitmap(maskImg);
+		this._container.instance.mask = mask;
+	}
+	
+	override public function dispose():void
+	{
+		Helper.dispose(this._container);
+		Helper.dispose(this._content);
+		this._container = null;
+		this._content = null;
+		super.dispose();
+	}
+	
+	public function addChild(p_child:BasicObject):BasicObject
+	{
+		this._content.addChild(p_child);
+		return p_child;
+	}
+}
+
+class ProjectWorld extends BasicContainer
+{
+	private static const CIRCLE_AMOUNT:int = 100;
 	private static const CIRCLE_COLOR:int = 0xffff0000;
 	private static const CIRCLE_RADIUS:int = 5;
 	
-	private var _inst:Sprite = null;
 	private var _timer:Timer = null;
 	private var _world:World3D = null;
 	
-	public function ProjectWorld(p_parent:Sprite):void
+	public function ProjectWorld(p_inst:Sprite):void
 	{
-		this._inst = new Sprite();
-		if (p_parent)
-		{
-			p_parent.addChild(this._inst);
-		}
+		super(null, p_inst);
 		
 		this._timer = new Timer(20);
 		this._timer.addEventListener(TimerEvent.TIMER, this.onTime);
 		
-		this._world = new World3D(this._inst);
-		this._world.setCenter(200, 200);
-		this._world.camera.position = new Vector3D(0, 0, -300);
+		this._world = new World3D(this);
+		this._world.setCenter(300, 300);
+		this._world.camera.position = new Vector3D(0, 0, -400);
 		this._world.camera.target = new Vector3D(0, 0, 0);
 		this._world.camera.up = new Vector3D(0, 1, 0);
+		this._world.camera.setProject(600, 50, 200, 200);
 		this.createCircle();
 		
 		this._timer.start();
+		
+		var slider:Slider = new Slider(this, 100, 100);
 	}
 	
-	public function dispose():void
+	override public function dispose():void
 	{
 		if (this._timer)
 		{
@@ -685,9 +864,10 @@ class ProjectWorld implements IDisposable
 		}
 		Helper.dispose(this._world);
 		
-		this._inst = null;
 		this._timer = null;
 		this._world = null;
+		
+		super.dispose();
 	}
 	
 	private function createCircle():void
@@ -695,7 +875,7 @@ class ProjectWorld implements IDisposable
 		for (var i:int = 0; i < CIRCLE_AMOUNT; i++)
 		{
 			var item:CircleItem = new CircleItem(CIRCLE_RADIUS, CIRCLE_COLOR);
-			var item3D:World3DObj = new World3DObj(item);
+			var item3D:World3DObj = this._world.addChild(item) as World3DObj;
 			item3D.pos.x = (Math.random() * 2 - 1) * 200;
 			item3D.pos.y = (Math.random() * 2 - 1) * 200;
 			item3D.pos.z = (Math.random() * 2 - 1) * 200;
@@ -733,6 +913,7 @@ class ProjectWorld implements IDisposable
 		this._world.camera.rotateByX(0.01);
 		this._world.camera.rotateByY(0.029);
 		this._world.camera.rotateByZ(0.013);
+		//	this._world.camera.move(new Vector3D(0, 0, 0.5));
 		this._world.refresh();
 	}
 
