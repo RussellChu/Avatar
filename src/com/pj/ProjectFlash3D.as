@@ -28,10 +28,9 @@ package com.pj
 		public function ProjectFlash3D(p_inst:Sprite):void
 		{
 			super(null, p_inst);
-			p_inst.stage.stage3Ds[0].addEventListener(Event.CONTEXT3D_CREATE, initMolehill);
-			p_inst.stage.stage3Ds[0].requestContext3D();
-			
-			p_inst.addEventListener(Event.ENTER_FRAME, onRender);
+			this.instance.stage.stage3Ds[0].addEventListener(Event.CONTEXT3D_CREATE, initMolehill);
+			this.instance.stage.stage3Ds[0].requestContext3D();
+			this.instance.addEventListener(Event.ENTER_FRAME, onRender);
 		}
 		
 		protected function initMolehill(e:Event):void
