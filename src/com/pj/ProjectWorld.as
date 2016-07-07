@@ -34,7 +34,7 @@ package com.pj
 			this._world.camera.position = new Vector3D(0, 0, -SPACE_RADIUS * (1.8 + 0.3));
 			this._world.camera.target = new Vector3D(0, 0, 0);
 			this._world.camera.up = new Vector3D(0, 1, 0);
-			this._world.camera.setProject(SPACE_RADIUS * (1.8 * 2), SPACE_RADIUS * 0.3, SPACE_RADIUS, SPACE_RADIUS);
+			this._world.camera.setProject(SPACE_RADIUS * (1.8 * 2 - 1.5), SPACE_RADIUS * 0.3, SPACE_RADIUS, SPACE_RADIUS);
 			this.createCircle();
 			
 			this._timer.start();

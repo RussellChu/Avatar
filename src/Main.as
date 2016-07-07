@@ -1,5 +1,6 @@
 package
 {
+	import com.pj.ProjectFlash3D;
 	import com.pj.ProjectWorld;
 	import flash.display.Sprite;
 	
@@ -8,7 +9,8 @@ package
 	{
 		public function Main():void
 		{
-			new ProjectWorld(this);
+		//	new ProjectWorld(this);
+			new ProjectFlash3D(this);
 			//trace("Hello World!");
 			//loader = new Loader();
 			//loader.contentLoaderInfo.addEventListener(Event.COMPLETE, function(e:Event):void
