@@ -9,6 +9,10 @@ package com.pj.common.j3d
 	 */
 	public class Camera3D
 	{
+		public static const MODE_ORTHOGONAL:int = 0;
+		public static const MODE_PERSPECTIVE:int = 1;
+		
+		private var _mode:int = 0;
 		private var _target:Vector3D = null;
 		private var _pos:Vector3D = null;
 		private var _up:Vector3D = null;
@@ -77,6 +81,10 @@ package com.pj.common.j3d
 			this._screenWidth = p_projWidth;
 		}
 		
+		public function set mode(p_mode:int):void{
+			this._mode = p_mode;
+		}
+		
 		public function set position(p_vtr:Vector3D):void
 		{
 			this._pos = p_vtr;
@@ -130,14 +138,20 @@ package com.pj.common.j3d
 			{
 				mxPlane.e[2][2] = 1 / this._planeDepth;
 			}
-			if (this._planeDist > 0)
-			{
-				mxPlane.e[3][2] = 1 / this._planeDist;
+			
+			if (this._mode == Camera3D.MODE_PERSPECTIVE) {
+				if (this._planeDist > 0)
+				{
+					mxPlane.e[3][2] = 1 / this._planeDist;
+				}
+				if (this._planeDepth > 0)
+				{
+					mxPlane.e[2][3] = -this._planeDist / this._planeDepth;
+				}
+			} else {
+				mxPlane.e[3][3] = 1;
 			}
-			if (this._planeDepth > 0)
-			{
-				mxPlane.e[2][3] = -this._planeDist / this._planeDepth;
-			}
+			
 			return mx.product(mxPlane);
 		}
 	

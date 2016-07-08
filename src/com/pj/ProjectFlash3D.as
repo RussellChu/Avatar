@@ -17,6 +17,10 @@ package com.pj
 	/**
 	 * ...
 	 * @author Russell
+	 * 
+	 * http://jacksondunstan.com/articles/1664
+	 * http://jacksondunstan.com/articles/1998
+	 * http://northwaygames.com/a-pixelfragment-shader-example-in-flash/
 	 */
 	public class ProjectFlash3D extends BasicContainer
 	{
@@ -60,7 +64,6 @@ package com.pj
 			
 			var fragmentShaderAssembler:AGALMiniAssembler = new AGALMiniAssembler();
 			fragmentShaderAssembler.assemble(Context3DProgramType.FRAGMENT,
-			
 			"mov oc, v0");
 			
 			program = context3D.createProgram();
@@ -80,6 +83,8 @@ package com.pj
 			context3D.setVertexBufferAt(1, vertexbuffer, 3, Context3DVertexBufferFormat.FLOAT_3);
 			// assign shader program
 			context3D.setProgram(program);
+			
+		//	context3D.set
 			
 			var m:Matrix3D = new Matrix3D();
 			m.appendRotation(getTimer() / 40, Vector3D.Z_AXIS);

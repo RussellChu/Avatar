@@ -1,9 +1,12 @@
 package com.pj
 {
 	import com.pj.common.Helper;
+	import com.pj.common.JColor;
 	import com.pj.common.component.BasicContainer;
 	import com.pj.common.component.World3D;
 	import com.pj.common.component.World3DObj;
+	import com.pj.common.j3d.Camera3D;
+	import com.pj.common.math.JMath;
 	import com.pj.common.math.Vector3D;
 	import flash.display.Sprite;
 	import flash.events.TimerEvent;
@@ -15,9 +18,9 @@ package com.pj
 	 */
 	public class ProjectWorld extends BasicContainer
 	{
-		private static const CIRCLE_AMOUNT:int = 600;
-		private static const CIRCLE_RADIUS:int = 10;
-		private static const SPACE_RADIUS:int = 400;
+		private static const CIRCLE_AMOUNT:int = 150;
+		private static const CIRCLE_RADIUS:int = 20;
+		private static const SPACE_RADIUS:int = 2000;
 		
 		private var _timer:Timer = null;
 		private var _world:World3D = null;
@@ -30,15 +33,16 @@ package com.pj
 			this._timer.addEventListener(TimerEvent.TIMER, this.onTime);
 			
 			this._world = new World3D(this);
-			this._world.setCenter(SPACE_RADIUS, SPACE_RADIUS);
-			this._world.camera.position = new Vector3D(0, 0, -SPACE_RADIUS * (1.8 + 0.3));
-			this._world.camera.target = new Vector3D(0, 0, 0);
+			this._world.setCenter(400, 400);
+			this._world.camera.mode = Camera3D.MODE_PERSPECTIVE;
+			this._world.camera.position = new Vector3D(0, 0, -SPACE_RADIUS * (1 + 0.3));
+			this._world.camera.target = new Vector3D(0, 0, 1);
 			this._world.camera.up = new Vector3D(0, 1, 0);
-			this._world.camera.setProject(SPACE_RADIUS * (1.8 * 2 - 1.5), SPACE_RADIUS * 0.3, SPACE_RADIUS, SPACE_RADIUS);
+			this._world.camera.setProject(SPACE_RADIUS * (1 + 1), SPACE_RADIUS * 0.3, SPACE_RADIUS, SPACE_RADIUS);
 			this.createCircle();
 			
 			this._timer.start();
-		
+			
 			//	var slider:Slider = new Slider(this, 100, 100);
 		}
 		
@@ -61,42 +65,17 @@ package com.pj
 		{
 			for (var i:int = 0; i < CIRCLE_AMOUNT; i++)
 			{
-				var color:int = 0xff000000 | 0x10000 * int(Math.random() * 0xff) | 0x100 * int(Math.random() * 0xff) | 0x1 * int(Math.random() * 0xff);
-				var item:CircleItem = new CircleItem(CIRCLE_RADIUS, color);
+				var item:CircleItem = new CircleItem(CIRCLE_RADIUS, JColor.setRGBA(Math.random(), Math.random(), Math.random(), 1));
 				var item3D:World3DObj = this._world.addChild(item) as World3DObj;
-				item3D.pos.x = (Math.random() * 2 - 1) * SPACE_RADIUS;
-				item3D.pos.y = (Math.random() * 2 - 1) * SPACE_RADIUS;
-				item3D.pos.z = (Math.random() * 2 - 1) * SPACE_RADIUS;
-				
-				var ratio:Number = 0;
-				if (i % 3 > 0)
-				{
-					if (Math.abs(item3D.pos.x) > Math.abs(item3D.pos.y) && Math.abs(item3D.pos.x) > Math.abs(item3D.pos.z))
-					{
-						ratio = SPACE_RADIUS / Math.abs(item3D.pos.x);
-					}
-					if (Math.abs(item3D.pos.y) > Math.abs(item3D.pos.z) && Math.abs(item3D.pos.y) > Math.abs(item3D.pos.x))
-					{
-						ratio = SPACE_RADIUS / Math.abs(item3D.pos.y);
-					}
-					if (Math.abs(item3D.pos.z) > Math.abs(item3D.pos.x) && Math.abs(item3D.pos.z) > Math.abs(item3D.pos.y))
-					{
-						ratio = SPACE_RADIUS / Math.abs(item3D.pos.z);
-					}
-					ratio *= 0.5;
-				}
-				else
-				{
-					ratio = SPACE_RADIUS * 0.7 / Math.sqrt(item3D.pos.lengthStr());
-					ratio *= 2;
-				}
-				item3D.pos.x *= ratio;
-				item3D.pos.y *= ratio;
-				item3D.pos.z *= ratio;
+
+				var randResult:Object = JMath.randSphereVolume();
+				item3D.pos.x = randResult.x * SPACE_RADIUS;
+				item3D.pos.y = randResult.y * SPACE_RADIUS;
+				item3D.pos.z = randResult.z * SPACE_RADIUS;
 			}
 			this._world.refresh();
 		}
-		
+
 		private function onTime(event:TimerEvent):void
 		{
 			this._world.camera.rotateByX(0.01);
@@ -111,37 +90,91 @@ package com.pj
 }
 
 import com.pj.common.Helper;
+import com.pj.common.JColor;
 import com.pj.common.component.BasicContainer;
 import com.pj.common.component.BasicObject;
 import com.pj.common.component.IContainer;
 import flash.display.Bitmap;
 import flash.display.BitmapData;
+import flash.display.MovieClip;
+import flash.display.Shape;
 import flash.display.Sprite;
+import flash.events.MouseEvent;
 
 class CircleItem extends BasicObject
 {
-	public function CircleItem(p_radius:Number, p_color:int):void
+	private var _bmp:Bitmap = null;
+	private var _bmpOver:Bitmap = null;
+	
+	public function CircleItem(p_radius:Number, p_color:uint):void
 	{
 		super();
 		
-		var sp:Sprite = new Sprite();
+		var color:JColor = JColor.createColorByHex(p_color);
+
 		var bmpData:BitmapData = new BitmapData(p_radius * 2 + 1, p_radius * 2 + 1, true, 0);
+		var bmpDataOver:BitmapData = new BitmapData(p_radius * 2 + 1, p_radius * 2 + 1, true, 0);
+		var maskingShape:Shape = new Shape();
+		maskingShape.graphics.beginFill(0xFFFFFF, 1);
 		bmpData.lock();
-		for (var i:int = -p_radius; i <= p_radius; i++)
+		bmpDataOver.lock();
+		if (p_radius >= 1)
 		{
-			for (var j:int = -p_radius; j <= p_radius; j++)
+			var maxR:Number = (p_radius - 0.5) * (p_radius - 0.5);
+			var invR:Number = 1 / maxR;
+			for (var i:int = -p_radius; i <= p_radius; i++)
 			{
-				if (i * i + j * j <= (p_radius - 0.5) * (p_radius - 0.5))
+				for (var j:int = -p_radius; j <= p_radius; j++)
 				{
-					bmpData.setPixel32(i + p_radius, j + p_radius, p_color);
+					var checkR:Number = i * i + j * j;
+					if (checkR <= maxR)
+					{
+						var c:JColor = color.clone();
+						c.a = 1 - checkR * invR;
+						bmpData.setPixel32(i + p_radius, j + p_radius, c.value);
+						c.r = 1;
+						c.g = 1;
+						c.b = 1;
+						bmpDataOver.setPixel32(i + p_radius, j + p_radius, c.value);
+						maskingShape.graphics.drawRect(i + p_radius, j + p_radius, 1, 1);
+					}
 				}
 			}
 		}
 		bmpData.unlock();
-		var bmp:Bitmap = new Bitmap(bmpData);
-		bmp.x = -p_radius;
-		bmp.y = -p_radius;
-		(this.instance as Sprite).addChild(bmp);
+		bmpDataOver.unlock();
+		maskingShape.graphics.endFill();
+		
+		this._bmp = new Bitmap(bmpData);
+		this._bmp.x = -p_radius;
+		this._bmp.y = -p_radius;
+		(this.instance as Sprite).addChild(this._bmp);
+		
+		this._bmpOver = new Bitmap(bmpDataOver);
+		this._bmpOver.x = -p_radius;
+		this._bmpOver.y = -p_radius;
+		this._bmpOver.visible = false;
+		(this.instance as Sprite).addChild(this._bmpOver);
+		
+		//maskingShape.x = -p_radius;
+		//maskingShape.y = -p_radius;
+		//(this.instance as Sprite).addChild(maskingShape);
+		//(this.instance as Sprite).mask = maskingShape;
+		
+		(this.instance as Sprite).addEventListener(MouseEvent.MOUSE_OVER, this.onMouseOver);
+		(this.instance as Sprite).addEventListener(MouseEvent.ROLL_OUT, this.onMouseRollOut);
+	}
+	
+	private function onMouseOver(p_evt:MouseEvent):void
+	{
+		this._bmpOver.visible = true;
+		this._bmp.visible = false;
+	}
+	
+	private function onMouseRollOut(p_evt:MouseEvent):void
+	{
+		this._bmp.visible = true;
+		this._bmpOver.visible = false;
 	}
 
 }
