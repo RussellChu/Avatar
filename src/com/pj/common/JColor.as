@@ -58,7 +58,7 @@ package com.pj.common
 			return "(" + this.r + ", " + this.g + ", " + this.b + ", " + this.a + ")";
 		}
 		
-		public function get value():int
+		public function get value():uint
 		{
 			return JColor.setRGBA(this.r, this.g, this.b, this.a);
 		}

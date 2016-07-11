@@ -13,7 +13,7 @@ package com.pj.common.component
 	{
 		private var _instance:DisplayObject = null;
 		
-		public function BasicObject(p_inst:DisplayObject = null, p_parent:com.pj.common.component.IContainer = null):void
+		public function BasicObject(p_inst:DisplayObject = null, p_parent:IContainer = null):void
 		{
 			if (p_inst)
 			{

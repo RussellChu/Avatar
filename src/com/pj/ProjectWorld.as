@@ -3,6 +3,7 @@ package com.pj
 	import com.pj.common.Helper;
 	import com.pj.common.JColor;
 	import com.pj.common.component.BasicContainer;
+	import com.pj.common.component.SimpleButton;
 	import com.pj.common.component.World3D;
 	import com.pj.common.component.World3DObj;
 	import com.pj.common.j3d.Camera3D;
@@ -43,7 +44,23 @@ package com.pj
 			
 			this._timer.start();
 			
-			//	var slider:Slider = new Slider(this, 100, 100);
+			var btn:SimpleButton = new SimpleButton("Hello world", 200, 50);
+			//	this.addChild(btn);
+			
+			//	var img:RandImage = new RandImage(null, 100, 100);
+			//var slider:Slider = new Slider(this, 400, 400);
+			//new RandImage(slider, 800, 800);
+			//slider.instance.x = 200;
+			//slider.instance.y = 200;
+			//	slider.addChild(img);
+			/*
+			   var img:RandImage = new RandImage(null, 100, 100);
+			   img.instance.x = 200;
+			   img.instance.y = 200;
+			 */
+			
+			var testHolder:Slider = new Slider(this, 300, 300);
+			new RandImage(testHolder, 400, 400);
 		}
 		
 		override public function dispose():void
@@ -67,7 +84,7 @@ package com.pj
 			{
 				var item:CircleItem = new CircleItem(CIRCLE_RADIUS, JColor.setRGBA(Math.random(), Math.random(), Math.random(), 1));
 				var item3D:World3DObj = this._world.addChild(item) as World3DObj;
-
+				
 				var randResult:Object = JMath.randSphereVolume();
 				item3D.pos.x = randResult.x * SPACE_RADIUS;
 				item3D.pos.y = randResult.y * SPACE_RADIUS;
@@ -75,7 +92,7 @@ package com.pj
 			}
 			this._world.refresh();
 		}
-
+		
 		private function onTime(event:TimerEvent):void
 		{
 			this._world.camera.rotateByX(0.01);
@@ -90,13 +107,13 @@ package com.pj
 }
 
 import com.pj.common.Helper;
+import com.pj.common.IDisposable;
 import com.pj.common.JColor;
 import com.pj.common.component.BasicContainer;
 import com.pj.common.component.BasicObject;
 import com.pj.common.component.IContainer;
 import flash.display.Bitmap;
 import flash.display.BitmapData;
-import flash.display.MovieClip;
 import flash.display.Shape;
 import flash.display.Sprite;
 import flash.events.MouseEvent;
@@ -111,7 +128,7 @@ class CircleItem extends BasicObject
 		super();
 		
 		var color:JColor = JColor.createColorByHex(p_color);
-
+		
 		var bmpData:BitmapData = new BitmapData(p_radius * 2 + 1, p_radius * 2 + 1, true, 0);
 		var bmpDataOver:BitmapData = new BitmapData(p_radius * 2 + 1, p_radius * 2 + 1, true, 0);
 		var maskingShape:Shape = new Shape();
@@ -179,14 +196,112 @@ class CircleItem extends BasicObject
 
 }
 
+class RandImage extends BasicObject
+{
+	public function RandImage(p_parent:IContainer, p_width:int, p_height:int):void
+	{
+		super(new Sprite(), p_parent);
+		
+		var bmpData:BitmapData = new BitmapData(p_width, p_height, true, 0);
+		
+		bmpData.lock();
+		for (var i:int = 0; i < p_width; i++)
+		{
+			for (var j:int = 0; j < p_height; j++)
+			{
+				var color:uint = new JColor(Math.random(), Math.random(), Math.random(), 1).value;
+				bmpData.setPixel32(i, j, color);
+			}
+		}
+		bmpData.unlock();
+		
+		var img:Bitmap = new Bitmap(bmpData);
+		this.container.addChild(img);
+	}
+	
+	private function get container():Sprite
+	{
+		return this.instance as Sprite;
+	}
+}
+
+class DragableObject implements IDisposable
+{
+//	private var 
+	private var _state:int = 0;
+	private var _startX:int = 0;
+	private var _startY:int = 0;
+	private var _target:BasicObject = null;
+	
+	public function DragableObject(p_target:BasicObject):void
+	{
+		this._target = p_target;
+		this._target.instance.addEventListener(MouseEvent.MOUSE_DOWN, this.onMouseDown);
+		this._target.instance.addEventListener(MouseEvent.MOUSE_MOVE, this.onMouseMove);
+		this._target.instance.addEventListener(MouseEvent.MOUSE_UP, this.onMouseUp);
+		this._target.instance.addEventListener(MouseEvent.ROLL_OUT, this.onMouseUp);
+	}
+	
+	public function dispose():void {
+		if (this._target) {
+			this._target.instance.removeEventListener( MouseEvent.MOUSE_DOWN, this.onMouseDown);
+			this._target.instance.removeEventListener(MouseEvent.MOUSE_MOVE, this.onMouseMove);
+			this._target.instance.removeEventListener(MouseEvent.MOUSE_UP, this.onMouseUp);
+			this._target.instance.removeEventListener(MouseEvent.ROLL_OUT, this.onMouseUp);
+		}
+		Helper.dispose(this._target);
+		this._target = null;
+	}
+	
+	private function onMouseDown(p_evt:MouseEvent):void
+	{
+		this._startX = p_evt.localX;
+		this._startY = p_evt.localY;
+		this._state = 1;
+	}
+	
+	private function onMouseMove(p_evt:MouseEvent):void
+	{
+		if (this._state == 0) {
+			return;
+		}
+		var mX:int = p_evt.localX - this._startX;
+		var mY:int = p_evt.localY - this._startY;
+		this._target.instance.x += mX;
+		this._target.instance.y += mY;
+	}
+	
+	private function onMouseUp(p_evt:MouseEvent):void
+	{
+		this._state = 0;
+	}
+}
+
+class DragableContainer extends BasicContainer
+{
+	private var _dragable:DragableObject = null;
+	
+	public function DragableContainer(p_parent:IContainer):void
+	{
+		super(p_parent);
+		this._dragable = new DragableObject(this);
+	}
+	
+	override public function dispose():void {
+		Helper.dispose(this._dragable);
+		this._dragable = null;
+	}
+}
+
 class Slider extends BasicObject implements IContainer
 {
 	private var _container:BasicContainer = null;
 	private var _content:BasicContainer = null;
+	private var _contentDragable:DragableObject = null;
 	private var _width:int = 0;
 	private var _height:int = 0;
 	
-	public function Slider(p_parent:BasicContainer, p_width:int, p_height:int):void
+	public function Slider(p_parent:IContainer, p_width:int, p_height:int):void
 	{
 		super(new Sprite(), p_parent);
 		this._container = new BasicContainer(p_parent, this.instance as Sprite);
@@ -194,17 +309,24 @@ class Slider extends BasicObject implements IContainer
 		this._width = p_width;
 		this._height = p_height;
 		
-		var maskImg:BitmapData = new BitmapData(this._width, this._height, true, 0);
-		var mask:Bitmap = new Bitmap(maskImg);
-		this._container.instance.mask = mask;
+		var maskingShape:Shape = new Shape();
+		maskingShape.graphics.beginFill(0xFFFFFF, 1);
+		maskingShape.graphics.drawRect(0, 0, this._width, this._height);
+		maskingShape.graphics.endFill();
+		(this._container.instance as Sprite).addChild(maskingShape);
+		this._container.instance.mask = maskingShape;
+		
+		this._contentDragable = new DragableObject(this._content);
 	}
 	
 	override public function dispose():void
 	{
 		Helper.dispose(this._container);
 		Helper.dispose(this._content);
+		Helper.dispose(this._contentDragable);
 		this._container = null;
 		this._content = null;
+		this._contentDragable = null;
 		super.dispose();
 	}
 	
