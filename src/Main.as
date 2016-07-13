@@ -5,7 +5,7 @@ package
 	import com.pj.ProjectWorld;
 	import flash.display.Sprite;
 	
-	[SWF(width = "800", height = "800", frameRate = "60", backgroundColor = "#000044")]
+	[SWF(width = "1280", height = "800", frameRate = "60", backgroundColor = "#000044")]
 	public class Main extends Sprite
 	{
 		public function Main():void

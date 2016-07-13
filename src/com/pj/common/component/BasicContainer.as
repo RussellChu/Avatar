@@ -12,7 +12,7 @@ package com.pj.common.component
 	{
 		protected var _child:Vector.<BasicObject> = null;
 		
-		public function BasicContainer(p_parent:IContainer, p_inst:Sprite = null):void
+		public function BasicContainer(p_parent:IContainer = null, p_inst:Sprite = null):void
 		{
 			super(p_inst, p_parent);
 			this._child = new Vector.<BasicObject>();
