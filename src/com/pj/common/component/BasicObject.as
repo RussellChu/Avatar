@@ -4,12 +4,13 @@ package com.pj.common.component
 	import com.pj.common.IDisposable;
 	import flash.display.DisplayObject;
 	import flash.display.Sprite;
+	import flash.events.EventDispatcher;
 	
 	/**
 	 * ...
 	 * @author Russell
 	 */
-	public class BasicObject implements com.pj.common.IDisposable
+	public class BasicObject extends EventDispatcher implements com.pj.common.IDisposable
 	{
 		private var _instance:DisplayObject = null;
 		

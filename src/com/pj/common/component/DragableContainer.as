@@ -4,16 +4,19 @@ package com.pj.common.component
 	import com.pj.common.component.BasicContainer;
 	import com.pj.common.component.BasicObject;
 	import com.pj.common.component.IContainer;
-	import com.pj.common.component.IMoveChecker;
+	import com.pj.common.component.IMoveHandler;
+	import com.pj.common.events.JComponentEvent;
+	import com.pj.common.events.JEvent;
 	import com.pj.common.math.Vector2D;
 	import flash.display.Shape;
 	import flash.display.Sprite;
+	import flash.events.Event;
 	
 	/**
 	 * ...
 	 * @author Russell
 	 */
-	public class DragableContainer extends BasicObject implements IContainer, IMoveChecker
+	public class DragableContainer extends BasicObject implements IContainer, IMoveHandler
 	{
 		
 		private var _borderWidth:int = 0;
@@ -45,11 +48,14 @@ package com.pj.common.component
 		
 		override public function dispose():void
 		{
+			Helper.dispose(this._content);
 			Helper.dispose(this._dragable);
+			this._content = null;
 			this._dragable = null;
 		}
 		
-		private function get container():Sprite {
+		private function get container():Sprite
+		{
 			return this.instance as Sprite;
 		}
 		
@@ -73,6 +79,12 @@ package com.pj.common.component
 				result.y = 0;
 			}
 			return result;
+		}
+		
+		public function onMoveComplete(p_to:Vector2D):void
+		{
+			var evt:JEvent = new JEvent(JComponentEvent.DRAGABLE_SLIDE, {pos: p_to});
+			this.dispatchEvent(evt);
 		}
 		
 		public function addChild(p_child:BasicObject):BasicObject

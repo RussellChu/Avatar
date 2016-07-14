@@ -3,8 +3,10 @@ package com.pj.common.component
 	import com.pj.common.Helper;
 	import com.pj.common.IDisposable;
 	import com.pj.common.component.BasicObject;
-	import com.pj.common.component.IMoveChecker;
+	import com.pj.common.component.IMoveHandler;
+	import com.pj.common.events.JComponentEvent;
 	import com.pj.common.math.Vector2D;
+	import flash.events.EventDispatcher;
 	import flash.events.MouseEvent;
 	
 	/**
@@ -13,7 +15,7 @@ package com.pj.common.component
 	 */
 	public class DragableObject implements IDisposable
 	{
-		private var _moveChecker:IMoveChecker = null;
+		private var _moveChecker:IMoveHandler = null;
 		private var _state:int = 0;
 		private var _startX:int = 0;
 		private var _startY:int = 0;
@@ -21,14 +23,14 @@ package com.pj.common.component
 		private var _wheelX:int = 0;
 		private var _wheelY:int = 0;
 		
-		public function DragableObject(p_target:BasicObject, p_moveChecker:IMoveChecker = null):void
+		public function DragableObject(p_target:BasicObject, p_moveChecker:IMoveHandler = null):void
 		{
 			this._moveChecker = p_moveChecker;
 			this._target = p_target;
 			this._target.instance.addEventListener(MouseEvent.MOUSE_DOWN, this.onMouseDown);
 			this._target.instance.addEventListener(MouseEvent.MOUSE_MOVE, this.onMouseMove);
 			this._target.instance.addEventListener(MouseEvent.MOUSE_UP, this.onMouseUp);
-			this._target.instance.addEventListener(MouseEvent.ROLL_OUT, this.onMouseUp);
+			this._target.instance.addEventListener(MouseEvent.RELEASE_OUTSIDE, this.onMouseUp);
 			this._target.instance.addEventListener(MouseEvent.MOUSE_WHEEL, this.onMouseWheel);
 		}
 		
@@ -57,17 +59,17 @@ package com.pj.common.component
 		{
 			var fromVtr:Vector2D = new Vector2D(this._target.instance.x, this._target.instance.y);
 			var toVtr:Vector2D = new Vector2D(this._target.instance.x + p_mX, this._target.instance.y + p_mY);
+			var resultVtr:Vector2D = toVtr;
 			if (this._moveChecker)
 			{
-				var resultVtr:Vector2D = this._moveChecker.checkMove(fromVtr, toVtr);
-				this._target.instance.x = resultVtr.x;
-				this._target.instance.y = resultVtr.y;
+				resultVtr = this._moveChecker.checkMove(fromVtr, toVtr);
 			}
-			else
-			{
-				this._target.instance.x = toVtr.x;
-				this._target.instance.y = toVtr.y;
+			if (fromVtr.x == resultVtr.x && fromVtr.y == resultVtr.y) {
+				return;
 			}
+			this._target.instance.x = resultVtr.x;
+			this._target.instance.y = resultVtr.y;
+			this._moveChecker.onMoveComplete(resultVtr);
 		}
 		
 		private function onMouseDown(p_evt:MouseEvent):void

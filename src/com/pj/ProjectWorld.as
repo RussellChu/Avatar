@@ -35,22 +35,25 @@ package com.pj
 			this._timer = new Timer(20);
 			this._timer.addEventListener(TimerEvent.TIMER, this.onTime);
 			
-			this._world = new World3D(this);
-			this._world.setCenter(640, 400);
-			this._world.camera.mode = Camera3D.MODE_PERSPECTIVE;
-			this._world.camera.position = new Vector3D(0, 0, -SPACE_RADIUS * (1 + 0.3));
-			this._world.camera.target = new Vector3D(0, 0, 1);
-			this._world.camera.up = new Vector3D(0, 1, 0);
-			this._world.camera.setProject(SPACE_RADIUS * (1 + 1), SPACE_RADIUS * 0.3, SPACE_RADIUS, SPACE_RADIUS);
-			this.createCircle();
-			
-			this._timer.start();
+			//this._world = new World3D(this);
+			//this._world.setCenter(640, 400);
+			//this._world.camera.mode = Camera3D.MODE_PERSPECTIVE;
+			//this._world.camera.position = new Vector3D(0, 0, -SPACE_RADIUS * (1 + 0.3));
+			//this._world.camera.target = new Vector3D(0, 0, 1);
+			//this._world.camera.up = new Vector3D(0, 1, 0);
+			//this._world.camera.setProject(SPACE_RADIUS * (1 + 1), SPACE_RADIUS * 0.3, SPACE_RADIUS, SPACE_RADIUS);
+			//this.createCircle();
+			//
+			//this._timer.start();
 			
 			var btn:SimpleButton = new SimpleButton("Hello world", 200, 50);
 			//	this.addChild(btn);
 			
-			var testHolder:DragableContainer = new DragableContainer(this, 200, 200, 400, 400);
-			new JImage_RandSqr(testHolder, 400, 400);
+		//	var testHolder:DragableContainer = new DragableContainer(this, 200, 200, 400, 400);
+		//	new JImage_RandSqr(testHolder, 400, 400);
+			
+			var slider:Slider = new Slider(this, 200, 50, 300, 300);
+			new JImage_RandSqr(slider, 300, 300);
 		}
 		
 		override public function dispose():void
@@ -103,8 +106,12 @@ import com.pj.common.component.BasicObject;
 import com.pj.common.component.DragableContainer;
 import com.pj.common.component.DragableObject;
 import com.pj.common.component.IContainer;
+import com.pj.common.events.JComponentEvent;
+import com.pj.common.events.JEvent;
+import com.pj.common.math.Vector2D;
 import flash.display.Shape;
 import flash.display.Sprite;
+import flash.events.Event;
 
 class Slider extends BasicObject implements IContainer
 {
@@ -114,6 +121,9 @@ class Slider extends BasicObject implements IContainer
 	private var _content:DragableContainer = null;
 	private var _ctrlBar:Shape = null;
 	private var _ctrlBg:Shape = null;
+	
+	private var _contentMoveMax:int = 0;
+	private var _ctrlMoveMax:int = 0;
 	
 	public function Slider(p_parent:IContainer, p_borderWidth:int = 0, p_borderHeight:int = 0, p_contentWidth:int = 0, p_contentHeight:int = 0):void
 	{
@@ -138,10 +148,13 @@ class Slider extends BasicObject implements IContainer
 		{
 			contentHeight = 0;
 		}
-		this._content = new DragableContainer(null);
+		this._content = new DragableContainer(null, borderWidth - CTRL_WIDTH, borderHeight, contentWidth, contentHeight);
+		this._content.addEventListener(JComponentEvent.DRAGABLE_SLIDE, this.onSlide);
 		this.container.addChild(this._content.instance);
 		
 		this._ctrlBg = new Shape();
+		this._ctrlBg.x = borderWidth - CTRL_WIDTH;
+		this._ctrlBg.y = 0;
 		this._ctrlBg.width = 1;
 		this._ctrlBg.height = 1;
 		this._ctrlBg.graphics.beginFill(CTRL_BG_COLOR, 1);
@@ -171,6 +184,10 @@ class Slider extends BasicObject implements IContainer
 		this._ctrlBar.scaleX = CTRL_WIDTH;
 		this._ctrlBar.scaleY = borderHeight * ratio;
 		this.container.addChild(this._ctrlBar);
+		
+		// to do
+		this._contentMoveMax = contentHeight - borderHeight;
+		this._ctrlMoveMax = borderHeight * (1 - ratio);
 	}
 	
 	override public function dispose():void
@@ -190,6 +207,15 @@ class Slider extends BasicObject implements IContainer
 	{
 		this._content.addChild(p_child);
 		return p_child;
+	}
+	
+	private function onSlide(p_evt:JEvent):void {
+		var pos:Vector2D = p_evt.data.pos as Vector2D;
+		var posY:int = -pos.y;
+		if (this._contentMoveMax > 0){
+			this._ctrlBar.y = posY * this._ctrlMoveMax / this._contentMoveMax;
+		}
+		trace("Testing >> ", pos.x + ", " + pos.y);
 	}
 
 }
