@@ -49,8 +49,8 @@ package com.pj
 			var btn:SimpleButton = new SimpleButton("Hello world", 200, 50);
 			//	this.addChild(btn);
 			
-		//	var testHolder:DragableContainer = new DragableContainer(this, 200, 200, 400, 400);
-		//	new JImage_RandSqr(testHolder, 400, 400);
+			//	var testHolder:DragableContainer = new DragableContainer(this, 200, 200, 400, 400);
+			//	new JImage_RandSqr(testHolder, 400, 400);
 			
 			var slider:Slider = new Slider(this, 200, 50, 300, 300);
 			new JImage_RandSqr(slider, 300, 300);
@@ -113,14 +113,118 @@ import flash.display.Shape;
 import flash.display.Sprite;
 import flash.events.Event;
 
-class Slider extends BasicObject implements IContainer
+class SliderCtrl extends BasicObject implements IMoveHandler
 {
 	private static const CTRL_BAR_COLOR:uint = 0xffc8c8c8;
 	private static const CTRL_BG_COLOR:uint = 0xfff0f0f0;
 	private static const CTRL_WIDTH:int = 15;
+	private static const WHEEL_STEP:int = 10; // 10 * 3(3:system setting) = 30
+	
+	private var _borderWidth:int = 0;
+	private var _borderHeight:int = 0;
+	private var _contentWidth:int = 0;
+	private var _contentHeight:int = 0;
+	private var _content:BasicContainer = null;
+	private var _dragable:DragableObject = null;
+	
+	public function SliderCtrl(p_parent:IContainer, p_bgHeight:int, p_barHeight:int):void
+	{
+		super(null, p_parent);
+		this._content = new BasicContainer();
+		this._dragable = new DragableObject(this._content, this);
+		this._dragable.setWheel(0, WHEEL_STEP);
+		
+		this.container.addChild(this._content.instance);
+		this.container.addChild(this._content.instance);
+		
+		this._borderWidth = p_borderWidth;
+		this._borderHeight = p_borderHeight;
+		this._contentWidth = p_contentWidth;
+		this._contentHeight = p_contentHeight;
+		
+		
+		var bgHeight:int = p_bgHeight;
+		var barHeight:int = p_barHeight;
+		if ( bgHeight < 0 ) {
+			bgHeight = 0;
+		}
+		if (barHeight < 0) {
+			barHeight = 0;
+		}
+		if ( barHeight > bgHeight ) {
+			barHeight = bgHeight;
+		}
+		
+		var shapeBg:Shape = new Shape();
+		shapeBg.width = 1;
+		shapeBg.height = 1;
+		shapeBg.graphics.beginFill(CTRL_BG_COLOR, 1);
+		shapeBg.graphics.drawRect(0, 0, 1, 1);
+		shapeBg.graphics.endFill();
+		shapeBg.scaleX = CTRL_WIDTH;
+		shapeBg.scaleY = bgHeight;
+
+		var shapeBar:Shape = new Shape();
+		shapeBar.width = 1;
+		shapeBar.height = 1;
+		shapeBar.graphics.beginFill(CTRL_BAR_COLOR, 1);
+		shapeBar.graphics.drawRect(0, 0, 1, 1);
+		shapeBar.graphics.endFill();
+		shapeBar.scaleX = CTRL_WIDTH;
+		shapeBar.scaleY = barHeight;
+		
+		// to do
+		
+		this.container.addChild(ctrlBg);
+		
+	}
+	
+	override public function dispose():void
+	{
+		Helper.dispose(this._content);
+		Helper.dispose(this._dragable);
+		this._content = null;
+		this._dragable = null;
+	}
+	
+	private function get container():Sprite
+	{
+		return this.instance as Sprite;
+	}
+	
+	public function checkMove(p_from:Vector2D, p_to:Vector2D):Vector2D
+	{
+		var result:Vector2D = p_to.clone();
+		if (result.x < this._borderWidth - this._contentWidth)
+		{
+			result.x = this._borderWidth - this._contentWidth;
+		}
+		if (result.y < this._borderHeight - this._contentHeight)
+		{
+			result.y = this._borderHeight - this._contentHeight;
+		}
+		if (result.x > 0)
+		{
+			result.x = 0;
+		}
+		if (result.y > 0)
+		{
+			result.y = 0;
+		}
+		return result;
+	}
+	
+	public function onMoveComplete(p_to:Vector2D):void
+	{
+		var evt:JEvent = new JEvent(JComponentEvent.DRAGABLE_SLIDE, {pos: p_to});
+		this.dispatchEvent(evt);
+	}
+
+}
+
+class Slider extends BasicObject implements IContainer
+{
 	private var _content:DragableContainer = null;
-	private var _ctrlBar:Shape = null;
-	private var _ctrlBg:Shape = null;
 	
 	private var _contentMoveMax:int = 0;
 	private var _ctrlMoveMax:int = 0;
@@ -198,8 +302,9 @@ class Slider extends BasicObject implements IContainer
 		this._ctrlBg = null;
 		super.dispose();
 	}
-		
-	private function get container():Sprite {
+	
+	private function get container():Sprite
+	{
 		return this.instance as Sprite;
 	}
 	
@@ -209,10 +314,12 @@ class Slider extends BasicObject implements IContainer
 		return p_child;
 	}
 	
-	private function onSlide(p_evt:JEvent):void {
+	private function onSlide(p_evt:JEvent):void
+	{
 		var pos:Vector2D = p_evt.data.pos as Vector2D;
 		var posY:int = -pos.y;
-		if (this._contentMoveMax > 0){
+		if (this._contentMoveMax > 0)
+		{
 			this._ctrlBar.y = posY * this._ctrlMoveMax / this._contentMoveMax;
 		}
 		trace("Testing >> ", pos.x + ", " + pos.y);
