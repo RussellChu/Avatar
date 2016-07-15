@@ -6,6 +6,7 @@ package com.pj.common.component
 	import com.pj.common.component.IMoveHandler;
 	import com.pj.common.events.JComponentEvent;
 	import com.pj.common.math.Vector2D;
+	import flash.events.Event;
 	import flash.events.EventDispatcher;
 	import flash.events.MouseEvent;
 	
@@ -28,10 +29,20 @@ package com.pj.common.component
 			this._moveChecker = p_moveChecker;
 			this._target = p_target;
 			this._target.instance.addEventListener(MouseEvent.MOUSE_DOWN, this.onMouseDown);
-			this._target.instance.addEventListener(MouseEvent.MOUSE_MOVE, this.onMouseMove);
 			this._target.instance.addEventListener(MouseEvent.MOUSE_UP, this.onMouseUp);
 			this._target.instance.addEventListener(MouseEvent.RELEASE_OUTSIDE, this.onMouseUp);
 			this._target.instance.addEventListener(MouseEvent.MOUSE_WHEEL, this.onMouseWheel);
+		}
+		
+		private function onDraggerBtnMove(e:Event):void
+		{
+			if (this._state == 0)
+			{
+				this._target.instance.removeEventListener(Event.ENTER_FRAME, this.onDraggerBtnMove);
+				return;
+			}
+			
+			this.slide(this._target.instance.mouseX - this._startX, this._target.instance.mouseY - this._startY);
 		}
 		
 		public function dispose():void
@@ -39,10 +50,10 @@ package com.pj.common.component
 			if (this._target)
 			{
 				this._target.instance.removeEventListener(MouseEvent.MOUSE_DOWN, this.onMouseDown);
-				this._target.instance.removeEventListener(MouseEvent.MOUSE_MOVE, this.onMouseMove);
 				this._target.instance.removeEventListener(MouseEvent.MOUSE_UP, this.onMouseUp);
-				this._target.instance.removeEventListener(MouseEvent.ROLL_OUT, this.onMouseUp);
+				this._target.instance.removeEventListener(MouseEvent.RELEASE_OUTSIDE, this.onMouseUp);
 				this._target.instance.removeEventListener(MouseEvent.MOUSE_WHEEL, this.onMouseWheel);
+				this._target.instance.removeEventListener(Event.ENTER_FRAME, this.onDraggerBtnMove);
 			}
 			Helper.dispose(this._target);
 			this._moveChecker = null;
@@ -57,7 +68,6 @@ package com.pj.common.component
 		
 		private function slide(p_mX:int, p_mY:int):void
 		{
-			trace( "slide >> " + p_mY );
 			var fromVtr:Vector2D = new Vector2D(this._target.instance.x, this._target.instance.y);
 			var toVtr:Vector2D = new Vector2D(this._target.instance.x + p_mX, this._target.instance.y + p_mY);
 			var resultVtr:Vector2D = toVtr;
@@ -65,7 +75,8 @@ package com.pj.common.component
 			{
 				resultVtr = this._moveChecker.checkMove(fromVtr, toVtr);
 			}
-			if (fromVtr.x == resultVtr.x && fromVtr.y == resultVtr.y) {
+			if (fromVtr.x == resultVtr.x && fromVtr.y == resultVtr.y)
+			{
 				return;
 			}
 			this._target.instance.x = resultVtr.x;
@@ -75,10 +86,14 @@ package com.pj.common.component
 		
 		private function onMouseDown(p_evt:MouseEvent):void
 		{
-			this._startX = p_evt.localX;
-			this._startY = p_evt.localY;
+			if (this._state == 1) {
+				return;
+			}
+			
+			this._startX = this._target.instance.mouseX;
+			this._startY = this._target.instance.mouseY;
 			this._state = 1;
-			trace("A");
+			this._target.instance.addEventListener(Event.ENTER_FRAME, this.onDraggerBtnMove);
 		}
 		
 		private function onMouseMove(p_evt:MouseEvent):void
