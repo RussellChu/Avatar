@@ -10,7 +10,6 @@ package com.pj.common.component
 	import com.pj.common.math.Vector2D;
 	import flash.display.Shape;
 	import flash.display.Sprite;
-	import flash.events.Event;
 	
 	/**
 	 * ...
@@ -18,7 +17,6 @@ package com.pj.common.component
 	 */
 	public class DragableContainer extends BasicObject implements IContainer, IMoveHandler
 	{
-		
 		private var _borderWidth:int = 0;
 		private var _borderHeight:int = 0;
 		private var _contentWidth:int = 0;
@@ -31,7 +29,6 @@ package com.pj.common.component
 			super(null, p_parent);
 			this._content = new BasicContainer();
 			this._dragable = new DragableObject(this._content, this);
-			this._dragable.setWheel(0, 10);
 			this.container.addChild(this._content.instance);
 			this._borderWidth = p_borderWidth;
 			this._borderHeight = p_borderHeight;
@@ -91,6 +88,16 @@ package com.pj.common.component
 		{
 			this._content.addChild(p_child);
 			return p_child;
+		}
+		
+		public function setWheel(p_mX:int, p_mY:int):void
+		{
+			this._dragable.setWheel(p_mX, p_mY);
+		}
+		
+		public function slideTo(p_posX:int, p_posY:int, p_isUpdate:Boolean = false):void
+		{
+			this._dragable.slideTo(p_posX, p_posY, p_isUpdate);
 		}
 	
 	}
