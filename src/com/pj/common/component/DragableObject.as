@@ -57,6 +57,7 @@ package com.pj.common.component
 		
 		private function slide(p_mX:int, p_mY:int):void
 		{
+			trace( "slide >> " + p_mY );
 			var fromVtr:Vector2D = new Vector2D(this._target.instance.x, this._target.instance.y);
 			var toVtr:Vector2D = new Vector2D(this._target.instance.x + p_mX, this._target.instance.y + p_mY);
 			var resultVtr:Vector2D = toVtr;
@@ -77,6 +78,7 @@ package com.pj.common.component
 			this._startX = p_evt.localX;
 			this._startY = p_evt.localY;
 			this._state = 1;
+			trace("A");
 		}
 		
 		private function onMouseMove(p_evt:MouseEvent):void

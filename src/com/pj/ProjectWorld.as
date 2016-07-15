@@ -2,16 +2,14 @@ package com.pj
 {
 	import com.pj.common.Helper;
 	import com.pj.common.component.BasicContainer;
-	import com.pj.common.component.DragableContainer;
 	import com.pj.common.component.SimpleButton;
 	import com.pj.common.component.World3D;
 	import com.pj.common.component.World3DObj;
 	import com.pj.common.image.JImage_Circle;
-	import com.pj.common.image.JImage_RandSqr;
-	import com.pj.common.j3d.Camera3D;
 	import com.pj.common.math.JMath;
-	import com.pj.common.math.Vector3D;
+	import flash.display.DisplayObject;
 	import flash.display.Sprite;
+	import flash.events.MouseEvent;
 	import flash.events.TimerEvent;
 	import flash.utils.Timer;
 	
@@ -52,8 +50,19 @@ package com.pj
 			//	var testHolder:DragableContainer = new DragableContainer(this, 200, 200, 400, 400);
 			//	new JImage_RandSqr(testHolder, 400, 400);
 			
-			var slider:Slider = new Slider(this, 200, 50, 300, 300);
-			new JImage_RandSqr(slider, 300, 300);
+		//	var slider:Slider = new Slider(this, 200, 50, 300, 300);
+		//	new JImage_RandSqr(slider, 300, 300);
+		var ctrl:SliderCtrl = new SliderCtrl(this, 400, 100);
+		
+		this.instance.addEventListener(MouseEvent.MOUSE_DOWN, function(p_evt:MouseEvent):void{
+			trace("Mouse test");
+			var target:DisplayObject = p_evt.target as DisplayObject;
+			if (target) {
+				trace("name >> " + target.name);
+			} else {
+				trace("no target");
+			}
+		});
 		}
 		
 		override public function dispose():void
@@ -101,17 +110,16 @@ package com.pj
 }
 
 import com.pj.common.Helper;
-import com.pj.common.component.BasicContainer;
 import com.pj.common.component.BasicObject;
-import com.pj.common.component.DragableContainer;
 import com.pj.common.component.DragableObject;
 import com.pj.common.component.IContainer;
+import com.pj.common.component.IMoveHandler;
 import com.pj.common.events.JComponentEvent;
 import com.pj.common.events.JEvent;
 import com.pj.common.math.Vector2D;
+import flash.display.Bitmap;
 import flash.display.Shape;
 import flash.display.Sprite;
-import flash.events.Event;
 
 class SliderCtrl extends BasicObject implements IMoveHandler
 {
@@ -120,70 +128,59 @@ class SliderCtrl extends BasicObject implements IMoveHandler
 	private static const CTRL_WIDTH:int = 15;
 	private static const WHEEL_STEP:int = 10; // 10 * 3(3:system setting) = 30
 	
-	private var _borderWidth:int = 0;
-	private var _borderHeight:int = 0;
-	private var _contentWidth:int = 0;
-	private var _contentHeight:int = 0;
-	private var _content:BasicContainer = null;
+	private var _barHeight:int = 0;
+	private var _bgHeight:int = 0;
 	private var _dragable:DragableObject = null;
 	
 	public function SliderCtrl(p_parent:IContainer, p_bgHeight:int, p_barHeight:int):void
 	{
 		super(null, p_parent);
-		this._content = new BasicContainer();
-		this._dragable = new DragableObject(this._content, this);
-		this._dragable.setWheel(0, WHEEL_STEP);
 		
-		this.container.addChild(this._content.instance);
-		this.container.addChild(this._content.instance);
-		
-		this._borderWidth = p_borderWidth;
-		this._borderHeight = p_borderHeight;
-		this._contentWidth = p_contentWidth;
-		this._contentHeight = p_contentHeight;
-		
-		
-		var bgHeight:int = p_bgHeight;
-		var barHeight:int = p_barHeight;
-		if ( bgHeight < 0 ) {
-			bgHeight = 0;
+		this._bgHeight = p_bgHeight;
+		this._barHeight = p_barHeight;
+		if ( this._bgHeight < 0 ) {
+			this._bgHeight = 0;
 		}
-		if (barHeight < 0) {
-			barHeight = 0;
+		if (this._barHeight < 0) {
+			this._barHeight = 0;
 		}
-		if ( barHeight > bgHeight ) {
-			barHeight = bgHeight;
+		if ( this._barHeight > this._bgHeight ) {
+			this._barHeight = this._bgHeight;
 		}
 		
 		var shapeBg:Shape = new Shape();
+		shapeBg.name = "shapeBg";
 		shapeBg.width = 1;
 		shapeBg.height = 1;
 		shapeBg.graphics.beginFill(CTRL_BG_COLOR, 1);
 		shapeBg.graphics.drawRect(0, 0, 1, 1);
 		shapeBg.graphics.endFill();
 		shapeBg.scaleX = CTRL_WIDTH;
-		shapeBg.scaleY = bgHeight;
+		shapeBg.scaleY = this._bgHeight;
 
 		var shapeBar:Shape = new Shape();
+		shapeBg.name = "shapeBar";
 		shapeBar.width = 1;
 		shapeBar.height = 1;
 		shapeBar.graphics.beginFill(CTRL_BAR_COLOR, 1);
 		shapeBar.graphics.drawRect(0, 0, 1, 1);
 		shapeBar.graphics.endFill();
 		shapeBar.scaleX = CTRL_WIDTH;
-		shapeBar.scaleY = barHeight;
+		shapeBar.scaleY = this._barHeight;
 		
-		// to do
+		var ctrlBg:BasicObject = new BasicObject(shapeBg);
+		var ctrlBar:BasicObject = new BasicObject(shapeBar);
 		
-		this.container.addChild(ctrlBg);
+		this.container.addChild(ctrlBg.instance);
+		this.container.addChild(ctrlBar.instance);
 		
+		this._dragable = new DragableObject(ctrlBar, this);
+		this._dragable.setWheel(0, WHEEL_STEP);
 	}
 	
 	override public function dispose():void
 	{
-		Helper.dispose(this._content);
 		Helper.dispose(this._dragable);
-		this._content = null;
 		this._dragable = null;
 	}
 	
@@ -194,20 +191,14 @@ class SliderCtrl extends BasicObject implements IMoveHandler
 	
 	public function checkMove(p_from:Vector2D, p_to:Vector2D):Vector2D
 	{
+		trace("checkMove >> " + p_from.y + " -> " + p_to.y);
 		var result:Vector2D = p_to.clone();
-		if (result.x < this._borderWidth - this._contentWidth)
+		if (result.y > this._bgHeight - this._barHeight)
 		{
-			result.x = this._borderWidth - this._contentWidth;
+			result.y = this._bgHeight - this._barHeight;
 		}
-		if (result.y < this._borderHeight - this._contentHeight)
-		{
-			result.y = this._borderHeight - this._contentHeight;
-		}
-		if (result.x > 0)
-		{
-			result.x = 0;
-		}
-		if (result.y > 0)
+		result.x = 0;
+		if (result.y < 0)
 		{
 			result.y = 0;
 		}
@@ -221,7 +212,7 @@ class SliderCtrl extends BasicObject implements IMoveHandler
 	}
 
 }
-
+/*
 class Slider extends BasicObject implements IContainer
 {
 	private var _content:DragableContainer = null;
@@ -326,3 +317,4 @@ class Slider extends BasicObject implements IContainer
 	}
 
 }
+*/
