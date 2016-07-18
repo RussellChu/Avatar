@@ -52,6 +52,12 @@ package com.pj
 			
 			var slider:Slider = new Slider(this, 200, 50, 300, 300);
 			new JImage_RandSqr(slider, 300, 300);
+			
+			var moveBg:JImage_Circle = new JImage_Circle(50, JImage_Circle.STYLE_DEFAULT, {color: 0xff0000ff});
+			var moveCursor:JImage_Circle = new JImage_Circle(20, JImage_Circle.STYLE_DEFAULT, {color: 0xffff00ff});
+			var mouseCtrl:MoveInput = new MoveInput(this, moveBg, moveCursor);
+			mouseCtrl.x = 200;
+			mouseCtrl.y = 200;
 		}
 		
 		override public function dispose():void
@@ -96,4 +102,35 @@ package com.pj
 	
 	}
 
+}
+import com.pj.common.component.BasicObject;
+import com.pj.common.component.DragableObject;
+import com.pj.common.component.IContainer;
+import com.pj.common.component.IMoveHandler;
+
+class MoveInput extends BasicObject implements IMoveHandler
+{
+	private var _dragable:DragableObject = null;
+	
+	public function MoveInput(p_parent:IContainer, p_bg:BasicObject, p_cursor:BasicObject):void
+	{
+		super(null, p_parent);
+		
+		this._dragable = new DragableObject(p_cursor, this, false);
+	}
+	
+	private function get container():Sprite
+	{
+		return this.instance as Sprite;
+	}
+	
+	public function checkMove(p_from:Vector2D, p_to:Vector2D):Vector2D
+	{
+		return p_to;
+	}
+	
+	public function onMoveComplete(p_to:Vector2D):void
+	{
+		;
+	}
 }

@@ -10,8 +10,8 @@ package
 	{
 		public function Main():void
 		{
-			 new ProjectWorld(this);
-			// new ProjectFlash3D(this);
+			// new ProjectWorld(this);
+			new ProjectFlash3D(this);
 			// new ProjectMP4(this);
 			//trace("Hello World!");
 			//loader = new Loader();

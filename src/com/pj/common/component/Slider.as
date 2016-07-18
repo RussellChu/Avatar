@@ -87,15 +87,15 @@ package com.pj.common.component
 			super.dispose();
 		}
 		
-		private function get container():Sprite
-		{
-			return this.instance as Sprite;
-		}
-		
 		public function addChild(p_child:BasicObject):BasicObject
 		{
 			this._content.addChild(p_child);
 			return p_child;
+		}
+		
+		private function get container():Sprite
+		{
+			return this.instance as Sprite;
 		}
 		
 		private function onSlide(p_evt:JEvent):void
@@ -117,6 +117,11 @@ package com.pj.common.component
 				this._content.slideTo(this._content.instance.x, posY * this._contentMoveMax / this._ctrlMoveMax, true);
 			}
 		}
+		
+		public function set active(p_value:Boolean):void{
+			this._content.active = p_value;
+			this._ctrl.active = p_value;
+		}
 	
 	}
 
@@ -135,6 +140,7 @@ import flash.events.MouseEvent;
 
 class SliderCtrl extends BasicObject implements IMoveHandler
 {
+	private var _active:Boolean = false;
 	private var _barHeight:int = 0;
 	private var _bgHeight:int = 0;
 	private var _ctrlBar:BasicObject = null;
@@ -145,6 +151,10 @@ class SliderCtrl extends BasicObject implements IMoveHandler
 	public function SliderCtrl(p_parent:IContainer, p_ctrlBg:BasicObject, p_ctrlBar:BasicObject):void
 	{
 		super(null, p_parent);
+		
+		if (!p_ctrlBg || !p_ctrlBar) {
+			throw new Error();
+		}
 		
 		this._bgHeight = p_ctrlBg.instance.height;
 		this._barHeight = p_ctrlBar.instance.height;
@@ -163,6 +173,8 @@ class SliderCtrl extends BasicObject implements IMoveHandler
 		this.container.addChild(this._ctrlBar.instance);
 		
 		this._dragable = new DragableObject(this._ctrlBar, this, false);
+		
+		this._active = true;
 	}
 	
 	override public function dispose():void
@@ -175,13 +187,12 @@ class SliderCtrl extends BasicObject implements IMoveHandler
 		this._dragable = null;
 	}
 	
-	private function get container():Sprite
-	{
-		return this.instance as Sprite;
-	}
-	
 	public function checkMove(p_from:Vector2D, p_to:Vector2D):Vector2D
 	{
+		if (!this._active) {
+			return p_from.clone();
+		}
+		
 		var result:Vector2D = p_to.clone();
 		if (result.y > this._bgHeight - this._barHeight)
 		{
@@ -195,10 +206,34 @@ class SliderCtrl extends BasicObject implements IMoveHandler
 		return result;
 	}
 	
+	private function get container():Sprite
+	{
+		return this.instance as Sprite;
+	}
+	
 	public function onMoveComplete(p_to:Vector2D):void
 	{
 		var evt:JEvent = new JEvent(JComponentEvent.DRAGABLE_SLIDE, {pos: p_to});
 		this.dispatchEvent(evt);
+	}
+	
+	private function onMouseDown(p_evt:MouseEvent):void
+	{
+		if (!this._active) {
+			return;
+		}
+		this._dragable.slideTo(this._ctrlBg.instance.mouseX, this._ctrlBg.instance.mouseY - this._barHeight * 0.5);
+	}
+	
+	private function onMouseWheel(p_evt:MouseEvent):void{
+		if (!this._active) {
+			return;
+		}
+		this._dragable.slide(0, -this._wheelStep * p_evt.delta);
+	}
+	
+	public function set active(p_value:Boolean):void{
+		this._active = p_value;
 	}
 	
 	public function setWheelStep(p_value:int):void{
@@ -211,15 +246,6 @@ class SliderCtrl extends BasicObject implements IMoveHandler
 	public function slideTo(p_posX:int, p_posY:int, p_isUpdate:Boolean = false):void
 	{
 		this._dragable.slideTo(p_posX, p_posY, p_isUpdate);
-	}
-	
-	private function onMouseDown(p_evt:MouseEvent):void
-	{
-		this._dragable.slideTo(this._ctrlBg.instance.mouseX, this._ctrlBg.instance.mouseY - this._barHeight * 0.5);
-	}
-	
-	private function onMouseWheel(p_evt:MouseEvent):void{
-		this._dragable.slide(0, -this._wheelStep * p_evt.delta);
 	}
 
 }
