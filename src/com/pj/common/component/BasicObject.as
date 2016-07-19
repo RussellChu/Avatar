@@ -10,7 +10,7 @@ package com.pj.common.component
 	 * ...
 	 * @author Russell
 	 */
-	public class BasicObject extends EventDispatcher implements com.pj.common.IDisposable
+	public class BasicObject extends EventDispatcher implements IDisposable
 	{
 		private var _instance:DisplayObject = null;
 		
