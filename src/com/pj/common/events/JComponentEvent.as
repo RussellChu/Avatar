@@ -15,5 +15,4 @@ package com.pj.common.events
 		}
 	
 	}
-
 }

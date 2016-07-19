@@ -67,5 +67,4 @@ package com.pj.common.math
 		}
 	
 	}
-
 }

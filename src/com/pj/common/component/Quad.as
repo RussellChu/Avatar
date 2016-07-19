@@ -38,5 +38,4 @@ package com.pj.common.component
 		}
 	
 	}
-
 }

@@ -11,5 +11,4 @@ package com.pj.common.component
 		function checkMove(p_from:Vector2D, p_to:Vector2D):Vector2D;
 		function onMoveComplete(p_to:Vector2D):void;
 	}
-	
 }

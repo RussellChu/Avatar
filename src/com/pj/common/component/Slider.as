@@ -1,6 +1,5 @@
 package com.pj.common.component
 {
-	
 	import com.pj.common.Helper;
 	import com.pj.common.component.BasicObject;
 	import com.pj.common.component.DragableContainer;
@@ -118,13 +117,13 @@ package com.pj.common.component
 			}
 		}
 		
-		public function set active(p_value:Boolean):void{
+		public function set active(p_value:Boolean):void
+		{
 			this._content.active = p_value;
 			this._ctrl.active = p_value;
 		}
 	
 	}
-
 }
 
 import com.pj.common.Helper;
@@ -152,7 +151,8 @@ class SliderCtrl extends BasicObject implements IMoveHandler
 	{
 		super(null, p_parent);
 		
-		if (!p_ctrlBg || !p_ctrlBar) {
+		if (!p_ctrlBg || !p_ctrlBar)
+		{
 			throw new Error();
 		}
 		
@@ -189,7 +189,8 @@ class SliderCtrl extends BasicObject implements IMoveHandler
 	
 	public function checkMove(p_from:Vector2D, p_to:Vector2D):Vector2D
 	{
-		if (!this._active) {
+		if (!this._active)
+		{
 			return p_from.clone();
 		}
 		
@@ -219,26 +220,32 @@ class SliderCtrl extends BasicObject implements IMoveHandler
 	
 	private function onMouseDown(p_evt:MouseEvent):void
 	{
-		if (!this._active) {
+		if (!this._active)
+		{
 			return;
 		}
 		this._dragable.slideTo(this._ctrlBg.instance.mouseX, this._ctrlBg.instance.mouseY - this._barHeight * 0.5);
 	}
 	
-	private function onMouseWheel(p_evt:MouseEvent):void{
-		if (!this._active) {
+	private function onMouseWheel(p_evt:MouseEvent):void
+	{
+		if (!this._active)
+		{
 			return;
 		}
 		this._dragable.slide(0, -this._wheelStep * p_evt.delta);
 	}
 	
-	public function set active(p_value:Boolean):void{
+	public function set active(p_value:Boolean):void
+	{
 		this._active = p_value;
 	}
 	
-	public function setWheelStep(p_value:int):void{
+	public function setWheelStep(p_value:int):void
+	{
 		this._wheelStep = p_value;
-		if (this._wheelStep < 0){
+		if (this._wheelStep < 0)
+		{
 			this._wheelStep = 0;
 		}
 	}

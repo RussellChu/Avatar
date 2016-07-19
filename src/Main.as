@@ -24,5 +24,4 @@ package
 			//loader.load(new URLRequest("basket_x000a_p78.swf"));
 		}
 	}
-
 }

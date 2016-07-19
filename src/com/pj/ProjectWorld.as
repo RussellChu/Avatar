@@ -101,8 +101,8 @@ package com.pj
 		}
 	
 	}
-
 }
+
 import com.pj.common.component.BasicObject;
 import com.pj.common.component.DragableObject;
 import com.pj.common.component.IContainer;

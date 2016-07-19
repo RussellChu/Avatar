@@ -1,15 +1,8 @@
 package com.pj.common.component
 {
-	import com.pj.common.Helper;
 	import com.pj.common.JColor;
-	import com.pj.common.component.BasicContainer;
-	import com.pj.common.component.BasicObject;
-	import com.pj.common.component.IContainer;
 	import flash.display.Bitmap;
 	import flash.display.BitmapData;
-	import flash.display.MovieClip;
-	import flash.display.Shape;
-	import flash.display.Sprite;
 	import flash.events.MouseEvent;
 	import flash.text.TextField;
 	import flash.text.TextFormat;

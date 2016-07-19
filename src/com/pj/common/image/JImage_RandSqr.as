@@ -40,5 +40,4 @@ package com.pj.common.image
 		}
 	
 	}
-
 }

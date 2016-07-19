@@ -16,8 +16,8 @@ package com.pj
 		}
 	
 	}
-
 }
+
 import com.pj.common.component.BasicObject;
 import com.pj.common.component.IContainer;
 import flash.events.AsyncErrorEvent;
