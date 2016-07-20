@@ -1,5 +1,6 @@
 package com.pj.common.math
 {
+	import flash.geom.Matrix3D;
 	
 	/**
 	 * ...
@@ -30,6 +31,18 @@ package com.pj.common.math
 			return this;
 		}
 		
+		public function toM3D():Matrix3D
+		{
+			var m:Matrix3D = new Matrix3D();
+			m.rawData = new <Number>[ //
+			this.e[0][0], this.e[1][0], this.e[2][0], this.e[3][0] //
+			, this.e[0][1], this.e[1][1], this.e[2][1], this.e[3][1] //
+			, this.e[0][2], this.e[1][2], this.e[2][2], this.e[3][2] //
+			, this.e[0][3], this.e[1][3], this.e[2][3], this.e[3][3] //
+			];
+			return m;
+		}
+		
 		public function setIdentity():Matrix4D
 		{
 			this.e = [];
@@ -52,40 +65,34 @@ package com.pj.common.math
 			return this;
 		}
 		
-		public function setRotateX(p_theta:Number):Matrix4D
+		public function setRotate(p_theta:Number, p_axis:Vector3D):Matrix4D
 		{
 			var c:Number = Math.cos(p_theta);
 			var s:Number = Math.sin(p_theta);
+			var x:Number = p_axis.x;
+			var y:Number = p_axis.y;
+			var z:Number = p_axis.z;
 			this.e = [];
-			this.e.push([1, 0, 0, 0]);
-			this.e.push([0, c, -s, 0]);
-			this.e.push([0, s, c, 0]);
+			this.e.push([c + x * x * (1 - c), x * y * (1 - c) - z * s, z * x * (1 - c) + y * s, 0]);
+			this.e.push([x * y * (1 - c) + z * s, c + y * y * (1 - c), y * z * (1 - c) - x * s, 0]);
+			this.e.push([z * x * (1 - c) - y * s, y * z * (1 - c) + x * s, c + z * z * (1 - c), 0]);
 			this.e.push([0, 0, 0, 1]);
 			return this;
+		}
+		
+		public function setRotateX(p_theta:Number):Matrix4D
+		{
+			return this.setRotate(p_theta, new Vector3D(1, 0, 0));
 		}
 		
 		public function setRotateY(p_theta:Number):Matrix4D
 		{
-			var c:Number = Math.cos(p_theta);
-			var s:Number = Math.sin(p_theta);
-			this.e = [];
-			this.e.push([c, 0, s, 0]);
-			this.e.push([0, 1, 0, 0]);
-			this.e.push([-s, 0, c, 0]);
-			this.e.push([0, 0, 0, 1]);
-			return this;
+			return this.setRotate(p_theta, new Vector3D(0, 1, 0));
 		}
 		
 		public function setRotateZ(p_theta:Number):Matrix4D
 		{
-			var c:Number = Math.cos(p_theta);
-			var s:Number = Math.sin(p_theta);
-			this.e = [];
-			this.e.push([c, -s, 0, 0]);
-			this.e.push([s, c, 0, 0]);
-			this.e.push([0, 0, 1, 0]);
-			this.e.push([0, 0, 0, 1]);
-			return this;
+			return this.setRotate(p_theta, new Vector3D(0, 0, 1));
 		}
 		
 		public function setTranslate(p_vtr:Vector3D):Matrix4D

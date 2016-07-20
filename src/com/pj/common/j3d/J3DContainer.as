@@ -30,15 +30,15 @@ package com.pj.common.j3d
 			return p_child;
 		}
 		
-		override public function draw(p_context:Context3D):void
+		override public function draw(p_j3d:J3D):void
 		{
-			super.draw(p_context);
+			super.draw(p_j3d);
 			if (!this._child) {
 				return;
 			}
 			for (var i:int = 0; i < this._child.length; i++) {
 				var child:J3DObject = this._child[i];
-				child.draw(p_context);
+				child.draw(p_j3d);
 			}
 		}
 	

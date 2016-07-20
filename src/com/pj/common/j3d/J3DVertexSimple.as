@@ -1,6 +1,7 @@
 package com.pj.common.j3d
 {
-	import com.pj.common.j3d.JVertexShader;
+	import com.pj.common.j3d.data.J3DVertexShaderData;
+	import com.pj.common.j3d.shader.vertex.J3D_VS_Test;
 	import flash.display3D.Context3D;
 	import flash.display3D.Context3DVertexBufferFormat;
 	import flash.display3D.VertexBuffer3D;
@@ -17,8 +18,8 @@ package com.pj.common.j3d
 			super();
 			
 			this._format = { //
-				pos: JVertexShader.POS_0TO2_XYZ //
-				, diffuse: JVertexShader.DIFFUSE_3TO5_RGB //
+				pos: J3DVertexShaderData.POS_0TO2_XYZ //
+				, diffuse: J3DVertexShaderData.DIFFUSE_3TO5_RGB //
 			};
 			this._vSize = 6;
 		}
