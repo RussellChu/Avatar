@@ -7,10 +7,10 @@ package com.pj.common.j3d.shader.vertex
 	 * ...
 	 * @author Russell
 	 */
-	public class J3DVertexShader extends J3DShader
+	public class J3D_VS extends J3DShader
 	{
 		
-		public function J3DVertexShader(p_data:Object)
+		public function J3D_VS(p_data:Object)
 		{
 			super(p_data);
 			this._assembler.assemble(Context3DProgramType.VERTEX, this._code);

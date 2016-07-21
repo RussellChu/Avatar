@@ -7,10 +7,10 @@ package com.pj.common.j3d.shader.pixel
 	 * ...
 	 * @author Russell
 	 */
-	public class J3DPixelShader extends J3DShader
+	public class J3D_PS extends J3DShader
 	{
 		
-		public function J3DPixelShader(p_data:Object)
+		public function J3D_PS(p_data:Object)
 		{
 			super(p_data);
 			this._assembler.assemble(Context3DProgramType.FRAGMENT, this._code);

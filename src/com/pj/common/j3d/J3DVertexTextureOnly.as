@@ -9,23 +9,23 @@ package com.pj.common.j3d
 	 * ...
 	 * @author Russell
 	 */
-	public class J3DVertexSimple extends J3DVertex
+	public class J3DVertexTextureOnly extends J3DVertex
 	{
 		
-		public function J3DVertexSimple()
+		public function J3DVertexTextureOnly()
 		{
 			super();
 			
 			this._format = { //
 				pos: J3DVertexShaderData.POS_0TO2_XYZ //
-				, diffuse: J3DVertexShaderData.DIFFUSE_3TO5_RGB //
+				, uv: J3DVertexShaderData.TEXTURE_3TO4_UV //
 			};
-			this._vSize = 6;
+			this._vSize = 5;
 		}
 		
-		public function addData(p_x:Number, p_y:Number, p_z:Number, p_r:Number, p_g:Number, p_b:Number):void
+		public function addData(p_x:Number, p_y:Number, p_z:Number, p_u:Number, p_v:Number):void
 		{
-			this._data.push(p_x, p_y, p_z, p_r, p_g, p_b);
+			this._data.push(p_x, p_y, p_z, p_u, p_v);
 			this._vNum++;
 		}
 		
@@ -33,7 +33,7 @@ package com.pj.common.j3d
 		{
 			var buffer:VertexBuffer3D = super.setupBuffer(p_context);
 			p_context.setVertexBufferAt(0, buffer, 0, Context3DVertexBufferFormat.FLOAT_3);
-			p_context.setVertexBufferAt(1, buffer, 3, Context3DVertexBufferFormat.FLOAT_3);
+			p_context.setVertexBufferAt(1, buffer, 3, Context3DVertexBufferFormat.FLOAT_2);
 			return buffer;
 		}
 	

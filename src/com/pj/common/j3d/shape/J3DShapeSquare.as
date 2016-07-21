@@ -12,7 +12,7 @@ package com.pj.common.j3d.shape
 	public class J3DShapeSquare extends J3DObject
 	{
 		
-		public function J3DShapeSquare(p_color:JColor=null)
+		public function J3DShapeSquare(p_color:JColor = null)
 		{
 			super();
 			var indices:J3DIndexDelta = new J3DIndexDelta();
@@ -27,7 +27,8 @@ package com.pj.common.j3d.shape
 			var cR:Number = 1;
 			var cG:Number = 1;
 			var cB:Number = 1;
-			if (p_color) {
+			if (p_color)
+			{
 				cR = p_color.r;
 				cG = p_color.g;
 				cB = p_color.b;

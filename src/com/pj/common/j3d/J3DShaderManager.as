@@ -1,8 +1,8 @@
 package com.pj.common.j3d
 {
 	import com.pj.common.IDisposable;
-	import com.pj.common.j3d.shader.pixel.J3DPixelShader;
-	import com.pj.common.j3d.shader.vertex.J3DVertexShader;
+	import com.pj.common.j3d.shader.pixel.J3D_PS;
+	import com.pj.common.j3d.shader.vertex.J3D_VS;
 	
 	/**
 	 * ...
@@ -25,23 +25,23 @@ package com.pj.common.j3d
 			this._pMap = null;
 		}
 		
-		public function loadVertexShader(p_type:int):J3DVertexShader
+		public function loadVertexShader(p_type:int):J3D_VS
 		{
 			if (this._vMap[p_type])
 			{
 				return this._vMap[p_type];
 			}
-			this._vMap[p_type] = new J3DVertexShader(p_type);
+			this._vMap[p_type] = new J3D_VS(p_type);
 			return this._vMap[p_type];
 		}
 		
-		public function loadPixelShader(p_type:int):J3DPixelShader
+		public function loadPixelShader(p_type:int):J3D_PS
 		{
 			if (this._pMap[p_type])
 			{
 				return this._pMap[p_type];
 			}
-			this._pMap[p_type] = new J3DPixelShader(p_type);
+			this._pMap[p_type] = new J3D_PS(p_type);
 			return this._pMap[p_type];
 		}
 	}

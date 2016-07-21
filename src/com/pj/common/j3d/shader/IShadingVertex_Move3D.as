@@ -1,4 +1,4 @@
-package com.pj.common.j3d.shader 
+package com.pj.common.j3d.shader
 {
 	import com.pj.common.math.Matrix4D;
 	
@@ -6,9 +6,9 @@ package com.pj.common.j3d.shader
 	 * ...
 	 * @author Russell
 	 */
-	public interface IShadingVertex_Move3D 
+	public interface IShadingVertex_Move3D
 	{
 		function getShadingVertex_Move3D():Matrix4D;
 	}
-	
+
 }
