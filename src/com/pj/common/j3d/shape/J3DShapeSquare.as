@@ -20,9 +20,11 @@ package com.pj.common.j3d.shape
 			
 			this._indices = indices;
 			this._vertices = vertices;
-			
-			indices.addData(0, 1, 2);
-			indices.addData(0, 2, 3);
+			for (var i:int = 0; i < 6; i++)
+			{
+				indices.addData(i * 4 + 0, i * 4 + 1, i * 4 + 2);
+				indices.addData(i * 4 + 0, i * 4 + 2, i * 4 + 3);
+			}
 			
 			var cR:Number = 1;
 			var cG:Number = 1;
@@ -33,10 +35,36 @@ package com.pj.common.j3d.shape
 				cG = p_color.g;
 				cB = p_color.b;
 			}
-			vertices.addData(0, 0, 0, cR, cG, cB);
-			vertices.addData(0, 1, 0, cR, cG, cB);
-			vertices.addData(1, 1, 0, cR, cG, cB);
-			vertices.addData(1, 0, 0, cR, cG, cB);
+			
+			vertices.addData(-1, -1, -1, cR, cG, cB);
+			vertices.addData(-1, 1, -1, cR, cG, cB);
+			vertices.addData(1, 1, -1, cR, cG, cB);
+			vertices.addData(1, -1, -1, cR, cG, cB);
+			
+			vertices.addData(-1, -1, -1, cR, cG, cB);
+			vertices.addData(-1, -1, 1, cR, cG, cB);
+			vertices.addData(-1, 1, 1, cR, cG, cB);
+			vertices.addData(-1, 1, -1, cR, cG, cB);
+			
+			vertices.addData(-1, -1, -1, cR, cG, cB);
+			vertices.addData(1, -1, -1, cR, cG, cB);
+			vertices.addData(1, -1, 1, cR, cG, cB);
+			vertices.addData(-1, -1, 1, cR, cG, cB);
+			
+			vertices.addData(1, 1, 1, cR, cG, cB);
+			vertices.addData(-1, 1, 1, cR, cG, cB);
+			vertices.addData(-1, -1, 1, cR, cG, cB);
+			vertices.addData(1, -1, 0, cR, cG, cB);
+			
+			vertices.addData(1, 1, 1, cR, cG, cB);
+			vertices.addData(1, -1, 1, cR, cG, cB);
+			vertices.addData(1, -1, -1, cR, cG, cB);
+			vertices.addData(1, 1, -1, cR, cG, cB);
+			
+			vertices.addData(1, 1, 1, cR, cG, cB);
+			vertices.addData(1, 1, -1, cR, cG, cB);
+			vertices.addData(-1, 1, -1, cR, cG, cB);
+			vertices.addData(-1, 1, 1, cR, cG, cB);
 		}
 	
 	}

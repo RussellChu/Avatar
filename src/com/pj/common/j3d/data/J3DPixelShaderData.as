@@ -9,7 +9,7 @@ package com.pj.common.j3d.data
 	{
 		public static const SHADER_SIMPLE:Object = { //
 			code: ["" // nothing
-			, "mov oc, v0" // copy v0(=color channel 0) to oc(color output)
+			, "mov oc, v0.xyzz" // copy v0(=color channel 0) to oc(color output)
 			]};
 		
 		public function J3DPixelShaderData()

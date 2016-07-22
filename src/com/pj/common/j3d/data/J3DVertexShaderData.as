@@ -7,10 +7,11 @@ package com.pj.common.j3d.data
 	 */
 	/*
 	   // varible
-	   v0 : color channel 0
+	   v0 : color channel 0 (move data from vs to ps)
 	   va0 : vertex src data 0
 	   va1 : vertex src data 1
 	   vc0 : matrix 0
+	   vt0 : vs local varible
 	   // operator
 	   mov a, b : copy b to a
 	   m44 a, b, c : transform b by c, store result to a
@@ -29,6 +30,7 @@ package com.pj.common.j3d.data
 				, diffuse: DIFFUSE_3TO5_RGB //
 			}, code: ["" // nothing
 			, "mov v0, va1" // copy va1 (myDiffuse) to v0(=color channel 0)
+		//	, "m44 v0, va0, vc0" // copy va1 (myDiffuse) to v0(=color channel 0)
 			, "m44 op, va0, vc0" // transform va0(myPos) by vc0(matrix) to op(vertex output)
 			]};
 		

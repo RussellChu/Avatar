@@ -16,24 +16,24 @@ package com.pj.common.j3d.shader.vertex
 	 */
 	public class J3D_VS_Simple extends J3D_VS
 	{
+		private var _mxCamera:Matrix4D = null;
+		
 		public function J3D_VS_Simple():void
 		{
 			super(J3DVertexShaderData.SHADER_SIMPLE);
+			this._mxCamera = new Matrix4D();
+			this._mxCamera.setIdentity();
 		}
 		
 		override public function dispose():void
 		{
+			this._mxCamera = null;
 			super.dispose();
 		}
 		
 		override public function update(p_context:Context3D):void
 		{
-			var m0:Matrix4D = new Matrix4D();
-			m0.setRotateZ(getTimer() / 40 / 180 * Math.PI);
-			//var m:Matrix3D = new Matrix3D();
-			//m.appendRotation(getTimer() / 40, Vector3D.Z_AXIS);
-			//m = m0.toM3D();
-			p_context.setProgramConstantsFromMatrix(Context3DProgramType.VERTEX, 0, m0.toM3D());
+			p_context.setProgramConstantsFromMatrix(Context3DProgramType.VERTEX, 0, this._mxCamera.toM3D());
 		}
 		
 		override public function updateObj(p_context:Context3D, p_obj:J3DObject):void
@@ -42,6 +42,14 @@ package com.pj.common.j3d.shader.vertex
 			{
 				p_context.setProgramConstantsFromMatrix(Context3DProgramType.VERTEX, 0, (p_obj as IShadingVertex_Move3D).getShadingVertex_Move3D().toM3D(), true);
 			}
+		}
+		
+		public function setCameraMatrix(p_mx:Matrix4D):void {
+			if (!p_mx) {
+				return;
+			}
+			
+			this._mxCamera = p_mx;
 		}
 	
 	}

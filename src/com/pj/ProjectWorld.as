@@ -33,16 +33,16 @@ package com.pj
 			this._timer = new Timer(20);
 			this._timer.addEventListener(TimerEvent.TIMER, this.onTime);
 			
-			//this._world = new World3D(this);
-			//this._world.setCenter(640, 400);
-			//this._world.camera.mode = Camera3D.MODE_PERSPECTIVE;
-			//this._world.camera.position = new Vector3D(0, 0, -SPACE_RADIUS * (1 + 0.3));
-			//this._world.camera.target = new Vector3D(0, 0, 1);
-			//this._world.camera.up = new Vector3D(0, 1, 0);
-			//this._world.camera.setProject(SPACE_RADIUS * (1 + 1), SPACE_RADIUS * 0.3, SPACE_RADIUS, SPACE_RADIUS);
-			//this.createCircle();
-			//
-			//this._timer.start();
+			this._world = new World3D(this);
+			this._world.setCenter(640, 400);
+			this._world.camera.mode = Camera3D.MODE_PERSPECTIVE;
+			this._world.camera.position = new Vector3D(0, 0, -SPACE_RADIUS * (1 + 0.3));
+			this._world.camera.target = new Vector3D(0, 0, 1);
+			this._world.camera.up = new Vector3D(0, 1, 0);
+			this._world.camera.setProject(SPACE_RADIUS * (1 + 1), SPACE_RADIUS * 0.3, SPACE_RADIUS, SPACE_RADIUS);
+			this.createCircle();
+			
+			this._timer.start();
 			
 			var btn:SimpleButton = new SimpleButton("Hello world", 200, 50);
 			//	this.addChild(btn);

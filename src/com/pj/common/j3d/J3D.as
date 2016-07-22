@@ -6,6 +6,8 @@ package com.pj.common.j3d
 	import com.pj.common.j3d.shader.pixel.J3D_PS;
 	import com.pj.common.j3d.shader.vertex.J3D_VS;
 	import flash.display3D.Context3D;
+	import flash.display3D.Context3DBlendFactor;
+	import flash.display3D.Context3DTriangleFace;
 	import flash.display3D.IndexBuffer3D;
 	import flash.display3D.Program3D;
 	import flash.display3D.VertexBuffer3D;
@@ -95,6 +97,8 @@ package com.pj.common.j3d
 		{
 			this._context3D = this.instance.stage.stage3Ds[0].context3D;
 			this._context3D.configureBackBuffer(400, 400, 1, true);
+			this._context3D.setCulling(Context3DTriangleFace.BACK); // Remove "Back" triangle
+			this._context3D.setBlendFactors(Context3DBlendFactor.SOURCE_ALPHA, Context3DBlendFactor.ONE_MINUS_SOURCE_ALPHA);
 			this._program = this._context3D.createProgram();
 			this._context3D.setProgram(this._program);
 		}
