@@ -162,6 +162,22 @@ package com.pj.common.math
 			return vtr;
 		}
 		
+		/*
+		 *  M * (x,
+		 * 		 y,
+		 * 		 z,
+		 * 		 w) -> (x', y', z', w')
+		 */
+		public function transform2(p_vtr:Vector4D):Vector4D
+		{
+			var vtr:Vector4D = new Vector4D();
+			vtr.x = p_vtr.x * this.e[0][0] + p_vtr.y * this.e[1][0] + p_vtr.z * this.e[2][0] + p_vtr.w * this.e[3][0];
+			vtr.y = p_vtr.x * this.e[0][1] + p_vtr.y * this.e[1][1] + p_vtr.z * this.e[2][1] + p_vtr.w * this.e[3][1];
+			vtr.z = p_vtr.x * this.e[0][2] + p_vtr.y * this.e[1][2] + p_vtr.z * this.e[2][2] + p_vtr.w * this.e[3][2];
+			vtr.w = p_vtr.x * this.e[0][3] + p_vtr.y * this.e[1][3] + p_vtr.z * this.e[2][3] + p_vtr.w * this.e[3][3];
+			return vtr;
+		}
+		
 		public function printSelf():void
 		{
 			trace("print");

@@ -40,7 +40,7 @@ package com.pj.common.j3d.shader.vertex
 		{
 			if (p_obj is IShadingVertex_Move3D)
 			{
-				p_context.setProgramConstantsFromMatrix(Context3DProgramType.VERTEX, 0, (p_obj as IShadingVertex_Move3D).getShadingVertex_Move3D().toM3D(), true);
+				p_context.setProgramConstantsFromMatrix(Context3DProgramType.VERTEX, 0, (p_obj as IShadingVertex_Move3D).getShadingVertex_Move3D().toM3D());
 			}
 		}
 		
@@ -49,6 +49,7 @@ package com.pj.common.j3d.shader.vertex
 				return;
 			}
 			
+		//	p_mx.printSelf()
 			this._mxCamera = p_mx;
 		}
 	

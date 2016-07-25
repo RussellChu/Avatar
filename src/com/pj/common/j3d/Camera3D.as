@@ -20,6 +20,7 @@ package com.pj.common.j3d
 		private var _planeDist:Number = 0; // near plane
 		private var _planeWidth:Number = 0; // near plane radius
 		private var _screenWidth:Number = 0; // screen radius
+		private var _screenHeight:Number = 0; // screen radius
 		
 		public function Camera3D(p_pos:Vector3D = null, p_target:Vector3D = null, p_up:Vector3D = null):void
 		{
@@ -46,19 +47,31 @@ package com.pj.common.j3d
 			this._target.addEql(p_pos);
 		}
 		
+		// Rotate by _target and _up
 		public function rotateByX(p_theta:Number):void
 		{
-			this._pos = new Matrix4D().setRotateX(p_theta).transform(this._pos.minus(this._target).clone4(1)).clone3().add(this._target);
+			var front:Vector3D = this._target.minus(this._pos).normal();
+			var left:Vector3D = this._up.cross(front);
+			var mx:Matrix4D = new Matrix4D().setRotate(p_theta, left);
+			var pos:Vector3D = this._target.minus(mx.transform(this._target.minus(this._pos).clone4(1)).clone3());
+			this._pos = pos;
+			this._up = mx.transform(this._up.clone4(1)).clone3();
 		}
 		
 		public function rotateByY(p_theta:Number):void
 		{
-			this._pos = new Matrix4D().setRotateY(p_theta).transform(this._pos.minus(this._target).clone4(1)).clone3().add(this._target);
+			var mx:Matrix4D = new Matrix4D().setRotate(p_theta, this._up);
+			var pos:Vector3D = this._target.minus(mx.transform(this._target.minus(this._pos).clone4(1)).clone3());
+			this._pos = pos;
 		}
 		
 		public function rotateByZ(p_theta:Number):void
 		{
-			this._pos = new Matrix4D().setRotateZ(p_theta).transform(this._pos.minus(this._target).clone4(1)).clone3().add(this._target);
+			var front:Vector3D = this._target.minus(this._pos).normal();
+			var mx:Matrix4D = new Matrix4D().setRotate(p_theta, front);
+			var pos:Vector3D = this._target.minus(mx.transform(this._target.minus(this._pos).clone4(1)).clone3());
+			this._pos = pos;
+			this._up = mx.transform(this._up.clone4(1)).clone3();
 		}
 		
 		public function setDefault():void
@@ -73,15 +86,17 @@ package com.pj.common.j3d
 			this._screenWidth = 1;
 		}
 		
-		public function setProject(p_depth:Number, p_dist:Number, p_camWidth:Number, p_projWidth:Number):void
+		public function setProject(p_depth:Number, p_dist:Number, p_camWidth:Number, p_projWidth:Number, p_projHeight:Number):void
 		{
 			this._planeDepth = p_depth;
 			this._planeDist = p_dist;
 			this._planeWidth = p_camWidth;
 			this._screenWidth = p_projWidth;
+			this._screenHeight = p_projHeight;
 		}
 		
-		public function set mode(p_mode:int):void{
+		public function set mode(p_mode:int):void
+		{
 			this._mode = p_mode;
 		}
 		
@@ -109,6 +124,29 @@ package com.pj.common.j3d
 			var v:Vector3D = top.normal();
 			var w:Vector3D = front.normal();
 			
+			var targetDist:Number = Math.sqrt(front.lengthStr());
+			
+			var mx:Matrix4D = new Matrix4D();
+			mx.setIdentity();
+			
+			var n:Number = this._planeDist;
+			var f:Number = this._planeDepth + n;
+			var r:Number = this._planeWidth / targetDist;
+			var a:Number = this._screenWidth / this._planeWidth;
+			var b:Number = r * a / (1 - n / f);
+			var c:Number = r * a;
+			var d:Number = r * a / (1 / f - 1 / n);
+			var mxC:Matrix4D = new Matrix4D();
+			mxC.e[0][0] = a;
+			mxC.e[1][1] = a * this._screenWidth / this._screenHeight;
+			mxC.e[2][2] = b;
+			mxC.e[2][3] = c;
+			mxC.e[3][2] = d;
+			
+			var mxB:Matrix4D = new Matrix4D();
+			mxB.setIdentity();
+			mxB.e[3][2] = targetDist;
+			
 			var mxA:Matrix4D = new Matrix4D();
 			mxA.e[0][0] = u.x;
 			mxA.e[1][0] = u.y;
@@ -121,38 +159,23 @@ package com.pj.common.j3d
 			mxA.e[2][2] = w.z;
 			mxA.e[3][3] = 1;
 			
-			var mxB:Matrix4D = new Matrix4D();
-			mxB.setIdentity();
-			mxB.e[0][3] = -this._pos.x;
-			mxB.e[1][3] = -this._pos.y;
-			mxB.e[2][3] = -this._pos.z;
+			var mx0:Matrix4D = new Matrix4D();
+			mx0.setIdentity();
+			mx0.e[3][0] = -this._target.x;
+			mx0.e[3][1] = -this._target.y;
+			mx0.e[3][2] = -this._target.z;
 			
-			var mx:Matrix4D = mxB.product(mxA.inverse3x3());
-			var mxPlane:Matrix4D = new Matrix4D();
-			if (this._planeWidth > 0)
-			{
-				mxPlane.e[0][0] = this._screenWidth / this._planeWidth;
-			}
-			mxPlane.e[1][1] = mxPlane.e[0][0];
-			if (this._planeDepth > 0)
-			{
-				mxPlane.e[2][2] = 1 / this._planeDepth;
-			}
-			
-			if (this._mode == Camera3D.MODE_PERSPECTIVE) {
-				if (this._planeDist > 0)
-				{
-					mxPlane.e[3][2] = 1 / this._planeDist;
-				}
-				if (this._planeDepth > 0)
-				{
-					mxPlane.e[2][3] = -this._planeDist / this._planeDepth;
-				}
-			} else {
-				mxPlane.e[3][3] = 1;
-			}
-			
-			return mx.product(mxPlane);
+			mx.productEqual(mxC);
+			mx.productEqual(mxB);
+			mx.productEqual(mxA);
+			mx.productEqual(mx0);
+			/*
+			mx.productEqual(mx0);
+			mx.productEqual(mxA);
+			mx.productEqual(mxB);
+			mx.productEqual(mxC);
+			*/
+			return mx;
 		}
 	
 	}

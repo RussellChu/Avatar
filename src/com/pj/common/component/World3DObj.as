@@ -39,7 +39,7 @@ package com.pj.common.component
 		
 		public function updateProject(p_m:Matrix4D):void
 		{
-			this._project = p_m.transform(this._pos.clone4(1));
+			this._project = p_m.transform2(this._pos.clone4(1));
 		}
 	
 	}

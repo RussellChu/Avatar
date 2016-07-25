@@ -8,7 +8,9 @@ package com.pj
 	import com.pj.common.component.World3DObj;
 	import com.pj.common.image.JImage_Circle;
 	import com.pj.common.image.JImage_RandSqr;
+	import com.pj.common.j3d.Camera3D;
 	import com.pj.common.math.JMath;
+	import com.pj.common.math.Vector3D;
 	import flash.display.Sprite;
 	import flash.events.TimerEvent;
 	import flash.utils.Timer;
@@ -21,7 +23,7 @@ package com.pj
 	{
 		private static const CIRCLE_AMOUNT:int = 150;
 		private static const CIRCLE_RADIUS:int = 20;
-		private static const SPACE_RADIUS:int = 2000;
+		private static const SPACE_RADIUS:int = 200;
 		
 		private var _timer:Timer = null;
 		private var _world:World3D = null;
@@ -35,11 +37,12 @@ package com.pj
 			
 			this._world = new World3D(this);
 			this._world.setCenter(640, 400);
+			this._world.setWidth(SPACE_RADIUS);
 			this._world.camera.mode = Camera3D.MODE_PERSPECTIVE;
 			this._world.camera.position = new Vector3D(0, 0, -SPACE_RADIUS * (1 + 0.3));
 			this._world.camera.target = new Vector3D(0, 0, 1);
 			this._world.camera.up = new Vector3D(0, 1, 0);
-			this._world.camera.setProject(SPACE_RADIUS * (1 + 1), SPACE_RADIUS * 0.3, SPACE_RADIUS, SPACE_RADIUS);
+			this._world.camera.setProject(SPACE_RADIUS * (1 + 1), SPACE_RADIUS * 0.3, SPACE_RADIUS, SPACE_RADIUS, SPACE_RADIUS);
 			this.createCircle();
 			
 			this._timer.start();
@@ -56,8 +59,8 @@ package com.pj
 			var moveBg:JImage_Circle = new JImage_Circle(50, JImage_Circle.STYLE_DEFAULT, {color: 0xff0000ff});
 			var moveCursor:JImage_Circle = new JImage_Circle(20, JImage_Circle.STYLE_DEFAULT, {color: 0xffff00ff});
 			var mouseCtrl:MoveInput = new MoveInput(this, moveBg, moveCursor);
-			mouseCtrl.x = 200;
-			mouseCtrl.y = 200;
+		//	mouseCtrl.x = 200;
+		//	mouseCtrl.y = 200;
 		}
 		
 		override public function dispose():void
@@ -107,6 +110,8 @@ import com.pj.common.component.BasicObject;
 import com.pj.common.component.DragableObject;
 import com.pj.common.component.IContainer;
 import com.pj.common.component.IMoveHandler;
+import com.pj.common.math.Vector2D;
+import flash.display.Sprite;
 
 class MoveInput extends BasicObject implements IMoveHandler
 {

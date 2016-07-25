@@ -96,7 +96,7 @@ package com.pj.common.j3d
 		private function onInit(p_evt:Event):void
 		{
 			this._context3D = this.instance.stage.stage3Ds[0].context3D;
-			this._context3D.configureBackBuffer(400, 400, 1, true);
+			this._context3D.configureBackBuffer(400, 200, 1, true);
 			this._context3D.setCulling(Context3DTriangleFace.BACK); // Remove "Back" triangle
 			this._context3D.setBlendFactors(Context3DBlendFactor.SOURCE_ALPHA, Context3DBlendFactor.ONE_MINUS_SOURCE_ALPHA);
 			this._program = this._context3D.createProgram();
@@ -110,7 +110,7 @@ package com.pj.common.j3d
 				return;
 			}
 			
-			this._context3D.clear(0, 1, 1, 1);
+			this._context3D.clear(0.1, 0.1, 0.1, 1);
 			this._container.draw(this);
 			this._context3D.present();
 		}

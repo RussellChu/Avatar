@@ -15,6 +15,7 @@ package com.pj.common.component
 		private var _camera:Camera3D = null;
 		private var _center:Vector3D = null;
 		private var _child:Vector.<World3DObj> = null;
+		private var _width:Number = 0;
 		
 		public function World3D(p_parent:BasicContainer):void
 		{
@@ -102,6 +103,10 @@ package com.pj.common.component
 					}
 					return;
 				}
+				var invW:Number = 1 / posW;
+				posX *= invW;
+				posY *= invW;
+				posZ *= invW;
 				if (posZ < 0 || posZ >= 1)
 				{
 					if (p_child.stand.visible)
@@ -111,14 +116,11 @@ package com.pj.common.component
 					}
 					return;
 				}
-				var invW:Number = 1 / posW;
-				posX *= invW;
-				posY *= invW;
-				p_child.stand.x = self._center.x + posX;
-				p_child.stand.y = self._center.y - posY;
+				p_child.stand.x = self._center.x + posX * self._width;
+				p_child.stand.y = self._center.y - posY * self._width;
 				p_child.stand.alpha = 1 - posZ;
-				p_child.stand.scaleX = invW;
-				p_child.stand.scaleY = invW;
+				p_child.stand.scaleX = invW * self._width;
+				p_child.stand.scaleY = invW * self._width;
 				p_child.stand.visible = true;
 				self.container.addChildAt(p_child.stand, 0);
 			});
@@ -128,6 +130,11 @@ package com.pj.common.component
 		{
 			this._center.x = p_x;
 			this._center.y = p_y;
+		}
+		
+		public function setWidth(p_width:Number):void
+		{
+			this._width = p_width;
 		}
 	
 	}

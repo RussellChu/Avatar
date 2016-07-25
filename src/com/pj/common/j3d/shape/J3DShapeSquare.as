@@ -35,7 +35,7 @@ package com.pj.common.j3d.shape
 				cG = p_color.g;
 				cB = p_color.b;
 			}
-			
+			/*
 			vertices.addData(-1, -1, -1, cR, cG, cB);
 			vertices.addData(-1, 1, -1, cR, cG, cB);
 			vertices.addData(1, 1, -1, cR, cG, cB);
@@ -65,6 +65,39 @@ package com.pj.common.j3d.shape
 			vertices.addData(1, 1, -1, cR, cG, cB);
 			vertices.addData(-1, 1, -1, cR, cG, cB);
 			vertices.addData(-1, 1, 1, cR, cG, cB);
+			*/
+			
+			var z:Number = 0;
+
+			vertices.addData(-1, -1, -1 + z, cR, 0, 0);
+			vertices.addData(-1, 1, -1 + z, cR, 0, 0);
+			vertices.addData(1, 1, -1 + z, cR, 0, 0);
+			vertices.addData(1, -1, -1 + z, cR, 0, 0);
+			
+			vertices.addData(-1, -1, -1 + z, 0, cG, 0);
+			vertices.addData(-1, -1, 1 + z, 0, cG, 0);
+			vertices.addData(-1, 1, 1 + z, 0, cG, 0);
+			vertices.addData(-1, 1, -1 + z, 0, cG, 0);
+			
+			vertices.addData(-1, -1, -1 + z, 0, 0, cB);
+			vertices.addData(1, -1, -1 + z, 0, 0, cB);
+			vertices.addData(1, -1, 1 + z, 0, 0, cB);
+			vertices.addData(-1, -1, 1 + z, 0, 0, cB);
+			
+			vertices.addData(1, 1, 1 + z, cR, cG, 0);
+			vertices.addData(-1, 1, 1 + z, cR, cG, 0);
+			vertices.addData(-1, -1, 1 + z, cR, cG, 0);
+			vertices.addData(1, -1, 1 + z, cR, cG, 0);
+			
+			vertices.addData(1, 1, 1 + z, 0, cG, cB);
+			vertices.addData(1, -1, 1 + z, 0, cG, cB);
+			vertices.addData(1, -1, -1 + z, 0, cG, cB);
+			vertices.addData(1, 1, -1 + z, 0, cG, cB);
+			
+			vertices.addData(1, 1, 1 + z, cR, 0, cB);
+			vertices.addData(1, 1, -1 + z, cR, 0, cB);
+			vertices.addData(-1, 1, -1 + z, cR, 0, cB);
+			vertices.addData(-1, 1, 1 + z, cR, 0, cB);
 		}
 	
 	}
