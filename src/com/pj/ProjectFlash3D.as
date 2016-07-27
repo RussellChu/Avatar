@@ -53,8 +53,8 @@ package com.pj
 		private function onEnterFrame(p_evt:Event):void
 		{
 			this._camera.rotateByX(0.01);
-			this._camera.rotateByY(0.029);
-			this._camera.rotateByZ(0.013);
+		//	this._camera.rotateByY(0.029);
+		//	this._camera.rotateByZ(0.013);
 			this._vs.setCameraMatrix(this._camera.getTransform());
 		}
 	

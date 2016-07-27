@@ -73,9 +73,9 @@ package com.pj.common.math
 			var y:Number = p_axis.y;
 			var z:Number = p_axis.z;
 			this.e = [];
-			this.e.push([c + x * x * (1 - c), x * y * (1 - c) - z * s, z * x * (1 - c) + y * s, 0]);
-			this.e.push([x * y * (1 - c) + z * s, c + y * y * (1 - c), y * z * (1 - c) - x * s, 0]);
-			this.e.push([z * x * (1 - c) - y * s, y * z * (1 - c) + x * s, c + z * z * (1 - c), 0]);
+			this.e.push([c + x * x * (1 - c), x * y * (1 - c) + z * s, z * x * (1 - c) - y * s, 0]);
+			this.e.push([x * y * (1 - c) - z * s, c + y * y * (1 - c), y * z * (1 - c) + x * s, 0]);
+			this.e.push([z * x * (1 - c) + y * s, y * z * (1 - c) - x * s, c + z * z * (1 - c), 0]);
 			this.e.push([0, 0, 0, 1]);
 			return this;
 		}
@@ -105,6 +105,12 @@ package com.pj.common.math
 			return this;
 		}
 		
+		/*
+		 * 	00	10	20	30
+		 * 	10	11	12	13
+		 * 	20	21	22	23
+		 * 	30	31	32	33
+		 * */
 		public function product(p_mx:Matrix4D):Matrix4D
 		{
 			var result:Matrix4D = new Matrix4D();
@@ -150,31 +156,31 @@ package com.pj.common.math
 		}
 		
 		/*
-		 *  (x,y,z,w) * M -> (x',y',z',w')
+		 *  M * (x,		x'
+		 * 		 y,		y'
+		 * 		 z,		z'
+		 * 		 w) ->	w'
 		 */
 		public function transform(p_vtr:Vector4D):Vector4D
-		{
-			var vtr:Vector4D = new Vector4D();
-			vtr.x = p_vtr.x * this.e[0][0] + p_vtr.y * this.e[0][1] + p_vtr.z * this.e[0][2] + p_vtr.w * this.e[0][3];
-			vtr.y = p_vtr.x * this.e[1][0] + p_vtr.y * this.e[1][1] + p_vtr.z * this.e[1][2] + p_vtr.w * this.e[1][3];
-			vtr.z = p_vtr.x * this.e[2][0] + p_vtr.y * this.e[2][1] + p_vtr.z * this.e[2][2] + p_vtr.w * this.e[2][3];
-			vtr.w = p_vtr.x * this.e[3][0] + p_vtr.y * this.e[3][1] + p_vtr.z * this.e[3][2] + p_vtr.w * this.e[3][3];
-			return vtr;
-		}
-		
-		/*
-		 *  M * (x,
-		 * 		 y,
-		 * 		 z,
-		 * 		 w) -> (x', y', z', w')
-		 */
-		public function transform2(p_vtr:Vector4D):Vector4D
 		{
 			var vtr:Vector4D = new Vector4D();
 			vtr.x = p_vtr.x * this.e[0][0] + p_vtr.y * this.e[1][0] + p_vtr.z * this.e[2][0] + p_vtr.w * this.e[3][0];
 			vtr.y = p_vtr.x * this.e[0][1] + p_vtr.y * this.e[1][1] + p_vtr.z * this.e[2][1] + p_vtr.w * this.e[3][1];
 			vtr.z = p_vtr.x * this.e[0][2] + p_vtr.y * this.e[1][2] + p_vtr.z * this.e[2][2] + p_vtr.w * this.e[3][2];
 			vtr.w = p_vtr.x * this.e[0][3] + p_vtr.y * this.e[1][3] + p_vtr.z * this.e[2][3] + p_vtr.w * this.e[3][3];
+			return vtr;
+		}
+		
+		/*
+		 *  (x,y,z,w) * M -> (x',y',z',w')
+		 */
+		public function transform3(p_vtr:Vector4D):Vector4D
+		{
+			var vtr:Vector4D = new Vector4D();
+			vtr.x = p_vtr.x * this.e[0][0] + p_vtr.y * this.e[0][1] + p_vtr.z * this.e[0][2] + p_vtr.w * this.e[0][3];
+			vtr.y = p_vtr.x * this.e[1][0] + p_vtr.y * this.e[1][1] + p_vtr.z * this.e[1][2] + p_vtr.w * this.e[1][3];
+			vtr.z = p_vtr.x * this.e[2][0] + p_vtr.y * this.e[2][1] + p_vtr.z * this.e[2][2] + p_vtr.w * this.e[2][3];
+			vtr.w = p_vtr.x * this.e[3][0] + p_vtr.y * this.e[3][1] + p_vtr.z * this.e[3][2] + p_vtr.w * this.e[3][3];
 			return vtr;
 		}
 		
