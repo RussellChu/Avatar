@@ -55,6 +55,11 @@ package com.pj.common.math
 			return result;
 		}
 		
+		public function negative():Vector3D
+		{
+			return new Vector3D(-this.x, -this.y, -this.z);
+		}
+		
 		public function add(p_vtr:Vector3D):Vector3D
 		{
 			return new Vector3D(this.x + p_vtr.x, this.y + p_vtr.y, this.z + p_vtr.z);

@@ -98,10 +98,10 @@ package com.pj.common.math
 		public function setTranslate(p_vtr:Vector3D):Matrix4D
 		{
 			this.e = [];
-			this.e.push([1, 0, 0, p_vtr.x]);
-			this.e.push([0, 1, 0, p_vtr.y]);
-			this.e.push([0, 0, 1, p_vtr.z]);
-			this.e.push([0, 0, 0, 1]);
+			this.e.push([1, 0, 0, 0]);
+			this.e.push([0, 1, 0, 0]);
+			this.e.push([0, 0, 1, 0]);
+			this.e.push([p_vtr.x, p_vtr.y, p_vtr.z, 1]);
 			return this;
 		}
 		
@@ -124,7 +124,7 @@ package com.pj.common.math
 			return result;
 		}
 		
-		public function productEqual(p_mx:Matrix4D):Matrix4D
+		public function productEql(p_mx:Matrix4D):Matrix4D
 		{
 			return this.cloneFrom(this.product(p_mx));
 		}
@@ -171,30 +171,13 @@ package com.pj.common.math
 			return vtr;
 		}
 		
-		/*
-		 *  (x,y,z,w) * M -> (x',y',z',w')
-		 */
-		public function transform3(p_vtr:Vector4D):Vector4D
-		{
-			var vtr:Vector4D = new Vector4D();
-			vtr.x = p_vtr.x * this.e[0][0] + p_vtr.y * this.e[0][1] + p_vtr.z * this.e[0][2] + p_vtr.w * this.e[0][3];
-			vtr.y = p_vtr.x * this.e[1][0] + p_vtr.y * this.e[1][1] + p_vtr.z * this.e[1][2] + p_vtr.w * this.e[1][3];
-			vtr.z = p_vtr.x * this.e[2][0] + p_vtr.y * this.e[2][1] + p_vtr.z * this.e[2][2] + p_vtr.w * this.e[2][3];
-			vtr.w = p_vtr.x * this.e[3][0] + p_vtr.y * this.e[3][1] + p_vtr.z * this.e[3][2] + p_vtr.w * this.e[3][3];
-			return vtr;
-		}
-		
 		public function printSelf():void
 		{
-			trace("print");
-			var str:String = "";
-			str = "" + this.e[0][0] + ", " + this.e[1][0] + ", " + this.e[2][0] + ", " + this.e[3][0];
-			trace(str);
-			str = "" + this.e[0][1] + ", " + this.e[1][1] + ", " + this.e[2][1] + ", " + this.e[3][1];
-			trace(str);
-			str = "" + this.e[0][2] + ", " + this.e[1][2] + ", " + this.e[2][2] + ", " + this.e[3][2];
-			trace(str);
-			str = "" + this.e[0][3] + ", " + this.e[1][3] + ", " + this.e[2][3] + ", " + this.e[3][3];
+			var str:String = "print\n";
+			str = "" + this.e[0][0] + ", " + this.e[1][0] + ", " + this.e[2][0] + ", " + this.e[3][0] + "\n";
+			str = "" + this.e[0][1] + ", " + this.e[1][1] + ", " + this.e[2][1] + ", " + this.e[3][1] + "\n";
+			str = "" + this.e[0][2] + ", " + this.e[1][2] + ", " + this.e[2][2] + ", " + this.e[3][2] + "\n";
+			str = "" + this.e[0][3] + ", " + this.e[1][3] + ", " + this.e[2][3] + ", " + this.e[3][3] + "\n";
 			trace(str);
 		}
 	

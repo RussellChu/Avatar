@@ -28,10 +28,12 @@ package com.pj.common.j3d.data
 			format: {name: "Test"//
 				, pos: POS_0TO2_XYZ //
 				, diffuse: DIFFUSE_3TO5_RGB //
-			}, code: ["" // nothing
+			} //, value:[1]
+			, code: ["" // nothing
 			, "mov v0, va1" // copy va1 (myDiffuse) to v0(=color channel 0)
-		//	, "m44 v0, va0, vc0" // copy va1 (myDiffuse) to v0(=color channel 0)
-			, "m44 op, va0, vc0" // transform va0(myPos) by vc0(matrix) to op(vertex output)
+			, "m44 vt0, va0, vc0" // transform va0(myPos) by vc0(matrix) to vt0(loc0)
+			, "mov v0, vt0" // copy vt0(loc0) to v0(=color channel 0)
+			, "mov op, vt0" // copy vt0(loc0) to op(vertex output)
 			]};
 		
 		public static const SHADER_TEXTURE:Object = { //

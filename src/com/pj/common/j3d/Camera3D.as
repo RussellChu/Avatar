@@ -115,67 +115,49 @@ package com.pj.common.j3d
 			this._up = p_vtr;
 		}
 		
+		private function getProjectMatrix(p_screenWidth:Number, p_screenHeight:Number, p_planeWidth:Number, p_planeDist:Number, p_planeDepth:Number, p_targetDist:Number):Matrix4D
+		{
+			var a:Number = p_screenWidth / p_planeWidth;
+			var b:Number = p_screenWidth / p_targetDist;
+			var c:Number = (1 + p_planeDist / p_planeDepth) * b;
+			var mx:Matrix4D = new Matrix4D();
+			mx.e[0][0] = a;
+			mx.e[1][1] = a * p_screenWidth / p_screenHeight;
+			mx.e[2][2] = c;
+			mx.e[2][3] = b;
+			mx.e[3][2] = -c * p_planeDist;
+			return mx.product(new Matrix4D().setTranslate(new Vector3D(0, 0, p_targetDist)));
+		}
+		
+		private function getRotateByDirection(p_front:Vector3D, p_up:Vector3D):Matrix4D
+		{
+			var left:Vector3D = p_up.cross(p_front);
+			var top:Vector3D = p_front.cross(left);
+			var u:Vector3D = left.normal();
+			var v:Vector3D = top.normal();
+			var w:Vector3D = p_front.normal();
+			var mx:Matrix4D = new Matrix4D();
+			mx.e[0][0] = u.x;
+			mx.e[1][0] = u.y;
+			mx.e[2][0] = u.z;
+			mx.e[0][1] = v.x;
+			mx.e[1][1] = v.y;
+			mx.e[2][1] = v.z;
+			mx.e[0][2] = w.x;
+			mx.e[1][2] = w.y;
+			mx.e[2][2] = w.z;
+			mx.e[3][3] = 1;
+			return mx;
+		}
+		
 		public function getTransform():Matrix4D
 		{
 			var front:Vector3D = this._target.minus(this._pos);
-			var left:Vector3D = this._up.cross(front);
-			var top:Vector3D = front.cross(left);
-			var u:Vector3D = left.normal();
-			var v:Vector3D = top.normal();
-			var w:Vector3D = front.normal();
-			
 			var targetDist:Number = Math.sqrt(front.lengthStr());
-			
-			var mx:Matrix4D = new Matrix4D();
-			mx.setIdentity();
-			
-			var n:Number = this._planeDist;
-			var f:Number = this._planeDepth + n;
-			var r:Number = this._planeWidth / targetDist;
-			var a:Number = this._screenWidth / this._planeWidth;
-			var b:Number = r * a / (1 - n / f);
-			var c:Number = r * a;
-			var d:Number = r * a / (1 / f - 1 / n);
-			var mxC:Matrix4D = new Matrix4D();
-			mxC.e[0][0] = a;
-			mxC.e[1][1] = a * this._screenWidth / this._screenHeight;
-			mxC.e[2][2] = b;
-			mxC.e[2][3] = c;
-			mxC.e[3][2] = d;
-			
-			var mxB:Matrix4D = new Matrix4D();
-			mxB.setIdentity();
-			mxB.e[3][2] = targetDist;
-			
-			var mxA:Matrix4D = new Matrix4D();
-			mxA.e[0][0] = u.x;
-			mxA.e[1][0] = u.y;
-			mxA.e[2][0] = u.z;
-			mxA.e[0][1] = v.x;
-			mxA.e[1][1] = v.y;
-			mxA.e[2][1] = v.z;
-			mxA.e[0][2] = w.x;
-			mxA.e[1][2] = w.y;
-			mxA.e[2][2] = w.z;
-			mxA.e[3][3] = 1;
-			
-			var mx0:Matrix4D = new Matrix4D();
-			mx0.setIdentity();
-			mx0.e[3][0] = -this._target.x;
-			mx0.e[3][1] = -this._target.y;
-			mx0.e[3][2] = -this._target.z;
-			
-			mx.productEqual(mxC);
-			mx.productEqual(mxB);
-			mx.productEqual(mxA);
-			mx.productEqual(mx0);
-			/*
-			mx.productEqual(mx0);
-			mx.productEqual(mxA);
-			mx.productEqual(mxB);
-			mx.productEqual(mxC);
-			*/
-			return mx;
+			var mxPrj:Matrix4D = this.getProjectMatrix(this._screenWidth, this._screenHeight, this._planeWidth, this._planeDist, this._planeDepth, targetDist);
+			var mxRot:Matrix4D = this.getRotateByDirection(front, this._up);
+			var mxMov:Matrix4D = new Matrix4D().setTranslate(this._target.negative());
+			return mxPrj.product(mxRot).product(mxMov);
 		}
 	
 	}

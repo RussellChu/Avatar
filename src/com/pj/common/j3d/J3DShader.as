@@ -91,6 +91,10 @@ package com.pj.common.j3d
 			return this._assembler.agalcode;
 		}
 		
+		public function setConst(p_context:Context3D):void {
+			// override
+		}
+		
 		public function update(p_context:Context3D):void{
 			// override
 		}
