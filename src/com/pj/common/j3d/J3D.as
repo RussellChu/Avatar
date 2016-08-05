@@ -7,6 +7,8 @@ package com.pj.common.j3d
 	import com.pj.common.j3d.shader.vertex.J3D_VS;
 	import flash.display3D.Context3D;
 	import flash.display3D.Context3DBlendFactor;
+	import flash.display3D.Context3DProfile;
+	import flash.display3D.Context3DRenderMode;
 	import flash.display3D.Context3DTriangleFace;
 	import flash.display3D.IndexBuffer3D;
 	import flash.display3D.Program3D;
@@ -90,7 +92,7 @@ package com.pj.common.j3d
 			p_parent.addChild(this);
 			this.instance.stage.stage3Ds[0].addEventListener(Event.CONTEXT3D_CREATE, this.onInit);
 			this.instance.addEventListener(Event.ENTER_FRAME, this.onRender);
-			this.instance.stage.stage3Ds[0].requestContext3D();
+			this.instance.stage.stage3Ds[0].requestContext3D(Context3DRenderMode.AUTO, Context3DProfile.STANDARD);
 		}
 		
 		private function onInit(p_evt:Event):void

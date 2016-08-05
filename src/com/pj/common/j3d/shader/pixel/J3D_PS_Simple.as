@@ -3,6 +3,7 @@ package com.pj.common.j3d.shader.pixel
 	import com.pj.common.j3d.data.J3DPixelShaderData;
 	import com.pj.common.j3d.shader.pixel.J3D_PS;
 	import flash.display3D.Context3D;
+	import flash.display3D.Context3DProgramType;
 	
 	/**
 	 * ...
@@ -22,7 +23,8 @@ package com.pj.common.j3d.shader.pixel
 		
 		override public function update(p_context:Context3D):void
 		{
-			;
+			p_context.setProgramConstantsFromVector(Context3DProgramType.FRAGMENT, 0,  new Vector.<Number>([]));
+		//	p_context.setProgramConstantsFromMatrix(Context3DProgramType.FRAGMENT, 0, this._mxCamera.toM3D());
 		}
 	
 	}

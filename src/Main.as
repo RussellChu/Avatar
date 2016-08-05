@@ -1,5 +1,6 @@
 package
 {
+	import com.pj.ProjectCompiler;
 	import com.pj.ProjectFlash3D;
 	import com.pj.ProjectMP4;
 	import com.pj.ProjectWorld;
@@ -12,6 +13,7 @@ package
 		{
 			// new ProjectWorld(this);
 			new ProjectFlash3D(this);
+			// new ProjectCompiler(this);
 			// new ProjectMP4(this);
 			//trace("Hello World!");
 			//loader = new Loader();

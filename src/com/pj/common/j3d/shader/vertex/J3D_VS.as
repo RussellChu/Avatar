@@ -14,10 +14,10 @@ package com.pj.common.j3d.shader.vertex
 		public function J3D_VS(p_data:Object)
 		{
 			super(p_data);
-			this._assembler.assemble(Context3DProgramType.VERTEX, this._code);
+			this._assembler.assemble(Context3DProgramType.VERTEX, this._code, 2);
 		}
 		
-		public function setConst(p_context:Context3D):void
+		override public function setConst(p_context:Context3D):void
 		{
 			p_context.setProgramConstantsFromVector(Context3DProgramType.VERTEX, 0, Vector.<Number>([]));
 		}

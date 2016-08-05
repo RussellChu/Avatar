@@ -14,10 +14,10 @@ package com.pj.common.j3d.shader.pixel
 		public function J3D_PS(p_data:Object)
 		{
 			super(p_data);
-			this._assembler.assemble(Context3DProgramType.FRAGMENT, this._code);
+			this._assembler.assemble(Context3DProgramType.FRAGMENT, this._code, 2);
 		}
 		
-		public function setConst(p_context:Context3D):void
+		override public function setConst(p_context:Context3D):void
 		{
 			p_context.setProgramConstantsFromVector(Context3DProgramType.FRAGMENT, 0, Vector.<Number>([]));
 		}
