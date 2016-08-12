@@ -83,6 +83,56 @@ package com.pj.common
 			}
 		}
 		
+		public static function hasValueBoolean(p_obj:Object, p_key:String):Boolean {
+			if (!p_obj) {return false;}
+			if (!p_obj.hasOwnProperty(p_key)) {return false;}
+			if (p_obj[p_key] is Boolean) {return true;}
+			return false;
+		}
+		
+		public static function hasValueInteger(p_obj:Object, p_key:String):Boolean {
+			if (!p_obj) {return false;}
+			if (!p_obj.hasOwnProperty(p_key)) {return false;}
+			if (p_obj[p_key] is int) {return true;}
+			return false;
+		}
+		
+		public static function hasValueNumber(p_obj:Object, p_key:String):Boolean {
+			if (!p_obj) {return false;}
+			if (!p_obj.hasOwnProperty(p_key)) {return false;}
+			if (p_obj[p_key] is int) {return true;}
+			if (p_obj[p_key] is Number) {return true;}
+			return false;
+		}
+		
+		public static function hasValueString(p_obj:Object, p_key:String):Boolean {
+			if (!p_obj) {return false;}
+			if (!p_obj.hasOwnProperty(p_key)) {return false;}
+			if (p_obj[p_key] is String) {return true;}
+			return false;
+		}
+		
+		public static function hasValueObject(p_obj:Object, p_key:String):Boolean {
+			if (!p_obj) {return false;}
+			if (!p_obj.hasOwnProperty(p_key)) {return false;}
+			if (p_obj[p_key] is Object) {return true;}
+			return false;
+		}
+		
+		public static function hasValueArray(p_obj:Object, p_key:String):Boolean {
+			if (!p_obj) {return false;}
+			if (!p_obj.hasOwnProperty(p_key)) {return false;}
+			if (p_obj[p_key] is Array) {return true;}
+			return false;
+		}
+		
+		public static function setValueBoolean(p_obj:Object, p_key:String, p_default:Boolean = false):Boolean {
+			if (!p_obj) {return p_default;}
+			if (!p_obj.hasOwnProperty(p_key)) {return p_default;}
+			if (p_obj[p_key] is Boolean) {return p_obj[p_key];}
+			return p_default;
+		}
+		
 		public function Helper()
 		{
 			;

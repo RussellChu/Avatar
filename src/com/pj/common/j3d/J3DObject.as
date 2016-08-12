@@ -2,20 +2,17 @@ package com.pj.common.j3d
 {
 	import com.pj.common.Helper;
 	import com.pj.common.IDisposable;
-	import com.pj.common.j3d.shader.IShadingVertex_Texture;
-	import com.pj.common.j3d.shader.pixel.J3D_PS;
-	import com.pj.common.j3d.shader.vertex.J3D_VS;
-	
+	import com.pj.common.j3d.shader.J3DShader;
 	/**
 	 * ...
 	 * @author Russell
 	 */
-	public class J3DObject implements IDisposable, IShadingVertex_Texture
+	public class J3DObject implements IDisposable
 	{
 		protected var _indices:J3DIndex = null;
 		protected var _vertices:J3DVertex = null;
-		private var _pixelShader:J3D_PS = null;
-		private var _vertexShader:J3D_VS = null;
+		private var _pixelShader:J3DShader = null;
+		private var _vertexShader:J3DShader = null;
 		protected var _textureKey:Array = null;
 		
 		public function J3DObject()
@@ -46,12 +43,12 @@ package com.pj.common.j3d
 			p_j3d.drawObject(this._vertices, this._indices, this._vertexShader, this._pixelShader);
 		}
 		
-		public function set pixelShader(p_shader:J3D_PS):void
+		public function set pixelShader(p_shader:J3DShader):void
 		{
 			this._pixelShader = p_shader;
 		}
 		
-		public function set vertexShader(p_shader:J3D_VS):void
+		public function set vertexShader(p_shader:J3DShader):void
 		{
 			this._vertexShader = p_shader;
 		}

@@ -43,6 +43,16 @@ package com.pj.common.math
 			return m;
 		}
 		
+		public function toArray():Array
+		{
+			return [ //
+			this.e[0][0], this.e[1][0], this.e[2][0], this.e[3][0] //
+			, this.e[0][1], this.e[1][1], this.e[2][1], this.e[3][1] //
+			, this.e[0][2], this.e[1][2], this.e[2][2], this.e[3][2] //
+			, this.e[0][3], this.e[1][3], this.e[2][3], this.e[3][3] //
+			];
+		}
+		
 		public function setIdentity():Matrix4D
 		{
 			this.e = [];
