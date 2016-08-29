@@ -121,13 +121,7 @@ package com.pj.common.j3d.shader
 		
 		public function getAttributeCode(p_name:String):int
 		{
-			var item:Object = this._attribute[p_name];
-			if (!item)
-			{
-				return -1;
-			}
-			// to do
-			return 0;
+			return Helper.getValueInteger(this._attribute[p_name], "code", -1);
 		}
 		
 		public function setConst(p_name:String, p_value:Object):void

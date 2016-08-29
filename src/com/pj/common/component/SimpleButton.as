@@ -14,6 +14,8 @@ package com.pj.common.component
 	 */
 	public class SimpleButton extends AbstractButton
 	{
+		public static const ACTION_NULL:int = 0;
+		
 		private static const IMG_DOWN:int = 0;
 		private static const IMG_IDLE:int = 1;
 		private static const IMG_OVER:int = 2;
@@ -21,14 +23,36 @@ package com.pj.common.component
 		private var _imgDown:Bitmap = null;
 		private var _imgIdle:Bitmap = null;
 		private var _imgOver:Bitmap = null;
-		private var _txt:TextField = null;
+		private var _txtTitle:TextField = null;
+		private var _format:TextFormat = null;
+		
+		private var _initTitle:String = "";
+		private var _initWidth:int = 0;
+		private var _initHeight:int = 0;
 		
 		private var _isMouseOver:Boolean = false;
 		
-		public function SimpleButton(p_text:String, p_width:int, p_height:int):void
+		public function SimpleButton(p_title:String, p_width:int, p_height:int):void
 		{
+			this._initTitle = p_title;
+			this._initWidth = p_width;
+			this._initHeight = p_height;
 			super();
+		}
+		
+		override public function dispose():void
+		{
+			this._imgDown = null;
+			this._imgIdle = null;
+			this._imgOver = null;
+			this._txtTitle = null;
 			
+			super.dispose();
+		}
+		
+		override protected function init():void {
+			super.init();
+
 			var colorDown:uint = new JColor(0.8, 0.8, 0.7, 1).value;
 			var colorIdle:uint = new JColor(0.9, 0.9, 0.9, 1).value;
 			var colorOver:uint = new JColor(0.8, 0.8, 0.9, 1).value;
@@ -58,35 +82,35 @@ package com.pj.common.component
 			this._imgDown = new Bitmap(bmpDataDown);
 			this._imgIdle = new Bitmap(bmpDataIdle);
 			this._imgOver = new Bitmap(bmpDataOver);
-			this._imgDown.scaleX = p_width;
-			this._imgIdle.scaleX = p_width;
-			this._imgOver.scaleX = p_width;
-			this._imgDown.scaleY = p_height;
-			this._imgIdle.scaleY = p_height;
-			this._imgOver.scaleY = p_height;
+			this._imgDown.scaleX = this._initWidth;
+			this._imgIdle.scaleX = this._initWidth;
+			this._imgOver.scaleX = this._initWidth;
+			this._imgDown.scaleY = this._initHeight;
+			this._imgIdle.scaleY = this._initHeight;
+			this._imgOver.scaleY = this._initHeight;
 			this.container.addChild(this._imgDown);
 			this.container.addChild(this._imgIdle);
 			this.container.addChild(this._imgOver);
 			
-			this.setImage(IMG_IDLE);
-			
-			this._txt = new TextField();
-			this._txt.width = p_width;
-			this._txt.height = p_height;
-			this._txt.text = p_text;
+			this._txtTitle = new TextField();
+			this._txtTitle.width = this._initWidth;
+			this._txtTitle.height = this._initHeight;
+			this._txtTitle.text = "";
 			var format:TextFormat = new TextFormat();
 			format.align = TextFormatAlign.CENTER;
-			this._txt.setTextFormat(format);
-			this._txt.mouseEnabled = false;
-			this.container.addChild(this._txt);
+		//	setTextFormat: format will reset if text change; defaultTextFormat: not
+		//	this._txtTitle.setTextFormat(format);
+			this._txtTitle.defaultTextFormat = format;
+			this._txtTitle.mouseEnabled = false;
+			this.container.addChild(this._txtTitle);
 		}
 		
-		override public function dispose():void
+		override public function reset():void
 		{
-			this._imgDown = null;
-			this._imgIdle = null;
-			this._imgOver = null;
-			this._txt = null;
+			super.reset();
+			this._txtTitle.text = this._initTitle;
+			this._isMouseOver = false;
+			this.setImage(IMG_IDLE);
 		}
 		
 		private function setImage(p_code:int):void

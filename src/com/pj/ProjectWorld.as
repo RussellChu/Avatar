@@ -48,17 +48,17 @@ package com.pj
 			this._timer.start();
 			
 			var btn:SimpleButton = new SimpleButton("Hello world", 200, 50);
-			//	this.addChild(btn);
+			this.addChild(btn);
 			
 			//	var testHolder:DragableContainer = new DragableContainer(this, 200, 200, 400, 400);
 			//	new JImage_RandSqr(testHolder, 400, 400);
 			
-			var slider:Slider = new Slider(this, 200, 50, 300, 300);
-			new JImage_RandSqr(slider, 300, 300);
+		//	var slider:Slider = new Slider(this, 200, 50, 300, 300);
+		//	new JImage_RandSqr(slider, 300, 300);
 			
-			var moveBg:JImage_Circle = new JImage_Circle(50, JImage_Circle.STYLE_DEFAULT, {color: 0xff0000ff});
-			var moveCursor:JImage_Circle = new JImage_Circle(20, JImage_Circle.STYLE_DEFAULT, {color: 0xffff00ff});
-			var mouseCtrl:MoveInput = new MoveInput(this, moveBg, moveCursor);
+			//var moveBg:JImage_Circle = new JImage_Circle(50, JImage_Circle.STYLE_DEFAULT, {color: 0xff0000ff});
+			//var moveCursor:JImage_Circle = new JImage_Circle(20, JImage_Circle.STYLE_DEFAULT, {color: 0xffff00ff});
+			//var mouseCtrl:MoveInput = new MoveInput(this, moveBg, moveCursor);
 		//	mouseCtrl.x = 200;
 		//	mouseCtrl.y = 200;
 		}

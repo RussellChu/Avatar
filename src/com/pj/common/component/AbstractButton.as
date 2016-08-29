@@ -13,10 +13,28 @@ package com.pj.common.component
 		public function AbstractButton():void
 		{
 			super();
+		}
+		
+		override public function dispose():void
+		{
+			this.container.removeEventListener(MouseEvent.CLICK, this.onMouseClick);
+			this.container.removeEventListener(MouseEvent.MOUSE_DOWN, this.onMouseDown);
+			this.container.removeEventListener(MouseEvent.MOUSE_OVER, this.onMouseOver);
+			this.container.removeEventListener(MouseEvent.ROLL_OUT, this.onMouseRollOut);
+			
+			super.dispose();
+		}
+		
+		override protected function init():void {
+			super.init();
 			this.container.addEventListener(MouseEvent.CLICK, this.onMouseClick);
 			this.container.addEventListener(MouseEvent.MOUSE_DOWN, this.onMouseDown);
 			this.container.addEventListener(MouseEvent.MOUSE_OVER, this.onMouseOver);
 			this.container.addEventListener(MouseEvent.ROLL_OUT, this.onMouseRollOut);
+		}
+		
+		override public function reset():void {
+			super.reset();
 		}
 		
 		protected function get container():Sprite

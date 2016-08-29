@@ -126,10 +126,25 @@ package com.pj.common
 			return false;
 		}
 		
-		public static function setValueBoolean(p_obj:Object, p_key:String, p_default:Boolean = false):Boolean {
+		public static function getValueBoolean(p_obj:Object, p_key:String, p_default:Boolean = false):Boolean {
 			if (!p_obj) {return p_default;}
 			if (!p_obj.hasOwnProperty(p_key)) {return p_default;}
 			if (p_obj[p_key] is Boolean) {return p_obj[p_key];}
+			return p_default;
+		}
+		
+		public static function getValueInteger(p_obj:Object, p_key:String, p_default:int = 0):int {
+			if (!p_obj) {return p_default;}
+			if (!p_obj.hasOwnProperty(p_key)) {return p_default;}
+			if (p_obj[p_key] is int) {return p_obj[p_key];}
+			return p_default;
+		}
+		
+		public static function getValueNumber(p_obj:Object, p_key:String, p_default:Number = 0):Number {
+			if (!p_obj) {return p_default;}
+			if (!p_obj.hasOwnProperty(p_key)) {return p_default;}
+			if (p_obj[p_key] is int) {return p_obj[p_key];}
+			if (p_obj[p_key] is Number) {return p_obj[p_key];}
 			return p_default;
 		}
 		

@@ -2,6 +2,7 @@ package com.pj.common.component
 {
 	import com.pj.common.Helper;
 	import com.pj.common.IDisposable;
+	import com.pj.common.IResetable;
 	import com.pj.common.component.BasicObject;
 	import com.pj.common.component.IMoveHandler;
 	import com.pj.common.math.Vector2D;
@@ -12,7 +13,7 @@ package com.pj.common.component
 	 * ...
 	 * @author Russell
 	 */
-	public class DragableObject implements IDisposable
+	public class DragableObject implements IDisposable, IResetable
 	{
 		private var _moveChecker:IMoveHandler = null;
 		private var _state:int = 0;
@@ -35,17 +36,6 @@ package com.pj.common.component
 			}
 		}
 		
-		private function onDraggerBtnMove(e:Event):void
-		{
-			if (this._state == 0)
-			{
-				this._target.instance.removeEventListener(Event.ENTER_FRAME, this.onDraggerBtnMove);
-				return;
-			}
-			
-			this.slide(this._target.instance.mouseX - this._startX, this._target.instance.mouseY - this._startY);
-		}
-		
 		public function dispose():void
 		{
 			if (this._target)
@@ -59,6 +49,26 @@ package com.pj.common.component
 			Helper.dispose(this._target);
 			this._moveChecker = null;
 			this._target = null;
+		}
+		
+		public function reset():void {
+			this._state = 0;
+			this._startX = 0;
+			this._startY = 0;
+			this._wheelX = 0;
+			this._wheelY = 0;
+			this.slideTo(0, 0, true);
+		}
+		
+		private function onDraggerBtnMove(e:Event):void
+		{
+			if (this._state == 0)
+			{
+				this._target.instance.removeEventListener(Event.ENTER_FRAME, this.onDraggerBtnMove);
+				return;
+			}
+			
+			this.slide(this._target.instance.mouseX - this._startX, this._target.instance.mouseY - this._startY);
 		}
 		
 		public function setWheel(p_mX:int, p_mY:int):void

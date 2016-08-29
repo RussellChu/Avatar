@@ -4,7 +4,7 @@ package com.pj.common.j3d.shape
 	import com.pj.common.JColor;
 	import com.pj.common.j3d.J3DIndexDelta;
 	import com.pj.common.j3d.J3DObject;
-	import com.pj.common.j3d.J3DVertexSimple;
+	import com.pj.common.j3d.vertex.J3DVertexSimple;
 	
 	/**
 	 * ...
@@ -29,7 +29,7 @@ package com.pj.common.j3d.shape
 			this._indices = indices;
 			this._vertices = vertices;
 			
-			var isInbound:Boolean = Helper.setValueBoolean(setting, "isInbound");
+			var isInbound:Boolean = Helper.getValueBoolean(setting, "isInbound");
 			for (var i:int = 0; i < 6; i++)
 			{
 					//indices.addData(i * 4 + 0, i * 4 + 2, i * 4 + 1);

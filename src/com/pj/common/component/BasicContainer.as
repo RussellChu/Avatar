@@ -15,7 +15,6 @@ package com.pj.common.component
 		public function BasicContainer(p_parent:IContainer = null, p_inst:Sprite = null):void
 		{
 			super(p_inst, p_parent);
-			this._child = new Vector.<BasicObject>();
 		}
 		
 		override public function dispose():void
@@ -23,6 +22,16 @@ package com.pj.common.component
 			Helper.dispose(this._child);
 			this._child = null;
 			super.dispose();
+		}
+		
+		override protected function init():void {
+			super.init();
+		}
+		
+		override public function reset():void {
+			super.reset();
+			this._child = new Vector.<BasicObject>();
+			this.container.removeChildren();
 		}
 		
 		protected function get container():Sprite

@@ -2,6 +2,7 @@ package com.pj.common.component
 {
 	import com.pj.common.Helper;
 	import com.pj.common.IDisposable;
+	import com.pj.common.IResetable;
 	import flash.display.DisplayObject;
 	import flash.display.Sprite;
 	import flash.events.EventDispatcher;
@@ -10,7 +11,7 @@ package com.pj.common.component
 	 * ...
 	 * @author Russell
 	 */
-	public class BasicObject extends EventDispatcher implements IDisposable
+	public class BasicObject extends EventDispatcher implements IDisposable, IResetable
 	{
 		private var _instance:DisplayObject = null;
 		
@@ -28,12 +29,23 @@ package com.pj.common.component
 			{
 				p_parent.addChild(this);
 			}
+			
+			this.init();
+			this.reset();
 		}
 		
 		public function dispose():void
 		{
 			Helper.dispose(this._instance);
 			this._instance = null;
+		}
+		
+		protected function init():void {
+			;
+		}
+		
+		public function reset():void {
+			;
 		}
 		
 		public function get instance():DisplayObject

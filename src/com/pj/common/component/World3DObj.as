@@ -16,8 +16,6 @@ package com.pj.common.component
 		public function World3DObj(p_inst:BasicObject):void
 		{
 			super(p_inst);
-			this._pos = new Vector3D();
-			this._project = new Vector4D();
 		}
 		
 		override public function dispose():void
@@ -25,6 +23,16 @@ package com.pj.common.component
 			this._pos = null;
 			this._project = null;
 			super.dispose();
+		}
+		
+		override protected function init():void {
+			super.init();
+		}
+		
+		override public function reset():void {
+			super.reset();
+			this._pos = new Vector3D();
+			this._project = new Vector4D();
 		}
 		
 		public function get pos():Vector3D

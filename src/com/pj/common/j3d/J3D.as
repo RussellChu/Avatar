@@ -1,9 +1,12 @@
 package com.pj.common.j3d
 {
 	import com.pj.common.Helper;
+	import com.pj.common.JColor;
 	import com.pj.common.component.BasicObject;
 	import com.pj.common.component.IContainer;
 	import com.pj.common.j3d.shader.J3DShader;
+	import com.pj.common.j3d.vertex.J3DVertex;
+	import flash.display.BitmapData;
 	import flash.display3D.Context3D;
 	import flash.display3D.Context3DBlendFactor;
 	import flash.display3D.Context3DProfile;
@@ -37,6 +40,7 @@ package com.pj.common.j3d
 		private var _pixelShader:J3DShader = null;
 		private var _vertexShader:J3DShader = null;
 		private var _program:Program3D = null;
+		private var _texture:J3DTextureManager = null;
 		
 		public function J3D():void
 		{
@@ -87,7 +91,7 @@ package com.pj.common.j3d
 			}
 			
 			var indexbuffer:IndexBuffer3D = p_indices.setupBuffer(this._context3D);
-			var vertexbuffer:VertexBuffer3D = p_vertices.setupBuffer(this._context3D);
+			var vertexbuffer:VertexBuffer3D = p_vertices.setupBuffer(this._context3D, this._vertexShader);
 			this._context3D.drawTriangles(indexbuffer);
 		}
 		
@@ -105,8 +109,26 @@ package com.pj.common.j3d
 			this._context3D.configureBackBuffer(400, 200, 1, true);
 			this._context3D.setCulling(Context3DTriangleFace.BACK); // Remove "Back" triangle
 			this._context3D.setBlendFactors(Context3DBlendFactor.SOURCE_ALPHA, Context3DBlendFactor.ONE_MINUS_SOURCE_ALPHA);
+		//	this._context3D.setBlendFactors(Context3DBlendFactor.SOURCE_ALPHA, Context3DBlendFactor.SOURCE_ALPHA);
 			this._program = this._context3D.createProgram();
 			this._context3D.setProgram(this._program);
+			
+			this._texture = new J3DTextureManager(this._context3D);
+			
+			var width:int = 256;
+			var height:int = 256;
+			var bmpData:BitmapData = new BitmapData(width, height, true, 0);
+			bmpData.lock();
+			for (var i:int = 0; i < width; i++)
+			{
+				for (var j:int = 0; j < height; j++)
+				{
+					var color:uint = new JColor(Math.random(), Math.random(), Math.random(), 1).value;
+					bmpData.setPixel32(i, j, color);
+				}
+			}
+			bmpData.unlock();
+		//	this._texture.loadBitmapData("test", 
 		}
 		
 		private function onRender(p_evt:Event):void
@@ -116,7 +138,7 @@ package com.pj.common.j3d
 				return;
 			}
 			
-			this._context3D.clear(1, 1, 1, 1);
+			this._context3D.clear(0, 0, 0, 1);
 			this._container.draw(this);
 			this._context3D.present();
 		}

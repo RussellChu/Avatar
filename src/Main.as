@@ -1,7 +1,7 @@
 package
 {
-	import com.pj.ProjectCompiler;
 	import com.pj.ProjectFlash3D;
+	import com.pj.ProjectMacross;
 	import com.pj.ProjectMP4;
 	import com.pj.ProjectWorld;
 	import flash.display.Sprite;
@@ -11,8 +11,9 @@ package
 	{
 		public function Main():void
 		{
-			// new ProjectWorld(this);
-			 new ProjectFlash3D(this);
+			 new ProjectWorld(this);
+			// new ProjectFlash3D(this);
+			//new ProjectMacross(this);
 			// new ProjectCompiler(this);
 			// new ProjectMP4(this);
 			//trace("Hello World!");

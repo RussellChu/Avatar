@@ -1,5 +1,7 @@
 package com.pj.common.j3d
 {
+	import com.pj.common.IDisposable;
+	import com.pj.common.IResetable;
 	import com.pj.common.math.Matrix4D;
 	import com.pj.common.math.Vector3D;
 	
@@ -7,7 +9,7 @@ package com.pj.common.j3d
 	 * ...
 	 * @author Russell
 	 */
-	public class Camera3D
+	public class Camera3D implements IDisposable, IResetable
 	{
 		public static const MODE_ORTHOGONAL:int = 0;
 		public static const MODE_PERSPECTIVE:int = 1;
@@ -24,21 +26,39 @@ package com.pj.common.j3d
 		
 		public function Camera3D(p_pos:Vector3D = null, p_target:Vector3D = null, p_up:Vector3D = null):void
 		{
-			this._pos = p_pos;
-			this._target = p_target;
-			this._up = p_up;
-			if (!this._pos)
+			this.reset();
+			if (p_pos)
 			{
-				this._pos = new Vector3D();
+				this._pos = p_pos;
 			}
-			if (!this._target)
+			if (p_target)
 			{
-				this._target = new Vector3D();
+				this._target = p_target;
 			}
-			if (!this._up)
+			if (p_up)
 			{
-				this._up = new Vector3D();
+				this._up = p_up;
 			}
+		}
+		
+		public function dispose():void
+		{
+			this._target = null;
+			this._pos = null;
+			this._up = null;
+		}
+		
+		public function reset():void
+		{
+			this._mode = MODE_ORTHOGONAL;
+			this._target = new Vector3D();
+			this._pos = new Vector3D();
+			this._up = new Vector3D();
+			this._planeDepth = 0;
+			this._planeDist = 0;
+			this._planeWidth = 0;
+			this._screenWidth = 0;
+			this._screenHeight = 0;
 		}
 		
 		public function move(p_pos:Vector3D):void

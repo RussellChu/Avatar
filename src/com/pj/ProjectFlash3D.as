@@ -6,6 +6,7 @@ package com.pj
 	import com.pj.common.j3d.J3D;
 	import com.pj.common.j3d.shader.J3DShader;
 	import com.pj.common.j3d.shader.J3DShaderData;
+	import com.pj.common.j3d.shape.J3DShapeCube;
 	import com.pj.common.j3d.shape.J3DShapeSquare;
 	import com.pj.common.math.Vector3D;
 	import flash.display.Sprite;
@@ -38,8 +39,9 @@ package com.pj
 			this._vs = new J3DShader(J3DShaderData.SHADER_VERTEX_SIMPLE);
 			J3D.i.setShader(this._vs, ps);
 			//	J3D.i.addChild(new J3DShapeSquare(new JColor(1, 0.7, 0.4, 1)));
-			J3D.i.addChild(new J3DShapeSquare(new JColor(1, 1, 0, 0.3), {isInbound: true}));
-			J3D.i.addChild(new J3DShapeSquare(new JColor(1, 0, 1, 0.3)));
+		//	J3D.i.addChild(new J3DShapeSquare(new JColor(1, 1, 0, 0.3), {isInbound: true}));
+			J3D.i.addChild(new J3DShapeCube(null, {alpha: 1, isInbound: true}));
+			J3D.i.addChild(new J3DShapeCube(null,{alpha: 0.5}));
 			
 			var r:Number = 0.5;
 			this._camera = new Camera3D();

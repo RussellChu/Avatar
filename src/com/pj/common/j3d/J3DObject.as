@@ -3,6 +3,7 @@ package com.pj.common.j3d
 	import com.pj.common.Helper;
 	import com.pj.common.IDisposable;
 	import com.pj.common.j3d.shader.J3DShader;
+	import com.pj.common.j3d.vertex.J3DVertex;
 	/**
 	 * ...
 	 * @author Russell

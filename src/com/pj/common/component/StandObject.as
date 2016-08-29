@@ -8,15 +8,24 @@ package com.pj.common.component
 	 */
 	public class StandObject extends BasicObject
 	{
+		private var _initInst:BasicObject = null;
+		
 		public function StandObject(p_inst:BasicObject):void
 		{
+			this._initInst = p_inst;
 			super(new Sprite());
-			this.stand.addChild(p_inst.instance);
 		}
 		
 		override public function dispose():void
 		{
 			super.dispose();
+		}
+		
+		override protected function init():void
+		{
+			super.init();
+			this.stand.addChild(this._initInst.instance);
+			this._initInst = null;
 		}
 		
 		public function get stand():Sprite

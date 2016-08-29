@@ -7,7 +7,8 @@ package com.pj.common.events
 	 */
 	public class JComponentEvent
 	{
-		public static const DRAGABLE_SLIDE:String = "Dragable.Slide";
+		public static const BUTTON_EVENT:String = "Button";
+		public static const DRAGABLE_EVENT:String = "Dragable";
 		
 		public function JComponentEvent()
 		{

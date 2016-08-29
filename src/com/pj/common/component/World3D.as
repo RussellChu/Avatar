@@ -20,10 +20,6 @@ package com.pj.common.component
 		public function World3D(p_parent:BasicContainer):void
 		{
 			super(new Sprite(), p_parent);
-			this._camera = new Camera3D();
-			this._camera.setDefault();
-			this._center = new Vector3D();
-			this._child = new Vector.<World3DObj>();
 		}
 		
 		override public function dispose():void
@@ -34,6 +30,22 @@ package com.pj.common.component
 			this._center = null;
 			this._child = null;
 			super.dispose();
+		}
+		
+		override protected function init():void {
+			super.init();
+			this._camera = new Camera3D();
+			this._camera.setDefault();
+			this._center = new Vector3D();
+			this._child = new Vector.<World3DObj>();
+		}
+		
+		override public function reset():void {
+			super.reset();
+			this._camera.reset();
+			this._center = new Vector3D();
+			this._child = new Vector.<World3DObj>();
+			this._width = 0;
 		}
 		
 		public function addChild(p_child:BasicObject):BasicObject

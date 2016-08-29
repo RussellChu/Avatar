@@ -27,23 +27,11 @@ package com.pj.common.component
 		
 		public function DragableContainer(p_parent:IContainer, p_borderWidth:int = 0, p_borderHeight:int = 0, p_contentWidth:int = 0, p_contentHeight:int = 0):void
 		{
-			super(null, p_parent);
-			this._content = new BasicContainer();
-			this._dragable = new DragableObject(this._content, this);
-			this.container.addChild(this._content.instance);
 			this._borderWidth = p_borderWidth;
 			this._borderHeight = p_borderHeight;
 			this._contentWidth = p_contentWidth;
 			this._contentHeight = p_contentHeight;
-			
-			var maskShape:Shape = new Shape();
-			maskShape.graphics.beginFill(0xFFFFFF, 1);
-			maskShape.graphics.drawRect(0, 0, this._borderWidth, this._borderHeight);
-			maskShape.graphics.endFill();
-			this.container.addChild(maskShape);
-			this.container.mask = maskShape;
-			
-			this._active = true;
+			super(null, p_parent);
 		}
 		
 		override public function dispose():void
@@ -52,6 +40,28 @@ package com.pj.common.component
 			Helper.dispose(this._dragable);
 			this._content = null;
 			this._dragable = null;
+		}
+		
+		override protected function init():void {
+			super.init();
+
+			this._content = new BasicContainer();
+			this._dragable = new DragableObject(this._content, this);
+			this.container.addChild(this._content.instance);
+			
+			var maskShape:Shape = new Shape();
+			maskShape.graphics.beginFill(0xFFFFFF, 1);
+			maskShape.graphics.drawRect(0, 0, this._borderWidth, this._borderHeight);
+			maskShape.graphics.endFill();
+			this.container.addChild(maskShape);
+			this.container.mask = maskShape;
+		}
+		
+		override public function reset():void {
+			super.reset();
+			this._active = true;
+			this._content.reset();
+			this._dragable.reset();
 		}
 		
 		public function addChild(p_child:BasicObject):BasicObject
@@ -93,7 +103,7 @@ package com.pj.common.component
 		
 		public function onMoveComplete(p_to:Vector2D):void
 		{
-			var evt:JEvent = new JEvent(JComponentEvent.DRAGABLE_SLIDE, {pos: p_to});
+			var evt:JEvent = new JEvent(JComponentEvent.DRAGABLE_EVENT, {pos: p_to});
 			this.dispatchEvent(evt);
 		}
 	

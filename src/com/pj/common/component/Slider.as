@@ -53,7 +53,7 @@ package com.pj.common.component
 			}
 			this._content = new DragableContainer(null, borderWidth - CTRL_WIDTH, borderHeight, contentWidth, contentHeight);
 			this._content.setWheel(0, WHEEL_STEP);
-			this._content.addEventListener(JComponentEvent.DRAGABLE_SLIDE, this.onSlide);
+			this._content.addEventListener(JComponentEvent.DRAGABLE_EVENT, this.onSlide);
 			this.container.addChild(this._content.instance);
 			
 			var ratio:Number = 1;
@@ -70,7 +70,7 @@ package com.pj.common.component
 			this._ctrl = new SliderCtrl(null, ctrlBg, ctrlBar);
 			this._ctrl.setWheelStep(WHEEL_STEP);
 			this._ctrl.instance.x = borderWidth - CTRL_WIDTH;
-			this._ctrl.addEventListener(JComponentEvent.DRAGABLE_SLIDE, this.onSlideCtrl);
+			this._ctrl.addEventListener(JComponentEvent.DRAGABLE_EVENT, this.onSlideCtrl);
 			this.container.addChild(this._ctrl.instance);
 			
 			this._contentMoveMax = contentHeight - borderHeight;
@@ -149,22 +149,40 @@ class SliderCtrl extends BasicObject implements IMoveHandler
 	
 	public function SliderCtrl(p_parent:IContainer, p_ctrlBg:BasicObject, p_ctrlBar:BasicObject):void
 	{
-		super(null, p_parent);
-		
+
 		if (!p_ctrlBg || !p_ctrlBar)
 		{
 			throw new Error();
 		}
 		
-		this._bgHeight = p_ctrlBg.instance.height;
-		this._barHeight = p_ctrlBar.instance.height;
+		this._ctrlBar = p_ctrlBar;
+		this._ctrlBg = p_ctrlBg;
+		
+		super(null, p_parent);
+	}
+	
+	override public function dispose():void
+	{
+		if (this._ctrlBg) {
+			this._ctrlBg.instance.removeEventListener(MouseEvent.MOUSE_DOWN, this.onMouseDown);
+			this._ctrlBg.instance.removeEventListener(MouseEvent.MOUSE_WHEEL, this.onMouseWheel);
+		}
+		Helper.dispose(this._ctrlBar);
+		Helper.dispose(this._ctrlBg);
+		Helper.dispose(this._dragable);
+		this._ctrlBar = null;
+		this._ctrlBg = null;
+		this._dragable = null;
+		this._wheelStep = 0;
+	}
+	
+	override protected function init():void {
+		this._bgHeight = this._ctrlBg.instance.height;
+		this._barHeight = this._ctrlBar.instance.height;
 		if (this._barHeight > this._bgHeight)
 		{
 			this._barHeight = this._bgHeight;
 		}
-		
-		this._ctrlBar = p_ctrlBar;
-		this._ctrlBg = p_ctrlBg;
 		
 		this._ctrlBg.instance.addEventListener(MouseEvent.MOUSE_DOWN, this.onMouseDown);
 		this._ctrlBg.instance.addEventListener(MouseEvent.MOUSE_WHEEL, this.onMouseWheel);
@@ -173,18 +191,13 @@ class SliderCtrl extends BasicObject implements IMoveHandler
 		this.container.addChild(this._ctrlBar.instance);
 		
 		this._dragable = new DragableObject(this._ctrlBar, this, false);
-		
-		this._active = true;
 	}
 	
-	override public function dispose():void
-	{
-		Helper.dispose(this._ctrlBar);
-		Helper.dispose(this._ctrlBg);
-		Helper.dispose(this._dragable);
-		this._ctrlBar = null;
-		this._ctrlBg = null;
-		this._dragable = null;
+	override public function reset():void {
+		this._active = true;
+		this._ctrlBar.reset();
+		this._ctrlBg.reset();
+		this._dragable.reset();
 	}
 	
 	public function checkMove(p_from:Vector2D, p_to:Vector2D):Vector2D
@@ -214,7 +227,7 @@ class SliderCtrl extends BasicObject implements IMoveHandler
 	
 	public function onMoveComplete(p_to:Vector2D):void
 	{
-		var evt:JEvent = new JEvent(JComponentEvent.DRAGABLE_SLIDE, {pos: p_to});
+		var evt:JEvent = new JEvent(JComponentEvent.DRAGABLE_EVENT, {pos: p_to});
 		this.dispatchEvent(evt);
 	}
 	

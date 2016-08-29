@@ -18,6 +18,10 @@ package com.pj.common.j3d.shader
 	 */
 	public class J3DShaderData
 	{
+		public static const ATTRIBUTE_DIFFUSE:String = "diffuse";
+		public static const ATTRIBUTE_POS:String = "pos";
+		public static const ATTRIBUTE_UV:String = "uv";
+		
 		public static const SHADER_VERTEX_SIMPLE:Object = { //
 			type: "vertex"
 			, attribute: { // va0, va1
@@ -70,7 +74,14 @@ package com.pj.common.j3d.shader
 			type: "fragment"
 			, code: ["" // nothing
 			, "mov ft0, v0" // copy v0(=color channel 0) to oc(color output)
-			, "mov ft0.y, ft0.w" // copy v0(=color channel 0) to oc(color output)
+		//	, "mov ft0.y, ft0.w" // copy v0(=color channel 0) to oc(color output)
+			, "mov oc, ft0" // copy v0(=color channel 0) to oc(color output)
+			]};
+			
+		public static const SHADER_PIXEL_TEXTURE:Object = { //
+			type: "fragment"
+			, code: ["" // nothing
+			, "tex ft0, v0, fs0 <2d,clamp,linear>"
 			, "mov oc, ft0" // copy v0(=color channel 0) to oc(color output)
 			]};
 		

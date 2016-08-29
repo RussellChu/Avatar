@@ -2,7 +2,7 @@ package com.pj.common.j3d.shape
 {
 	import com.pj.common.j3d.J3DIndexDelta;
 	import com.pj.common.j3d.J3DObject;
-	import com.pj.common.j3d.J3DVertexTextureOnly;
+	import com.pj.common.j3d.vertex.J3DVertexTexture;
 	
 	/**
 	 * ...
@@ -15,7 +15,7 @@ package com.pj.common.j3d.shape
 		{
 			super();
 			var indices:J3DIndexDelta = new J3DIndexDelta();
-			var vertices:J3DVertexTextureOnly = new J3DVertexTextureOnly();
+			var vertices:J3DVertexTexture = new J3DVertexTexture();
 			
 			this._indices = indices;
 			this._vertices = vertices;
