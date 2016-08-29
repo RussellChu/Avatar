@@ -11,8 +11,8 @@ package
 	{
 		public function Main():void
 		{
-			 new ProjectWorld(this);
-			// new ProjectFlash3D(this);
+			// new ProjectWorld(this);
+			 new ProjectFlash3D(this);
 			//new ProjectMacross(this);
 			// new ProjectCompiler(this);
 			// new ProjectMP4(this);

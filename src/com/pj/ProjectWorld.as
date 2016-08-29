@@ -6,6 +6,8 @@ package com.pj
 	import com.pj.common.component.Slider;
 	import com.pj.common.component.World3D;
 	import com.pj.common.component.World3DObj;
+	import com.pj.common.events.JComponentEvent;
+	import com.pj.common.events.JEvent;
 	import com.pj.common.image.JImage_Circle;
 	import com.pj.common.image.JImage_RandSqr;
 	import com.pj.common.j3d.Camera3D;
@@ -47,8 +49,11 @@ package com.pj
 			
 			this._timer.start();
 			
-			var btn:SimpleButton = new SimpleButton("Hello world", 200, 50);
+			var btn:SimpleButton = new SimpleButton("Hello world!", 200, 50, "HW!");
 			this.addChild(btn);
+			btn.addEventListener(JComponentEvent.BUTTON_EVENT, function (evt:JEvent):void {
+				trace(JSON.stringify(evt.data));
+			});
 			
 			//	var testHolder:DragableContainer = new DragableContainer(this, 200, 200, 400, 400);
 			//	new JImage_RandSqr(testHolder, 400, 400);

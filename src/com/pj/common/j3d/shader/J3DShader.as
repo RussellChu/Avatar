@@ -3,6 +3,7 @@ package com.pj.common.j3d.shader
 	import com.adobe.utils.AGALMiniAssembler;
 	import com.pj.common.Helper;
 	import com.pj.common.IDisposable;
+	import com.pj.common.IResetable;
 	import com.pj.common.j3d.J3DObject;
 	import com.pj.common.j3d.shader.J3DShader;
 	import com.pj.common.math.Matrix4D;
@@ -17,7 +18,7 @@ package com.pj.common.j3d.shader
 	 * ...
 	 * @author Russell
 	 */
-	public class J3DShader implements IDisposable
+	public class J3DShader implements IDisposable, IResetable
 	{
 		public static const CONST_TYPE_INT:String = "int";
 		public static const CONST_TYPE_FLOAT:String = "float";
@@ -30,6 +31,7 @@ package com.pj.common.j3d.shader
 		
 		private var _assembler:AGALMiniAssembler = null;
 		private var _attribute:Object = null;
+		private var _data:Object = null;
 		private var _type:String = "";
 		private var _uniform:Object = null;
 		private var _vecMap:Object = null;
@@ -38,30 +40,57 @@ package com.pj.common.j3d.shader
 		{
 			this._assembler = null;
 			this._attribute = {};
+			this._data = p_data;
 			this._type = "";
 			this._uniform = {};
 			this._vecMap = {};
 			
-			if (!p_data)
+			if (!this._data)
 			{
 				return;
 			}
 			
-			if (!p_data.type)
+			if (!this._data.type)
 			{
+				this._data = null;
 				return;
 			}
 			
-			var type:String = p_data.type;
+			var type:String = this._data.type;
 			if (type != Context3DProgramType.VERTEX && type != Context3DProgramType.FRAGMENT)
 			{
+				this._data = null;
 				return;
 			}
 			
-			this._type = type;
-			var attribute:Object = p_data.attribute;
-			var uniform:Object = p_data.uniform;
-			var code:Array = p_data.code;
+			this.reset();
+		}
+		
+		public function dispose():void
+		{
+			this._assembler = null;
+			this._attribute = null;
+			this._uniform = null;
+			this._vecMap = null;
+		}
+		
+		public function reset():void
+		{
+			this._assembler = null;
+			this._attribute = {};
+			this._type = "";
+			this._uniform = {};
+			this._vecMap = {};
+			
+			if (!this._data)
+			{
+				return;
+			}
+			
+			this._type = this._data.type;
+			var attribute:Object = Helper.cloneJSON(this._data.attribute);
+			var uniform:Object = Helper.cloneJSON(this._data.uniform);
+			var code:Array = Helper.cloneJSON(this._data.code) as Array;
 			if (attribute)
 			{
 				this._attribute = attribute;
@@ -76,14 +105,6 @@ package com.pj.common.j3d.shader
 				this._assembler = new AGALMiniAssembler();
 				this._assembler.assemble(this._type, src, VERSION);
 			}
-		}
-		
-		public function dispose():void
-		{
-			this._assembler = null;
-			this._attribute = null;
-			this._uniform = null;
-			this._vecMap = null;
 		}
 		
 		private function getSource(p_arr:Array):String

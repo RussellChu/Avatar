@@ -14,8 +14,6 @@ package com.pj.common.component
 	 */
 	public class SimpleButton extends AbstractButton
 	{
-		public static const ACTION_NULL:int = 0;
-		
 		private static const IMG_DOWN:int = 0;
 		private static const IMG_IDLE:int = 1;
 		private static const IMG_OVER:int = 2;
@@ -32,12 +30,12 @@ package com.pj.common.component
 		
 		private var _isMouseOver:Boolean = false;
 		
-		public function SimpleButton(p_title:String, p_width:int, p_height:int):void
+		public function SimpleButton(p_title:String, p_width:int, p_height:int, p_data:Object = null):void
 		{
 			this._initTitle = p_title;
 			this._initWidth = p_width;
 			this._initHeight = p_height;
-			super();
+			super(p_data);
 		}
 		
 		override public function dispose():void
@@ -50,9 +48,10 @@ package com.pj.common.component
 			super.dispose();
 		}
 		
-		override protected function init():void {
+		override protected function init():void
+		{
 			super.init();
-
+			
 			var colorDown:uint = new JColor(0.8, 0.8, 0.7, 1).value;
 			var colorIdle:uint = new JColor(0.9, 0.9, 0.9, 1).value;
 			var colorOver:uint = new JColor(0.8, 0.8, 0.9, 1).value;
@@ -98,8 +97,8 @@ package com.pj.common.component
 			this._txtTitle.text = "";
 			var format:TextFormat = new TextFormat();
 			format.align = TextFormatAlign.CENTER;
-		//	setTextFormat: format will reset if text change; defaultTextFormat: not
-		//	this._txtTitle.setTextFormat(format);
+			//	setTextFormat: format will reset if text change; defaultTextFormat: not
+			//	this._txtTitle.setTextFormat(format);
 			this._txtTitle.defaultTextFormat = format;
 			this._txtTitle.mouseEnabled = false;
 			this.container.addChild(this._txtTitle);
@@ -138,6 +137,24 @@ package com.pj.common.component
 		
 		override protected function onMouseClick(p_evt:MouseEvent):void
 		{
+			super.onMouseClick(p_evt);
+		}
+		
+		override protected function onMouseDown(p_evt:MouseEvent):void
+		{
+			this.setImage(IMG_DOWN);
+			super.onMouseDown(p_evt);
+		}
+		
+		override protected function onMouseOver(p_evt:MouseEvent):void
+		{
+			this._isMouseOver = true;
+			this.setImage(IMG_OVER);
+			super.onMouseOver(p_evt);
+		}
+		
+		override protected function onMouseUp(p_evt:MouseEvent):void
+		{
 			if (this._isMouseOver)
 			{
 				this.setImage(IMG_OVER);
@@ -146,23 +163,15 @@ package com.pj.common.component
 			{
 				this.setImage(IMG_IDLE);
 			}
-		}
-		
-		override protected function onMouseDown(p_evt:MouseEvent):void
-		{
-			this.setImage(IMG_DOWN);
-		}
-		
-		override protected function onMouseOver(p_evt:MouseEvent):void
-		{
-			this._isMouseOver = true;
-			this.setImage(IMG_OVER);
+			super.onMouseUp(p_evt);
 		}
 		
 		override protected function onMouseRollOut(p_evt:MouseEvent):void
 		{
 			this._isMouseOver = false;
 			this.setImage(IMG_IDLE);
+			super.onMouseRollOut(p_evt);
+		
 		}
 	
 	}

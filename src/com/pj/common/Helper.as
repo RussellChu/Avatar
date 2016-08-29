@@ -7,6 +7,14 @@ package com.pj.common
 	 */
 	public class Helper
 	{
+		public static function cloneJSON(p_data:Object):Object {
+			if (p_data == null) {
+				return null;
+			}
+			
+			return JSON.parse(JSON.stringify(p_data));
+		}
+		
 		public static function dispose(p_obj:Object):Boolean
 		{
 			if (!p_obj)

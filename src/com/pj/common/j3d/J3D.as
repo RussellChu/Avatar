@@ -26,11 +26,11 @@ package com.pj.common.j3d
 	{
 		private static var __instance:J3D = null;
 		
-		public static function get i():J3D
+		public static function init(p_parent:IContainer):J3D
 		{
 			if (!__instance)
 			{
-				__instance = new J3D();
+				__instance = new J3D(p_parent);
 			}
 			return __instance;
 		}
@@ -42,20 +42,34 @@ package com.pj.common.j3d
 		private var _program:Program3D = null;
 		private var _texture:J3DTextureManager = null;
 		
-		public function J3D():void
+		public function J3D(p_parent:IContainer):void
 		{
-			super();
-			this._container = new J3DContainer();
+			super(null, p_parent);
 		}
 		
 		override public function dispose():void
 		{
+			Helper.dispose(this._container);
 			Helper.dispose(this._pixelShader);
 			Helper.dispose(this._vertexShader);
+			this._container = null;
 			this._context3D = null;
 			this._program = null;
 			this._pixelShader = null;
 			this._vertexShader = null;
+			super.dispose();
+		}
+		
+		override protected function init():void{
+			super.init();
+			this._container = new J3DContainer();
+			this.instance.stage.stage3Ds[0].addEventListener(Event.CONTEXT3D_CREATE, this.onInit);
+			this.instance.addEventListener(Event.ENTER_FRAME, this.onRender);
+			this.instance.stage.stage3Ds[0].requestContext3D(Context3DRenderMode.AUTO, Context3DProfile.STANDARD);
+		}
+		
+		override public function reset():void{
+			super.reset();
 		}
 		
 		public function addChild(p_child:J3DObject):J3DObject
@@ -93,14 +107,6 @@ package com.pj.common.j3d
 			var indexbuffer:IndexBuffer3D = p_indices.setupBuffer(this._context3D);
 			var vertexbuffer:VertexBuffer3D = p_vertices.setupBuffer(this._context3D, this._vertexShader);
 			this._context3D.drawTriangles(indexbuffer);
-		}
-		
-		public function init(p_parent:IContainer):void
-		{
-			p_parent.addChild(this);
-			this.instance.stage.stage3Ds[0].addEventListener(Event.CONTEXT3D_CREATE, this.onInit);
-			this.instance.addEventListener(Event.ENTER_FRAME, this.onRender);
-			this.instance.stage.stage3Ds[0].requestContext3D(Context3DRenderMode.AUTO, Context3DProfile.STANDARD);
 		}
 		
 		private function onInit(p_evt:Event):void

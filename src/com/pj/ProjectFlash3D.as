@@ -1,5 +1,6 @@
 package com.pj
 {
+	import com.pj.common.Helper;
 	import com.pj.common.JColor;
 	import com.pj.common.component.BasicContainer;
 	import com.pj.common.j3d.Camera3D;
@@ -24,35 +25,51 @@ package com.pj
 	 */
 	public class ProjectFlash3D extends BasicContainer
 	{
-		private var _vs:J3DShader = null;
 		private var _camera:Camera3D = null;
+		private var _vs:J3DShader = null;
 		
 		public function ProjectFlash3D(p_inst:Sprite):void
 		{
 			super(null, p_inst);
+		}
+		
+		override public function dispose():void{
+			Helper.dispose(this._camera);
+			Helper.dispose(this._vs);
 			
-			this._vs = new J3DShader();
+			this._camera = null;
+			this._vs = null;
 			
-			var j3D:J3D = J3D.i;
-			J3D.i.init(this);
-			var ps:J3DShader = new J3DShader(J3DShaderData.SHADER_PIXEL_SIMPLE);
+			super.dispose();
+		}
+		
+		override protected function init():void{
+			super.init();
+			this._camera = new Camera3D();
 			this._vs = new J3DShader(J3DShaderData.SHADER_VERTEX_SIMPLE);
-			J3D.i.setShader(this._vs, ps);
-			//	J3D.i.addChild(new J3DShapeSquare(new JColor(1, 0.7, 0.4, 1)));
-		//	J3D.i.addChild(new J3DShapeSquare(new JColor(1, 1, 0, 0.3), {isInbound: true}));
-			J3D.i.addChild(new J3DShapeCube(null, {alpha: 1, isInbound: true}));
-			J3D.i.addChild(new J3DShapeCube(null,{alpha: 0.5}));
+			this.instance.addEventListener(Event.ENTER_FRAME, this.onEnterFrame);
+		}
+		
+		override public function reset():void{
+			super.reset();
+			this._camera.reset();
+			this._vs.reset();
+			
+			var j3D:J3D = J3D.init(this);
+			var ps:J3DShader = new J3DShader(J3DShaderData.SHADER_PIXEL_SIMPLE);
+			j3D.setShader(this._vs, ps);
+			//	j3D.addChild(new J3DShapeSquare(new JColor(1, 0.7, 0.4, 1)));
+		//	j3D.addChild(new J3DShapeSquare(new JColor(1, 1, 0, 0.3), {isInbound: true}));
+			j3D.addChild(new J3DShapeCube(null, {alpha: 1, isInbound: true}));
+			j3D.addChild(new J3DShapeCube(null, {alpha: 0.5}));
 			
 			var r:Number = 0.5;
-			this._camera = new Camera3D();
 			this._camera.mode = Camera3D.MODE_PERSPECTIVE;
 			this._camera.position = new Vector3D(-3, 0, -4);
 			//	this._camera.position = new Vector3D(0, 0, -4);
 			this._camera.target = new Vector3D(0, 0, 0);
 			this._camera.up = new Vector3D(0, 1, 0);
 			this._camera.setProject(4, 3, 2, 1, 0.5);
-			
-			this.instance.addEventListener(Event.ENTER_FRAME, this.onEnterFrame);
 		}
 		
 		private function onEnterFrame(p_evt:Event):void
