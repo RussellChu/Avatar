@@ -34,9 +34,9 @@ package com.pj
 		}
 		
 		override public function dispose():void{
+			this.instance.removeEventListener(Event.ENTER_FRAME, this.onEnterFrame);
 			Helper.dispose(this._camera);
 			Helper.dispose(this._vs);
-			
 			this._camera = null;
 			this._vs = null;
 			

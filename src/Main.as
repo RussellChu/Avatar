@@ -11,18 +11,17 @@ package
 	{
 		public function Main():void
 		{
-			// new ProjectWorld(this);
-			 new ProjectFlash3D(this);
-			//new ProjectMacross(this);
-			// new ProjectCompiler(this);
-			// new ProjectMP4(this);
+			//new ProjectWorld(this);
+			//new ProjectFlash3D(this);
+			new ProjectMacross(this);
+			//new ProjectMP4(this);
 			//trace("Hello World!");
 			//loader = new Loader();
 			//loader.contentLoaderInfo.addEventListener(Event.COMPLETE, function(e:Event):void
 			//{
-			////	loader.contentLoaderInfo.removeEventListener(Event.COMPLETE, this);
-			//var mc:MovieClip = loader.content as MovieClip;
-			//addChild(mc);
+				//loader.contentLoaderInfo.removeEventListener(Event.COMPLETE, this);
+				//var mc:MovieClip = loader.content as MovieClip;
+				//addChild(mc);
 			//});
 			//loader.load(new URLRequest("basket_x000a_p78.swf"));
 		}

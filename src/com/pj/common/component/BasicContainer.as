@@ -26,12 +26,11 @@ package com.pj.common.component
 		
 		override protected function init():void {
 			super.init();
+			this._child = new Vector.<BasicObject>();
 		}
 		
 		override public function reset():void {
 			super.reset();
-			this._child = new Vector.<BasicObject>();
-			this.container.removeChildren();
 		}
 		
 		protected function get container():Sprite
