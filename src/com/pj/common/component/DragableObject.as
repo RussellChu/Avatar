@@ -51,7 +51,8 @@ package com.pj.common.component
 			this._target = null;
 		}
 		
-		public function reset():void {
+		public function reset():void
+		{
 			this._state = 0;
 			this._startX = 0;
 			this._startY = 0;
@@ -101,6 +102,16 @@ package com.pj.common.component
 			{
 				this._moveChecker.onMoveComplete(resultVtr);
 			}
+		}
+		
+		public function slideToX(p_posX:int, p_isUpdate:Boolean = false):void
+		{
+			this.slideTo(p_posX, this._target.instance.y, p_isUpdate);
+		}
+		
+		public function slideToY(p_posY:int, p_isUpdate:Boolean = false):void
+		{
+			this.slideTo(this._target.instance.x, p_posY, p_isUpdate);
 		}
 		
 		private function onMouseDown(p_evt:MouseEvent):void

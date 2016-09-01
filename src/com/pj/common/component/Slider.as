@@ -22,11 +22,14 @@ package com.pj.common.component
 		private static const CTRL_BG_COLOR:uint = 0xfff0f0f0;
 		private static const CTRL_WIDTH:int = 15;
 		
-		private var _ctrl:SliderCtrl = null;
+		private var _ctrlX:SliderCtrlX = null;
+		private var _ctrlY:SliderCtrlY = null;
 		private var _content:DragableContainer = null;
 		
-		private var _contentMoveMax:int = 0;
-		private var _ctrlMoveMax:int = 0;
+		private var _contentMoveXMax:int = 0;
+		private var _contentMoveYMax:int = 0;
+		private var _ctrlMoveXMax:int = 0;
+		private var _ctrlMoveYMax:int = 0;
 		
 		public function Slider(p_parent:IContainer, p_borderWidth:int = 0, p_borderHeight:int = 0, p_contentWidth:int = 0, p_contentHeight:int = 0):void
 		{
@@ -51,38 +54,61 @@ package com.pj.common.component
 			{
 				contentHeight = 0;
 			}
-			this._content = new DragableContainer(null, borderWidth - CTRL_WIDTH, borderHeight, contentWidth, contentHeight);
+			this._content = new DragableContainer(null, borderWidth - CTRL_WIDTH, borderHeight - CTRL_WIDTH, contentWidth, contentHeight);
 			this._content.setWheel(0, WHEEL_STEP);
 			this._content.addEventListener(JComponentEvent.DRAGABLE_EVENT, this.onSlide);
 			this.container.addChild(this._content.instance);
 			
-			var ratio:Number = 1;
+			var ratioX:Number = 1;
+			if (contentWidth > 0)
+			{
+				ratioX = borderWidth / contentWidth;
+			}
+			if (ratioX > 1)
+			{
+				ratioX = 1;
+			}
+			var ctrlWidthX:int = borderWidth - CTRL_WIDTH;
+			this._contentMoveXMax = contentWidth - borderWidth;
+			this._ctrlMoveXMax = ctrlWidthX * (1 - ratioX);
+			var ctrlBgX:Quad = new Quad(ctrlWidthX, CTRL_WIDTH, CTRL_BG_COLOR);
+			var ctrlBarX:Quad = new Quad(ctrlWidthX * ratioX, CTRL_WIDTH, CTRL_BAR_COLOR);
+			this._ctrlX = new SliderCtrlX(null, ctrlBgX, ctrlBarX);
+			this._ctrlX.setWheelStep(WHEEL_STEP);
+			this._ctrlX.instance.y = borderHeight - CTRL_WIDTH;
+			this._ctrlX.addEventListener(JComponentEvent.DRAGABLE_EVENT, this.onSlideCtrlX);
+			this.container.addChild(this._ctrlX.instance);
+			
+			var ratioY:Number = 1;
 			if (contentHeight > 0)
 			{
-				ratio = borderHeight / contentHeight;
+				ratioY = borderHeight / contentHeight;
 			}
-			if (ratio > 1)
+			if (ratioY > 1)
 			{
-				ratio = 1;
+				ratioY = 1;
 			}
-			var ctrlBg:Quad = new Quad(CTRL_WIDTH, borderHeight, CTRL_BG_COLOR);
-			var ctrlBar:Quad = new Quad(CTRL_WIDTH, borderHeight * ratio, CTRL_BAR_COLOR);
-			this._ctrl = new SliderCtrl(null, ctrlBg, ctrlBar);
-			this._ctrl.setWheelStep(WHEEL_STEP);
-			this._ctrl.instance.x = borderWidth - CTRL_WIDTH;
-			this._ctrl.addEventListener(JComponentEvent.DRAGABLE_EVENT, this.onSlideCtrl);
-			this.container.addChild(this._ctrl.instance);
+			var ctrlWidthY:int = borderHeight - CTRL_WIDTH;
+			this._contentMoveYMax = contentHeight - borderHeight;
+			this._ctrlMoveYMax = ctrlWidthY * (1 - ratioY);
+			var ctrlBgY:Quad = new Quad(CTRL_WIDTH, ctrlWidthY, CTRL_BG_COLOR);
+			var ctrlBarY:Quad = new Quad(CTRL_WIDTH, ctrlWidthY * ratioY, CTRL_BAR_COLOR);
+			this._ctrlY = new SliderCtrlY(null, ctrlBgY, ctrlBarY);
+			this._ctrlY.setWheelStep(WHEEL_STEP);
+			this._ctrlY.instance.x = borderWidth - CTRL_WIDTH;
+			this._ctrlY.addEventListener(JComponentEvent.DRAGABLE_EVENT, this.onSlideCtrlY);
+			this.container.addChild(this._ctrlY.instance);
 			
-			this._contentMoveMax = contentHeight - borderHeight;
-			this._ctrlMoveMax = borderHeight * (1 - ratio);
 		}
 		
 		override public function dispose():void
 		{
 			Helper.dispose(this._content);
-			Helper.dispose(this._ctrl);
+			Helper.dispose(this._ctrlX);
+			Helper.dispose(this._ctrlY);
 			this._content = null;
-			this._ctrl = null;
+			this._ctrlX = null;
+			this._ctrlY = null;
 			super.dispose();
 		}
 		
@@ -100,27 +126,43 @@ package com.pj.common.component
 		private function onSlide(p_evt:JEvent):void
 		{
 			var pos:Vector2D = p_evt.data.pos as Vector2D;
-			var posY:int = -pos.y;
-			if (this._contentMoveMax > 0)
+			var posX:int = -pos.x;
+			if (this._contentMoveXMax > 0)
 			{
-				this._ctrl.slideTo(0, posY * this._ctrlMoveMax / this._contentMoveMax, true);
+				this._ctrlX.slideTo(posX * this._ctrlMoveXMax / this._contentMoveXMax, true);
+			}
+			var posY:int = -pos.y;
+			if (this._contentMoveYMax > 0)
+			{
+				this._ctrlY.slideTo(posY * this._ctrlMoveYMax / this._contentMoveYMax, true);
 			}
 		}
 		
-		private function onSlideCtrl(p_evt:JEvent):void
+		private function onSlideCtrlX(p_evt:JEvent):void
+		{
+			var pos:Vector2D = p_evt.data.pos as Vector2D;
+			var posX:int = -pos.x;
+			if (this._ctrlMoveXMax > 0)
+			{
+				this._content.slideToX(posX * this._contentMoveXMax / this._ctrlMoveXMax, true);
+			}
+		}
+		
+		private function onSlideCtrlY(p_evt:JEvent):void
 		{
 			var pos:Vector2D = p_evt.data.pos as Vector2D;
 			var posY:int = -pos.y;
-			if (this._ctrlMoveMax > 0)
+			if (this._ctrlMoveYMax > 0)
 			{
-				this._content.slideTo(this._content.instance.x, posY * this._contentMoveMax / this._ctrlMoveMax, true);
+				this._content.slideToY(posY * this._contentMoveYMax / this._ctrlMoveYMax, true);
 			}
 		}
 		
 		public function set active(p_value:Boolean):void
 		{
 			this._content.active = p_value;
-			this._ctrl.active = p_value;
+			this._ctrlX.active = p_value;
+			this._ctrlY.active = p_value;
 		}
 	
 	}
@@ -137,35 +179,37 @@ import com.pj.common.math.Vector2D;
 import flash.display.Sprite;
 import flash.events.MouseEvent;
 
+
 class SliderCtrl extends BasicObject implements IMoveHandler
 {
-	private var _active:Boolean = false;
-	private var _barHeight:int = 0;
-	private var _bgHeight:int = 0;
-	private var _ctrlBar:BasicObject = null;
-	private var _ctrlBg:BasicObject = null;
-	private var _dragable:DragableObject = null;
-	private var _wheelStep:int = 0;
+	protected var _active:Boolean = false;
+	protected var _barWidth:int = 0;
+	protected var _barHeight:int = 0;
+	protected var _bgWidth:int = 0;
+	protected var _bgHeight:int = 0;
+	protected var _ctrlBar:BasicObject = null;
+	protected var _ctrlBg:BasicObject = null;
+	protected var _dragable:DragableObject = null;
+	private var _wheelStepX:int = 0;
+	private var _wheelStepY:int = 0;
 	
 	public function SliderCtrl(p_parent:IContainer, p_ctrlBg:BasicObject, p_ctrlBar:BasicObject):void
 	{
-
-		if (!p_ctrlBg || !p_ctrlBar)
-		{
-			throw new Error();
-		}
-		
 		this._ctrlBar = p_ctrlBar;
 		this._ctrlBg = p_ctrlBg;
-		
 		super(null, p_parent);
 	}
 	
 	override public function dispose():void
 	{
-		if (this._ctrlBg) {
+		if (this._ctrlBg)
+		{
 			this._ctrlBg.instance.removeEventListener(MouseEvent.MOUSE_DOWN, this.onMouseDown);
 			this._ctrlBg.instance.removeEventListener(MouseEvent.MOUSE_WHEEL, this.onMouseWheel);
+		}
+		if (this._ctrlBar)
+		{
+			this._ctrlBar.instance.removeEventListener(MouseEvent.MOUSE_WHEEL, this.onMouseWheel);
 		}
 		Helper.dispose(this._ctrlBar);
 		Helper.dispose(this._ctrlBg);
@@ -173,19 +217,18 @@ class SliderCtrl extends BasicObject implements IMoveHandler
 		this._ctrlBar = null;
 		this._ctrlBg = null;
 		this._dragable = null;
-		this._wheelStep = 0;
 	}
 	
-	override protected function init():void {
-		this._bgHeight = this._ctrlBg.instance.height;
-		this._barHeight = this._ctrlBar.instance.height;
-		if (this._barHeight > this._bgHeight)
+	override protected function init():void
+	{
+		if (!this._ctrlBg || !this._ctrlBar)
 		{
-			this._barHeight = this._bgHeight;
+			throw new Error();
 		}
 		
 		this._ctrlBg.instance.addEventListener(MouseEvent.MOUSE_DOWN, this.onMouseDown);
 		this._ctrlBg.instance.addEventListener(MouseEvent.MOUSE_WHEEL, this.onMouseWheel);
+		this._ctrlBar.instance.addEventListener(MouseEvent.MOUSE_WHEEL, this.onMouseWheel);
 		
 		this.container.addChild(this._ctrlBg.instance);
 		this.container.addChild(this._ctrlBar.instance);
@@ -193,31 +236,19 @@ class SliderCtrl extends BasicObject implements IMoveHandler
 		this._dragable = new DragableObject(this._ctrlBar, this, false);
 	}
 	
-	override public function reset():void {
+	override public function reset():void
+	{
 		this._active = true;
 		this._ctrlBar.reset();
 		this._ctrlBg.reset();
 		this._dragable.reset();
+		this._wheelStepX = 0;
+		this._wheelStepY = 0;
 	}
 	
 	public function checkMove(p_from:Vector2D, p_to:Vector2D):Vector2D
 	{
-		if (!this._active)
-		{
-			return p_from.clone();
-		}
-		
-		var result:Vector2D = p_to.clone();
-		if (result.y > this._bgHeight - this._barHeight)
-		{
-			result.y = this._bgHeight - this._barHeight;
-		}
-		result.x = 0;
-		if (result.y < 0)
-		{
-			result.y = 0;
-		}
-		return result;
+		return p_from.clone();
 	}
 	
 	private function get container():Sprite
@@ -237,7 +268,7 @@ class SliderCtrl extends BasicObject implements IMoveHandler
 		{
 			return;
 		}
-		this._dragable.slideTo(this._ctrlBg.instance.mouseX, this._ctrlBg.instance.mouseY - this._barHeight * 0.5);
+		this._dragable.slideTo(this._ctrlBg.instance.mouseX - this._barWidth * 0.5, this._ctrlBg.instance.mouseY - this._barHeight * 0.5);
 	}
 	
 	private function onMouseWheel(p_evt:MouseEvent):void
@@ -246,7 +277,7 @@ class SliderCtrl extends BasicObject implements IMoveHandler
 		{
 			return;
 		}
-		this._dragable.slide(0, -this._wheelStep * p_evt.delta);
+		this._dragable.slide(-this._wheelStepX * p_evt.delta, -this._wheelStepY * p_evt.delta);
 	}
 	
 	public function set active(p_value:Boolean):void
@@ -254,18 +285,128 @@ class SliderCtrl extends BasicObject implements IMoveHandler
 		this._active = p_value;
 	}
 	
-	public function setWheelStep(p_value:int):void
+	protected function setWheelStepFinal(p_x:int, p_y:int):void
 	{
-		this._wheelStep = p_value;
-		if (this._wheelStep < 0)
+		this._wheelStepX = p_x;
+		if (this._wheelStepX < 0)
 		{
-			this._wheelStep = 0;
+			this._wheelStepX = 0;
+		}
+		this._wheelStepY = p_y;
+		if (this._wheelStepY < 0)
+		{
+			this._wheelStepY = 0;
 		}
 	}
 	
-	public function slideTo(p_posX:int, p_posY:int, p_isUpdate:Boolean = false):void
+	public function setWheelStep(p_value:int):void {
+		;
+	}
+	
+	public function slideTo(p_pos:int, p_isUpdate:Boolean = false):void {
+		;
+	}
+
+}
+
+class SliderCtrlX extends SliderCtrl implements IMoveHandler
+{
+	public function SliderCtrlX(p_parent:IContainer, p_ctrlBg:BasicObject, p_ctrlBar:BasicObject):void
 	{
-		this._dragable.slideTo(p_posX, p_posY, p_isUpdate);
+		super(p_parent, p_ctrlBg, p_ctrlBar);
+	}
+	
+	override protected function init():void
+	{
+		super.init();
+		
+		this._bgWidth = this._ctrlBg.instance.width;
+		this._barWidth = this._ctrlBar.instance.width;
+		if (this._barWidth > this._bgWidth)
+		{
+			this._barWidth = this._bgWidth;
+		}
+	}
+	
+	override public function checkMove(p_from:Vector2D, p_to:Vector2D):Vector2D
+	{
+		if (!this._active)
+		{
+			return p_from.clone();
+		}
+		
+		var result:Vector2D = p_to.clone();
+		if (result.x > this._bgWidth - this._barWidth)
+		{
+			result.x = this._bgWidth - this._barWidth;
+		}
+		result.y = p_from.y;
+		if (result.x < 0)
+		{
+			result.x = 0;
+		}
+		return result;
+	}
+	
+	override public function setWheelStep(p_value:int):void
+	{
+		this.setWheelStepFinal(p_value, 0);
+	}
+	
+	override public function slideTo(p_pos:int, p_isUpdate:Boolean = false):void
+	{
+		this._dragable.slideToX(p_pos, p_isUpdate);
+	}
+
+}
+
+class SliderCtrlY extends SliderCtrl implements IMoveHandler
+{
+	public function SliderCtrlY(p_parent:IContainer, p_ctrlBg:BasicObject, p_ctrlBar:BasicObject):void
+	{
+		super(p_parent, p_ctrlBg, p_ctrlBar);
+	}
+	
+	override protected function init():void
+	{
+		super.init();
+		
+		this._bgHeight = this._ctrlBg.instance.height;
+		this._barHeight = this._ctrlBar.instance.height;
+		if (this._barHeight > this._bgHeight)
+		{
+			this._barHeight = this._bgHeight;
+		}
+	}
+	
+	override public function checkMove(p_from:Vector2D, p_to:Vector2D):Vector2D
+	{
+		if (!this._active)
+		{
+			return p_from.clone();
+		}
+		
+		var result:Vector2D = p_to.clone();
+		if (result.y > this._bgHeight - this._barHeight)
+		{
+			result.y = this._bgHeight - this._barHeight;
+		}
+		result.x = p_from.x;
+		if (result.y < 0)
+		{
+			result.y = 0;
+		}
+		return result;
+	}
+	
+	override public function setWheelStep(p_value:int):void
+	{
+		this.setWheelStepFinal(0, p_value);
+	}
+	
+	override public function slideTo(p_pos:int, p_isUpdate:Boolean = false):void
+	{
+		this._dragable.slideToY(p_pos, p_isUpdate);
 	}
 
 }

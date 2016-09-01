@@ -42,9 +42,10 @@ package com.pj.common.component
 			this._dragable = null;
 		}
 		
-		override protected function init():void {
+		override protected function init():void
+		{
 			super.init();
-
+			
 			this._content = new BasicContainer();
 			this._dragable = new DragableObject(this._content, this);
 			this.container.addChild(this._content.instance);
@@ -57,7 +58,8 @@ package com.pj.common.component
 			this.container.mask = maskShape;
 		}
 		
-		override public function reset():void {
+		override public function reset():void
+		{
 			super.reset();
 			this._active = true;
 			this._content.reset();
@@ -72,7 +74,8 @@ package com.pj.common.component
 		
 		public function checkMove(p_from:Vector2D, p_to:Vector2D):Vector2D
 		{
-			if (!this._active) {
+			if (!this._active)
+			{
 				return p_from.clone();
 			}
 			
@@ -106,8 +109,9 @@ package com.pj.common.component
 			var evt:JEvent = new JEvent(JComponentEvent.DRAGABLE_EVENT, {pos: p_to});
 			this.dispatchEvent(evt);
 		}
-	
-		public function set active(p_value:Boolean):void{
+		
+		public function set active(p_value:Boolean):void
+		{
 			this._active = p_value;
 		}
 		
@@ -119,6 +123,16 @@ package com.pj.common.component
 		public function slideTo(p_posX:int, p_posY:int, p_isUpdate:Boolean = false):void
 		{
 			this._dragable.slideTo(p_posX, p_posY, p_isUpdate);
+		}
+		
+		public function slideToX(p_posX:int, p_isUpdate:Boolean = false):void
+		{
+			this._dragable.slideToX(p_posX, p_isUpdate);
+		}
+		
+		public function slideToY(p_posY:int, p_isUpdate:Boolean = false):void
+		{
+			this._dragable.slideToY(p_posY, p_isUpdate);
 		}
 	
 	}

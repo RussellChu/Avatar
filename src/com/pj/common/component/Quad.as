@@ -11,6 +11,7 @@ package com.pj.common.component
 	{
 		private var _width:int = 0;
 		private var _height:int = 0;
+		private var _color:uint = 0;
 		
 		public function Quad(p_width:int, p_height:int, p_color:uint)
 		{
@@ -24,14 +25,15 @@ package com.pj.common.component
 			{
 				this._height = 0;
 			}
+			this._color = p_color;
 			super();
 		}
 		
-		override protected init ():void {
+		override protected function init ():void {
 			var bg:Shape = new Shape();
 			bg.width = 1;
 			bg.height = 1;
-			bg.graphics.beginFill(p_color, 1);
+			bg.graphics.beginFill(this._color, 1);
 			bg.graphics.drawRect(0, 0, 1, 1);
 			bg.graphics.endFill();
 			bg.scaleX = this._width;

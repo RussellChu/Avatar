@@ -31,6 +31,7 @@ package com.pj.common.component
 		private var _initHeight:int = 0;
 		
 		private var _isMouseOver:Boolean = false;
+		private var _stateImg:int = 0;
 		
 		public function BasicButton(p_title:String, p_width:int, p_height:int, p_bmpDown:BitmapData, p_bmpIdle:BitmapData, p_bmpOver:BitmapData, p_data:Object = null):void
 		{
@@ -75,14 +76,14 @@ package com.pj.common.component
 			
 			this._txtTitle = new TextField();
 			this._txtTitle.width = this._initWidth;
-		//	this._txtTitle.height = this._initHeight;
+			//	this._txtTitle.height = this._initHeight;
 			this._txtTitle.text = "";
-		//	var format:TextFormat = new TextFormat();
-		//	format.align = TextFormatAlign.CENTER;
+			//	var format:TextFormat = new TextFormat();
+			//	format.align = TextFormatAlign.CENTER;
 			this._txtTitle.autoSize = TextFieldAutoSize.CENTER;
 			//	setTextFormat: format will reset if text change; defaultTextFormat: not
 			//	this._txtTitle.setTextFormat(format);
-		//	this._txtTitle.defaultTextFormat = format;
+			//	this._txtTitle.defaultTextFormat = format;
 			this._txtTitle.mouseEnabled = false;
 			this.container.addChild(this._txtTitle);
 		}
@@ -97,7 +98,9 @@ package com.pj.common.component
 		
 		private function setImage(p_code:int):void
 		{
-			switch (p_code)
+			this._stateImg = p_code;
+			
+			switch (this._stateImg)
 			{
 			case IMG_DOWN: 
 				this._imgDown.visible = true;
@@ -118,15 +121,34 @@ package com.pj.common.component
 			}
 		}
 		
-		public function set text(p_text:String):void {
+		public function set text(p_text:String):void
+		{
 			
 			this._txtTitle.text = p_text;
 			this._txtTitle.height = this._txtTitle.textHeight;
 			var posY:int = (this._initHeight - this._txtTitle.height) * 0.5;
-			if (posY < 0) {
+			if (posY < 0)
+			{
 				posY = 0;
 			}
 			this._txtTitle.y = posY;
+		}
+		
+		public function set bmpIdle(p_bmp:BitmapData):void
+		{
+			this.container.removeChild(this._imgIdle);
+			if (p_bmp)
+			{
+				this._imgIdle = new Bitmap(p_bmp);
+			}
+			else
+			{
+				this._imgIdle = new Bitmap(this._bmpIdle);
+			}
+			this._imgIdle.width = this._initWidth;
+			this._imgIdle.height = this._initHeight;
+			this.container.addChild(this._imgIdle);
+			this.setImage(this._stateImg);
 		}
 		
 		override protected function onMouseClick(p_evt:MouseEvent):void
