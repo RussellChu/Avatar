@@ -110,6 +110,11 @@ package com.pj.common.component
 			this.dispatchEvent(evt);
 		}
 		
+		public function resize(p_width:int, p_height:int):void
+		{
+			;
+		}
+		
 		public function set active(p_value:Boolean):void
 		{
 			this._active = p_value;

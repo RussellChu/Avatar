@@ -1,8 +1,8 @@
 package com.pj
 {
+	import com.pj.common.Helper;
 	import com.pj.common.JColor;
 	import com.pj.common.component.BasicContainer;
-	import com.pj.common.component.IContainer;
 	import com.pj.common.component.Slider;
 	import flash.display.Sprite;
 	
@@ -12,11 +12,12 @@ package com.pj
 	 */
 	public class ProjectMacross extends BasicContainer
 	{
-		private static const MAP_START_X:int = 0;
-		private static const MAP_START_Y:int = 0;
 		private static const BTN_RADIUS:int = 15; // 15 or 75
+		private static const CTRL_WIDTH:int = 100;
 		
 		private var _model:GameModel = null;
+		
+		private var _slider:Slider = null;
 		
 		public function ProjectMacross(p_inst:Sprite = null)
 		{
@@ -25,6 +26,10 @@ package com.pj
 		
 		override public function dispose():void
 		{
+			Helper.dispose(this._model);
+			Helper.dispose(this._slider);
+			this._model = null;
+			this._slider = null;
 			super.dispose();
 		}
 		
@@ -34,9 +39,10 @@ package com.pj
 			
 			this._model = new GameModel();
 			
-			var scrollPanel:Slider = new Slider(this, 1200, 800, this._model.getMapRadius() * BTN_RADIUS * 4, this._model.getMapRadius() * BTN_RADIUS * 4);
+			this._slider = new Slider(this, this.instance.stage.stageWidth - CTRL_WIDTH, this.instance.stage.stageHeight, this._model.getMapRadius() * BTN_RADIUS * 4, this._model.getMapRadius() * BTN_RADIUS * 4);
+			this._slider.instance.x = CTRL_WIDTH;
 			
-			var btnGroup:ButtonHexagonGroup = new ButtonHexagonGroup(scrollPanel, MAP_START_X, MAP_START_Y, BTN_RADIUS, new JColor(0, 1, 1, 1).value, new JColor(0.5, 0.5, 0.5, 1).value, new JColor(1, 1, 1, 1).value);
+			var btnGroup:ButtonHexagonGroup = new ButtonHexagonGroup(this._slider, BTN_RADIUS, new JColor(0, 1, 1, 1).value, new JColor(0.5, 0.5, 0.5, 1).value, new JColor(1, 1, 1, 1).value);
 			btnGroup.createMap(this._model.getCellList());
 		}
 		
@@ -44,16 +50,18 @@ package com.pj
 		{
 			super.reset();
 		}
+		
+		override public function resize(p_width:int, p_height:int):void
+		{
+			this._slider.resize(p_width - CTRL_WIDTH, p_height);
+		}
 	
 	}
 }
 
-import com.pj.common.JColor;
-import com.pj.common.component.AbstractButton;
 import com.pj.common.component.BasicButton;
 import com.pj.common.component.BasicContainer;
 import com.pj.common.component.IContainer;
-import com.pj.common.component.SimpleButton;
 import flash.display.BitmapData;
 
 class MapCell
@@ -167,45 +175,55 @@ class GameModel
 		}
 	}
 	
-	public function addObstacle(p_side:int, p_keyX:int, p_keyY:int, p_keyZ:int):Boolean {
+	public function addObstacle(p_side:int, p_keyX:int, p_keyY:int, p_keyZ:int):Boolean
+	{
 		var cell:MapCell = this._map.getCellByKey(p_keyX, p_keyY, p_keyZ);
-		if (!cell) {
+		if (!cell)
+		{
 			return false;
 		}
 		
 		return true;
 	}
 	
-	public function addHostage(p_side:int, p_keyX:int, p_keyY:int, p_keyZ:int):Boolean {
+	public function addHostage(p_side:int, p_keyX:int, p_keyY:int, p_keyZ:int):Boolean
+	{
 		var cell:MapCell = this._map.getCellByKey(p_keyX, p_keyY, p_keyZ);
-		if (!cell) {
+		if (!cell)
+		{
 			return false;
 		}
 		
 		return true;
 	}
 	
-	public function addRoad(p_side:int, p_keyX:int, p_keyY:int, p_keyZ:int):Boolean {
+	public function addRoad(p_side:int, p_keyX:int, p_keyY:int, p_keyZ:int):Boolean
+	{
 		var cell:MapCell = this._map.getCellByKey(p_keyX, p_keyY, p_keyZ);
-		if (!cell) {
+		if (!cell)
+		{
 			return false;
 		}
 		
 		return true;
 	}
 	
-	public function addRoadEx(p_side:int, p_keyX:int, p_keyY:int, p_keyZ:int):Boolean {
+	public function addRoadEx(p_side:int, p_keyX:int, p_keyY:int, p_keyZ:int):Boolean
+	{
 		var cell:MapCell = this._map.getCellByKey(p_keyX, p_keyY, p_keyZ);
-		if (!cell) {
+		if (!cell)
+		{
 			return false;
 		}
 		
 		return true;
 	}
 	
-	public function clearCell(p_keyX:int, p_keyY:int, p_keyZ:int):Boolean {
+	public function clearCell(p_keyX:int, p_keyY:int, p_keyZ:int):Boolean
+	{
 		var cell:MapCell = this._map.getCellByKey(p_keyX, p_keyY, p_keyZ);
-		if (!cell) {
+		if (!cell)
+		{
 			return false;
 		}
 		
@@ -236,8 +254,6 @@ class ButtonHexagonGroup extends BasicContainer
 {
 	private var _mapColor:Object = null;
 	
-	private var _startX:Number = 0;
-	private var _startY:Number = 0;
 	private var _valBtnW:Number = 0;
 	private var _valBtnH:Number = 0;
 	private var _colorDown:uint = 0;
@@ -250,10 +266,8 @@ class ButtonHexagonGroup extends BasicContainer
 	
 	private var _mapBtn:Object = null;
 	
-	public function ButtonHexagonGroup(p_parent:IContainer, p_startX:Number, p_startY:Number, p_valBtnRadius:Number, p_colorDown:uint, p_colorIdle:uint, p_colorOver:uint):void
+	public function ButtonHexagonGroup(p_parent:IContainer, p_valBtnRadius:Number, p_colorDown:uint, p_colorIdle:uint, p_colorOver:uint):void
 	{
-		this._startX = p_startX;
-		this._startY = p_startY;
 		this._valBtnW = p_valBtnRadius * 2;
 		this._valBtnH = p_valBtnRadius * 1.732;
 		this._colorDown = p_colorDown;
@@ -319,13 +333,13 @@ class ButtonHexagonGroup extends BasicContainer
 		super.reset();
 	}
 	
-	private function getBmpBtn(p_state:int, p_side:int):BitmapData {
+	private function getBmpBtn(p_state:int, p_side:int):BitmapData
+	{
 		return null;
 	}
 	
 	public function createMap(p_list:Array):void
 	{
-		
 		this._mapBtn = {};
 		
 		for (var i:int = 0; i < p_list.length; i++)
@@ -333,8 +347,8 @@ class ButtonHexagonGroup extends BasicContainer
 			var data:MapCell = p_list[i] as MapCell;
 			var btn:ButtonHexagon = new ButtonHexagon("" + data.keyX + "-" + data.keyY, this._valBtnW, this._valBtnH, this._bmpDown, this._bmpIdle, this._bmpOver, data);
 			this._mapBtn[data.id] = btn;
-			btn.instance.x = this._startX + data.posX * this._valBtnW * 0.5;
-			btn.instance.y = this._startY + data.posY * this._valBtnH;
+			btn.instance.x = data.posX * this._valBtnW * 0.5;
+			btn.instance.y = data.posY * this._valBtnH;
 			this.addChild(btn);
 		}
 	}

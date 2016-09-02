@@ -114,7 +114,7 @@ package com.pj.common.component
 			this.slideTo(this._target.instance.x, p_posY, p_isUpdate);
 		}
 		
-		private function onMouseDown(p_evt:MouseEvent):void
+		public function startDrag():void
 		{
 			if (this._state == 1)
 			{
@@ -125,6 +125,16 @@ package com.pj.common.component
 			this._startY = this._target.instance.mouseY;
 			this._state = 1;
 			this._target.instance.addEventListener(Event.ENTER_FRAME, this.onDraggerBtnMove);
+		}
+		
+		public function endDrag():void
+		{
+			this._state = 0;
+		}
+		
+		private function onMouseDown(p_evt:MouseEvent):void
+		{
+			this.startDrag();
 		}
 		
 		private function onMouseMove(p_evt:MouseEvent):void
@@ -139,7 +149,7 @@ package com.pj.common.component
 		
 		private function onMouseUp(p_evt:MouseEvent):void
 		{
-			this._state = 0;
+			this.endDrag();
 		}
 		
 		private function onMouseWheel(p_evt:MouseEvent):void

@@ -1,7 +1,6 @@
 package com.pj.common.component
 {
 	import com.pj.common.Helper;
-	import flash.display.DisplayObject;
 	import flash.display.Sprite;
 	
 	/**
@@ -24,12 +23,14 @@ package com.pj.common.component
 			super.dispose();
 		}
 		
-		override protected function init():void {
+		override protected function init():void
+		{
 			super.init();
 			this._child = new Vector.<BasicObject>();
 		}
 		
-		override public function reset():void {
+		override public function reset():void
+		{
 			super.reset();
 		}
 		
@@ -43,6 +44,11 @@ package com.pj.common.component
 			this._child.push(p_child);
 			this.container.addChild(p_child.instance);
 			return p_child;
+		}
+		
+		public function resize(p_width:int, p_height:int):void
+		{
+			;
 		}
 	
 	}

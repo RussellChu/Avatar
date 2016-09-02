@@ -40,11 +40,13 @@ package com.pj.common.component
 			this._instance = null;
 		}
 		
-		protected function init():void {
+		protected function init():void
+		{
 			;
 		}
 		
-		public function reset():void {
+		public function reset():void
+		{
 			;
 		}
 		
