@@ -46,6 +46,12 @@ package com.pj.common.component
 			return p_child;
 		}
 		
+		public function removeChildren():void
+		{
+			this._child = new Vector.<BasicObject>();
+			this.container.removeChildren();
+		}
+		
 		public function resize(p_width:int, p_height:int):void
 		{
 			;

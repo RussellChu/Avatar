@@ -30,6 +30,7 @@ package com.pj.common.component
 		}
 		
 		override protected function init ():void {
+			super.init();
 			var bg:Shape = new Shape();
 			bg.width = 1;
 			bg.height = 1;
@@ -40,6 +41,29 @@ package com.pj.common.component
 			bg.scaleY = this._height;
 			var sp:Sprite = this.instance as Sprite;
 			sp.addChild(bg);
+		}
+		
+		public function resize(p_width:int, p_height:int):void {
+			this._width = p_width;
+			this._height = p_height;
+			if (this._width < 0)
+			{
+				this._width = 0;
+			}
+			if (this._height < 0)
+			{
+				this._height = 0;
+			}
+			var sp:Sprite = this.instance as Sprite;
+			if (sp.numChildren == 0) {
+				return;
+			}
+			var bg:Shape = sp.getChildAt(0) as Shape;
+			if (!bg) {
+				return;
+			}
+			bg.scaleX = this._width;
+			bg.scaleY = this._height;
 		}
 	
 	}

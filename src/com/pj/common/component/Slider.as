@@ -1,13 +1,15 @@
 package com.pj.common.component
 {
+	import com.adobe.images.PNGEncoder;
 	import com.pj.common.Helper;
 	import com.pj.common.component.BasicObject;
 	import com.pj.common.component.DragableContainer;
 	import com.pj.common.component.IContainer;
-	import com.pj.common.events.JComponentEvent;
-	import com.pj.common.events.JEvent;
 	import com.pj.common.math.Vector2D;
+	import flash.display.BitmapData;
 	import flash.display.Sprite;
+	import flash.net.FileReference;
+	import flash.utils.ByteArray;
 	
 	/**
 	 * ...
@@ -77,7 +79,7 @@ package com.pj.common.component
 			
 			this._content = new DragableContainer(null, this._borderWidth - CTRL_WIDTH, this._borderHeight - CTRL_WIDTH, this._contentWidth, this._contentHeight);
 			this._content.setWheel(0, WHEEL_STEP);
-			this._content.addEventListener(JComponentEvent.DRAGABLE_EVENT, this.onSlide);
+			this._content.signal.add(this.onSlide);
 			this.container.addChild(this._content.instance);
 			
 			var ratioX:Number = 1;
@@ -97,7 +99,7 @@ package com.pj.common.component
 			
 			this._ctrlX.setWheelStep(WHEEL_STEP);
 			this._ctrlX.instance.y = this._borderHeight - CTRL_WIDTH;
-			this._ctrlX.addEventListener(JComponentEvent.DRAGABLE_EVENT, this.onSlideCtrlX);
+			this._ctrlX.signal.add(this.onSlideCtrlX);
 			
 			var ratioY:Number = 1;
 			if (this._contentHeight > 0)
@@ -116,7 +118,7 @@ package com.pj.common.component
 			
 			this._ctrlY.setWheelStep(WHEEL_STEP);
 			this._ctrlY.instance.x = this._borderWidth - CTRL_WIDTH;
-			this._ctrlY.addEventListener(JComponentEvent.DRAGABLE_EVENT, this.onSlideCtrlY);
+			this._ctrlY.signal.add(this.onSlideCtrlY);
 		}
 		
 		override public function reset():void
@@ -135,9 +137,28 @@ package com.pj.common.component
 			return this.instance as Sprite;
 		}
 		
-		private function onSlide(p_evt:JEvent):void
+		public function getCapture():BitmapData
 		{
-			var pos:Vector2D = p_evt.data.pos as Vector2D;
+			return this._content.getCapture();
+		}
+		
+		public function saveCapture(p_path:String):void
+		{
+			var bmp:BitmapData = this.getCapture();
+			var b:ByteArray = PNGEncoder.encode(bmp);
+			var fileReference:FileReference = new FileReference();
+			fileReference.save(b, p_path);
+		}
+		
+		public function slideTo(p_x:int, p_y:int):void
+		{
+			this._ctrlX.slideTo(p_x, false);
+			this._ctrlY.slideTo(p_y, false);
+		}
+		
+		private function onSlide(p_result:Object):void
+		{
+			var pos:Vector2D = p_result.pos as Vector2D;
 			var posX:int = -pos.x;
 			if (this._contentMoveXMax > 0)
 			{
@@ -150,9 +171,9 @@ package com.pj.common.component
 			}
 		}
 		
-		private function onSlideCtrlX(p_evt:JEvent):void
+		private function onSlideCtrlX(p_result:Object):void
 		{
-			var pos:Vector2D = p_evt.data.pos as Vector2D;
+			var pos:Vector2D = p_result.pos as Vector2D;
 			var posX:int = -pos.x;
 			if (this._ctrlMoveXMax > 0)
 			{
@@ -160,9 +181,9 @@ package com.pj.common.component
 			}
 		}
 		
-		private function onSlideCtrlY(p_evt:JEvent):void
+		private function onSlideCtrlY(p_result:Object):void
 		{
-			var pos:Vector2D = p_evt.data.pos as Vector2D;
+			var pos:Vector2D = p_result.pos as Vector2D;
 			var posY:int = -pos.y;
 			if (this._ctrlMoveYMax > 0)
 			{
@@ -172,7 +193,49 @@ package com.pj.common.component
 		
 		public function resize(p_width:int, p_height:int):void
 		{
-			;
+			this._borderWidth = p_width;
+			if (this._borderWidth < CTRL_WIDTH)
+			{
+				this._borderWidth = CTRL_WIDTH;
+			}
+
+			this._borderHeight = p_height;
+			if (this._borderHeight < 0)
+			{
+				this._borderHeight = 0;
+			}
+			
+			this._content.resize(this._borderWidth - CTRL_WIDTH, this._borderHeight - CTRL_WIDTH);
+			
+			var ratioX:Number = 1;
+			if (this._contentWidth > 0)
+			{
+				ratioX = this._borderWidth / this._contentWidth;
+			}
+			if (ratioX > 1)
+			{
+				ratioX = 1;
+			}
+			var ctrlWidthX:int = this._borderWidth - CTRL_WIDTH;
+			this._contentMoveXMax = this._contentWidth - this._borderWidth;
+			this._ctrlMoveXMax = ctrlWidthX * (1 - ratioX);
+			this._ctrlX.resize(CTRL_WIDTH, ctrlWidthX, ratioX);
+			this._ctrlX.instance.y = this._borderHeight - CTRL_WIDTH;
+			
+			var ratioY:Number = 1;
+			if (this._contentHeight > 0)
+			{
+				ratioY = this._borderHeight / this._contentHeight;
+			}
+			if (ratioY > 1)
+			{
+				ratioY = 1;
+			}
+			var ctrlWidthY:int = this._borderHeight - CTRL_WIDTH;
+			this._contentMoveYMax = this._contentHeight - this._borderHeight;
+			this._ctrlMoveYMax = ctrlWidthY * (1 - ratioY);
+			this._ctrlY.resize(CTRL_WIDTH, ctrlWidthY, ratioY);
+			this._ctrlY.instance.x = this._borderWidth - CTRL_WIDTH;
 		}
 		
 		public function set active(p_value:Boolean):void
@@ -191,8 +254,6 @@ import com.pj.common.component.DragableObject;
 import com.pj.common.component.IContainer;
 import com.pj.common.component.IMoveHandler;
 import com.pj.common.component.Quad;
-import com.pj.common.events.JComponentEvent;
-import com.pj.common.events.JEvent;
 import com.pj.common.math.Vector2D;
 import flash.display.Sprite;
 import flash.events.MouseEvent;
@@ -273,8 +334,7 @@ class SliderCtrl extends BasicObject implements IMoveHandler
 	
 	public function onMoveComplete(p_to:Vector2D):void
 	{
-		var evt:JEvent = new JEvent(JComponentEvent.DRAGABLE_EVENT, {pos: p_to});
-		this.dispatchEvent(evt);
+		this.signal.dispatch({pos: p_to});
 	}
 	
 	private function onMouseDown(p_evt:MouseEvent):void
@@ -329,6 +389,12 @@ class SliderCtrl extends BasicObject implements IMoveHandler
 		this.container.addChild(this._ctrlBar.instance);
 		
 		this._dragable = new DragableObject(this._ctrlBar, this, false);
+	}
+	
+	public function resize(p_width:int, p_height:int, p_ratio:Number):void {
+		this._width = p_width;
+		this._heightBar = p_height * p_ratio;
+		this._heightBg = p_height;
 	}
 	
 	protected function setWheelStepFinal(p_x:int, p_y:int):void
@@ -396,6 +462,12 @@ class SliderCtrlX extends SliderCtrl implements IMoveHandler
 		return result;
 	}
 	
+	override public function resize(p_width:int, p_height:int, p_ratio:Number):void {
+		super.resize(p_width, p_height, p_ratio);
+		(this._ctrlBar as Quad).resize(this._heightBar, this._width);
+		(this._ctrlBg as Quad).resize(this._heightBg, this._width);
+	}
+	
 	override public function setWheelStep(p_value:int):void
 	{
 		this.setWheelStepFinal(p_value, 0);
@@ -444,6 +516,12 @@ class SliderCtrlY extends SliderCtrl implements IMoveHandler
 			result.y = 0;
 		}
 		return result;
+	}
+	
+	override public function resize(p_width:int, p_height:int, p_ratio:Number):void {
+		super.resize(p_width, p_height, p_ratio);
+		(this._ctrlBar as Quad).resize(this._width, this._heightBar);
+		(this._ctrlBg as Quad).resize(this._width, this._heightBg);
 	}
 	
 	override public function setWheelStep(p_value:int):void

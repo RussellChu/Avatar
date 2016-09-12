@@ -8,8 +8,10 @@ package com.pj.common.component
 	import com.pj.common.events.JComponentEvent;
 	import com.pj.common.events.JEvent;
 	import com.pj.common.math.Vector2D;
+	import flash.display.BitmapData;
 	import flash.display.Shape;
 	import flash.display.Sprite;
+	import flash.geom.Rectangle;
 	
 	/**
 	 * ...
@@ -24,6 +26,7 @@ package com.pj.common.component
 		private var _contentHeight:int = 0;
 		private var _content:BasicContainer = null;
 		private var _dragable:DragableObject = null;
+		private var _mask:Shape = null;
 		
 		public function DragableContainer(p_parent:IContainer, p_borderWidth:int = 0, p_borderHeight:int = 0, p_contentWidth:int = 0, p_contentHeight:int = 0):void
 		{
@@ -40,6 +43,7 @@ package com.pj.common.component
 			Helper.dispose(this._dragable);
 			this._content = null;
 			this._dragable = null;
+			this._mask = null;
 		}
 		
 		override protected function init():void
@@ -50,12 +54,14 @@ package com.pj.common.component
 			this._dragable = new DragableObject(this._content, this);
 			this.container.addChild(this._content.instance);
 			
-			var maskShape:Shape = new Shape();
-			maskShape.graphics.beginFill(0xFFFFFF, 1);
-			maskShape.graphics.drawRect(0, 0, this._borderWidth, this._borderHeight);
-			maskShape.graphics.endFill();
-			this.container.addChild(maskShape);
-			this.container.mask = maskShape;
+			this._mask = new Shape();
+			this._mask.graphics.beginFill(0xFFFFFF, 1);
+			this._mask.graphics.drawRect(0, 0, 1, 1);
+			this._mask.graphics.endFill();
+			this._mask.width = this._borderWidth;
+			this._mask.height = this._borderHeight;
+			this.container.addChild(this._mask);
+			this.container.mask = this._mask;
 		}
 		
 		override public function reset():void
@@ -104,15 +110,24 @@ package com.pj.common.component
 			return this.instance as Sprite;
 		}
 		
+		public function getCapture():BitmapData
+		{
+			var bmp:BitmapData = new BitmapData(this._content.instance.width, this._content.instance.height);
+			bmp.draw(this._content.instance);
+			return bmp;
+		}
+		
 		public function onMoveComplete(p_to:Vector2D):void
 		{
-			var evt:JEvent = new JEvent(JComponentEvent.DRAGABLE_EVENT, {pos: p_to});
-			this.dispatchEvent(evt);
+			this.signal.dispatch({pos: p_to});
 		}
 		
 		public function resize(p_width:int, p_height:int):void
 		{
-			;
+			this._borderWidth = p_width;
+			this._borderHeight = p_height;
+			this._mask.width = this._borderWidth;
+			this._mask.height = this._borderHeight;
 		}
 		
 		public function set active(p_value:Boolean):void

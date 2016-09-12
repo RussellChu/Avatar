@@ -10,7 +10,8 @@ package
 	import flash.display.StageScaleMode;
 	import flash.events.Event;
 	
-	[SWF(frameRate = "60", backgroundColor = "#000044")]
+//	[SWF(width = 1280, height = 800, frameRate = "60", backgroundColor = "#ffffff")]
+	[SWF(frameRate = "60", backgroundColor = "#ffffff")]
 	public class Main extends Sprite
 	{
 		private var _init:Boolean = false;
@@ -34,12 +35,12 @@ package
 			//});
 			//loader.load(new URLRequest("basket_x000a_p78.swf"));
 			this.stage.addEventListener(Event.ACTIVATE, this.onStage);
-			this.stage.addEventListener(Event.RESIZE, this.onResize);
 		}
 		
 		private function init():void
 		{
 			this._project = new ProjectMacross(this);
+			this.stage.addEventListener(Event.RESIZE, this.onResize);
 		}
 		
 		private function onResize(p_evt:Event):void

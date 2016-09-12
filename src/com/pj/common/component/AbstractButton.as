@@ -1,8 +1,6 @@
 package com.pj.common.component
 {
 	import com.pj.common.component.BasicObject;
-	import com.pj.common.events.JComponentEvent;
-	import com.pj.common.events.JEvent;
 	import flash.display.Sprite;
 	import flash.events.MouseEvent;
 	
@@ -18,7 +16,14 @@ package com.pj.common.component
 		public static const ACTION_OVER:String = 'over';
 		public static const ACTION_UP:String = 'up';
 		
-		private var _data:Object = null;
+		protected static const ALIGN_CENTER:int = 0;
+		protected static const ALIGN_BOTTON:int = 1;
+		
+		protected static const IMG_DOWN:int = 0;
+		protected static const IMG_IDLE:int = 1;
+		protected static const IMG_OVER:int = 2;
+		
+		protected var _data:Object = null;
 		
 		public function AbstractButton(p_data:Object = null):void
 		{
@@ -58,34 +63,34 @@ package com.pj.common.component
 			return this.instance as Sprite;
 		}
 		
+		public function get data():Object
+		{
+			return this._data;
+		}
+		
 		protected function onMouseClick(p_evt:MouseEvent):void
 		{
-			var evt:JEvent = new JEvent(JComponentEvent.BUTTON_EVENT, {action: ACTION_CLICK, data: this._data});
-			this.dispatchEvent(evt);
+			this.signal.dispatch({action: ACTION_CLICK, data: this._data});
 		}
 		
 		protected function onMouseDown(p_evt:MouseEvent):void
 		{
-			var evt:JEvent = new JEvent(JComponentEvent.BUTTON_EVENT, {action: ACTION_DOWN, data: this._data});
-			this.dispatchEvent(evt);
+			this.signal.dispatch({action: ACTION_DOWN, data: this._data});
 		}
 		
 		protected function onMouseOver(p_evt:MouseEvent):void
 		{
-			var evt:JEvent = new JEvent(JComponentEvent.BUTTON_EVENT, {action: ACTION_OVER, data: this._data});
-			this.dispatchEvent(evt);
+			this.signal.dispatch({action: ACTION_OVER, data: this._data});
 		}
 		
 		protected function onMouseUp(p_evt:MouseEvent):void
 		{
-			var evt:JEvent = new JEvent(JComponentEvent.BUTTON_EVENT, {action: ACTION_UP, data: this._data});
-			this.dispatchEvent(evt);
+			this.signal.dispatch({action: ACTION_UP, data: this._data});
 		}
 		
 		protected function onMouseRollOut(p_evt:MouseEvent):void
 		{
-			var evt:JEvent = new JEvent(JComponentEvent.BUTTON_EVENT, {action: ACTION_OUT, data: this._data});
-			this.dispatchEvent(evt);
+			this.signal.dispatch({action: ACTION_OUT, data: this._data});
 		}
 	
 	}

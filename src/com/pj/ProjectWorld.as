@@ -3,13 +3,9 @@ package com.pj
 	import com.pj.common.Helper;
 	import com.pj.common.component.BasicContainer;
 	import com.pj.common.component.SimpleButton;
-	import com.pj.common.component.Slider;
 	import com.pj.common.component.World3D;
 	import com.pj.common.component.World3DObj;
-	import com.pj.common.events.JComponentEvent;
-	import com.pj.common.events.JEvent;
 	import com.pj.common.image.JImage_Circle;
-	import com.pj.common.image.JImage_RandSqr;
 	import com.pj.common.j3d.Camera3D;
 	import com.pj.common.math.JMath;
 	import com.pj.common.math.Vector3D;
@@ -51,21 +47,22 @@ package com.pj
 			
 			var btn:SimpleButton = new SimpleButton("Hello world!", 200, 50, "HW!");
 			this.addChild(btn);
-			btn.addEventListener(JComponentEvent.BUTTON_EVENT, function (evt:JEvent):void {
-				trace(JSON.stringify(evt.data));
+			btn.signal.add(function(p_result:Object):void
+			{
+				trace(JSON.stringify(p_result));
 			});
-			
+		
 			//	var testHolder:DragableContainer = new DragableContainer(this, 200, 200, 400, 400);
 			//	new JImage_RandSqr(testHolder, 400, 400);
-			
-		//	var slider:Slider = new Slider(this, 200, 50, 300, 300);
-		//	new JImage_RandSqr(slider, 300, 300);
-			
+		
+			//	var slider:Slider = new Slider(this, 200, 50, 300, 300);
+			//	new JImage_RandSqr(slider, 300, 300);
+		
 			//var moveBg:JImage_Circle = new JImage_Circle(50, JImage_Circle.STYLE_DEFAULT, {color: 0xff0000ff});
 			//var moveCursor:JImage_Circle = new JImage_Circle(20, JImage_Circle.STYLE_DEFAULT, {color: 0xffff00ff});
 			//var mouseCtrl:MoveInput = new MoveInput(this, moveBg, moveCursor);
-		//	mouseCtrl.x = 200;
-		//	mouseCtrl.y = 200;
+			//	mouseCtrl.x = 200;
+			//	mouseCtrl.y = 200;
 		}
 		
 		override public function dispose():void
