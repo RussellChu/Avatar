@@ -80,6 +80,10 @@ package com.pj.common.component
 		
 		public function slide(p_mX:int, p_mY:int, p_isUpdate:Boolean = false):void
 		{
+			if (p_mX == 0 && p_mY == 0)
+			{
+				return;
+			}
 			this.slideTo(this._target.instance.x + p_mX, this._target.instance.y + p_mY, p_isUpdate);
 		}
 		

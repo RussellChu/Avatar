@@ -68,8 +68,9 @@ package com.pj
 			this._map = new ButtonHexagonGroup(this._slider, Config.BTN_RADIUS, Config.BTN_SIDE, Config.FONT_SIZE);
 			this._map.createMap(this._model.getCellList());
 			this._map.signal.add(this.onMapSignal);
-				
-			if (Config.TESTING_MODE) {
+			
+			if (Config.TESTING_MODE)
+			{
 				var btnToggle:SimpleToggleButton = null;
 				var item:Object = null;
 				var i:int = 0;
@@ -136,7 +137,8 @@ package com.pj
 		{
 			var dataCell:MapCell = p_result as MapCell;
 			
-			if (Config.TESTING_MODE) {
+			if (Config.TESTING_MODE)
+			{
 				var dataCommand:Object = this._tgCommand.data;
 				var dataSide:Object = this._tgSide.data;
 				if (!dataCommand)
@@ -165,26 +167,28 @@ package com.pj
 					this._map.setState(dataState.id, dataState.side, dataState.state);
 				}
 				
-				var x:int = dataCell.keyY;
-				var y:int = dataCell.keyZ;
-				var z:int = dataCell.keyX;
-				dataCell = this._model.getCellByKey(x, y, z);
-				dataState = this._model.command(dataCell.id, side, command);
-				if (dataState)
-				{
-					this._map.setState(dataState.id, dataState.side, dataState.state);
-				}
-				
-				x = dataCell.keyY;
-				y = dataCell.keyZ;
-				z = dataCell.keyX;
-				dataCell = this._model.getCellByKey(x, y, z);
-				dataState = this._model.command(dataCell.id, side, command);
-				if (dataState)
-				{
-					this._map.setState(dataState.id, dataState.side, dataState.state);
-				}
-			} else {
+					//var x:int = dataCell.keyY;
+					//var y:int = dataCell.keyZ;
+					//var z:int = dataCell.keyX;
+					//dataCell = this._model.getCellByKey(x, y, z);
+					//dataState = this._model.command(dataCell.id, side, command);
+					//if (dataState)
+					//{
+					//this._map.setState(dataState.id, dataState.side, dataState.state);
+					//}
+					//
+					//x = dataCell.keyY;
+					//y = dataCell.keyZ;
+					//z = dataCell.keyX;
+					//dataCell = this._model.getCellByKey(x, y, z);
+					//dataState = this._model.command(dataCell.id, side, command);
+					//if (dataState)
+					//{
+					//this._map.setState(dataState.id, dataState.side, dataState.state);
+					//}
+			}
+			else
+			{
 				;
 			}
 		}
@@ -192,7 +196,6 @@ package com.pj
 	}
 }
 
-import com.adobe.images.PNGEncoder;
 import com.pj.common.JColor;
 import com.pj.common.component.AbstractButton;
 import com.pj.common.component.AbstractButtonFace;
@@ -201,19 +204,20 @@ import com.pj.common.component.BasicContainer;
 import com.pj.common.component.IContainer;
 import flash.display.Bitmap;
 import flash.display.BitmapData;
-import flash.net.FileReference;
+import flash.events.TimerEvent;
 import flash.text.TextFormat;
-import flash.utils.ByteArray;
+import flash.utils.Timer;
 
 class Config
 {
+	public static const TESTING_MODE:Boolean = true;
+	
 	public static const BTN_RADIUS:int = 15; // real: 135, test: 15
 	public static const BTN_SIDE:int = 1; // real: 6, test: 1
 	public static const FONT_SIZE:int = 8; // real: 72, test: 8
 	public static const CTRL_BTN_WIDTH:int = 120;
 	public static const CTRL_BTN_HEIGHT:int = 25;
 	public static const DEFAULT_PNG:String = "a.png";
-	public static const TESTING_MODE:Boolean = false;
 	
 	public static const CELL_BASE_A:Array = [0, 2, 3, 598, 625, 626];
 	public static const CELL_BASE_B:Array = [247, 274, 275, 585, 612, 613];
@@ -563,12 +567,12 @@ class GameModel
 		return true;
 	}
 	
-	private function checkBase(p_id:int, p_side:int):Boolean
+	private function checkBase(p_id:int, p_side:int, p_isEx:Boolean):Boolean
 	{
 		var checkMap:Object = {};
 		var checkList:Array = [];
 		checkMap[p_id] = true;
-		checkList.push(p_id);
+		checkList.push({id: p_id, ex: p_isEx});
 		
 		var next1:Array = [//
 		{x: -1, y: 0, z: 1}//
@@ -595,7 +599,9 @@ class GameModel
 		
 		while (checkList.length > 0)
 		{
-			var currId:int = checkList.pop();
+			var item:Object = checkList.pop();
+			var currId:int = item.id;
+			var currEx:Boolean = item.ex;
 			var cell:MapCell = this._map.getCellById(currId);
 			var nextCell:MapCell = null;
 			var currX:int = cell.keyX;
@@ -630,8 +636,12 @@ class GameModel
 				if (nextCell.state == MapData.STATE_ROAD || nextCell.state == MapData.STATE_ROAD_EX)
 				{
 					checkMap[nextCell.id] = true;
-					checkList.push(nextCell.id);
+					checkList.push({id: nextCell.id, ex: (nextCell.state == MapData.STATE_ROAD_EX)});
 				}
+			}
+			if (!currEx)
+			{
+				continue;
 			}
 			for (i = 0; i < next2.length; i++)
 			{
@@ -651,10 +661,10 @@ class GameModel
 				{
 					continue;
 				}
-				if (nextCell.state == MapData.STATE_ROAD_EX)
+				if (nextCell.state == MapData.STATE_ROAD || nextCell.state == MapData.STATE_ROAD_EX)
 				{
 					checkMap[nextCell.id] = true;
-					checkList.push(nextCell.id);
+					checkList.push({id: nextCell.id, ex: (nextCell.state == MapData.STATE_ROAD_EX)});
 				}
 			}
 		}
@@ -679,7 +689,7 @@ class GameModel
 			{
 				return null;
 			}
-			if (!this.checkBase(p_id, p_side))
+			if (!this.checkBase(p_id, p_side, p_command == MapData.COMMAND_ROAD_EX))
 			{
 				return null;
 			}
@@ -772,6 +782,10 @@ class ButtonHexagonFace extends AbstractButtonFace
 	private var _imgHostage:Bitmap = null;
 	private var _imgObstacle:Bitmap = null;
 	
+	private var _isFlash:Boolean = false;
+	private var _timer:Timer = null;
+	private var _timeVal:Number = 0;
+	
 	public function ButtonHexagonFace( //
 	p_bmpBlank:BitmapData //
 	, p_bmpBase0:BitmapData = null //
@@ -846,12 +860,31 @@ class ButtonHexagonFace extends AbstractButtonFace
 		{
 			this.container.addChild(this._imgObstacle);
 		}
+		
+		this._timer = new Timer(20);
+		this._timer.addEventListener(TimerEvent.TIMER, this.onTime);
 	}
 	
 	override public function reset():void
 	{
 		super.reset();
+		this._isFlash = false;
+		this._timer.stop();
+		this._timeVal = 0;
 		this.setFace(FACE_BLANK);
+	}
+	
+	private function onTime(p_evt:TimerEvent):void
+	{
+		if (this._isFlash)
+		{
+			this._timeVal += 0.02;
+			if (this._timeVal > 1)
+			{
+				this._timeVal -= 1;
+			}
+			this.container.alpha = (Math.sin(Math.PI * 2 * this._timeVal) + 1) * 0.5;
+		}
 	}
 	
 	public function setFace(p_id:int):void
@@ -888,6 +921,8 @@ class ButtonHexagonFace extends AbstractButtonFace
 		{
 			this._imgObstacle.visible = false;
 		}
+		var isKeepFlash:Boolean = this._isFlash;
+		this._isFlash = false;
 		var isSet:Boolean = false;
 		switch (p_id)
 		{
@@ -938,6 +973,7 @@ class ButtonHexagonFace extends AbstractButtonFace
 			{
 				this._imgRoad0.visible = true;
 				isSet = true;
+				this._isFlash = true;
 			}
 			break;
 		case FACE_ROAD_EX_1: 
@@ -945,6 +981,7 @@ class ButtonHexagonFace extends AbstractButtonFace
 			{
 				this._imgRoad1.visible = true;
 				isSet = true;
+				this._isFlash = true;
 			}
 			break;
 		case FACE_ROAD_EX_2: 
@@ -952,6 +989,7 @@ class ButtonHexagonFace extends AbstractButtonFace
 			{
 				this._imgRoad0.visible = true;
 				isSet = true;
+				this._isFlash = true;
 			}
 			break;
 		case FACE_HOSTAGE: 
@@ -972,6 +1010,19 @@ class ButtonHexagonFace extends AbstractButtonFace
 		default: 
 		}
 		this._imgBlank.visible = !isSet;
+		if (this._isFlash)
+		{
+			if (!isKeepFlash)
+			{
+				this._timeVal = 0;
+				this._timer.start();
+			}
+		}
+		else
+		{
+			this._timer.stop();
+			this.container.alpha = 1;
+		}
 	}
 
 }
