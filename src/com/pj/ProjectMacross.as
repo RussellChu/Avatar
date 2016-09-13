@@ -55,8 +55,8 @@ package com.pj
 			{label: "Road", data: {command: MapData.COMMAND_ROAD}} //
 			, {label: "RoadEx", data: {command: MapData.COMMAND_ROAD_EX}} //
 			, {label: "Attack", data: {command: MapData.COMMAND_ATTACK}} //
-			, {label: "(Test) Hostage", data: {command: MapData.COMMAND_TEST_HOSTAGE}} //
-			, {label: "(Test) Obstacle", data: {command: MapData.COMMAND_TEST_OBSTACLE}} //
+			, {label: "(Test) Hostage", data: {command: MapData.COMMAND_TEST_HOSTAGE}, testOnly: true} //
+			, {label: "(Test) Obstacle", data: {command: MapData.COMMAND_TEST_OBSTACLE}, testOnly: true} //
 			];
 			
 			this._model = new GameModel();
@@ -69,37 +69,41 @@ package com.pj
 			this._map.createMap(this._model.getCellList());
 			this._map.signal.add(this.onMapSignal);
 			
+			var btnToggle:SimpleToggleButton = null;
+			var item:Object = null;
+			var i:int = 0;
+			var posY:int = 0;
+			
+			this._tgSide = new ToggleButtonGroup();
+			for (i = 0; i < SIDE_LIST.length; i++)
+			{
+				item = SIDE_LIST[i];
+				btnToggle = new SimpleToggleButton(item.label, Config.CTRL_BTN_WIDTH / 3, Config.CTRL_BTN_HEIGHT, item.data);
+				btnToggle.instance.x = Config.CTRL_BTN_WIDTH / 3 * i;
+				btnToggle.instance.y = posY;
+				this._tgSide.addButton(btnToggle);
+				this.addChild(btnToggle);
+			}
+			posY += Config.CTRL_BTN_HEIGHT;
+			
+			this._tgCommand = new ToggleButtonGroup();
+			for (i = 0; i < COMMAND_LIST.length; i++)
+			{
+				item = COMMAND_LIST[i];
+				if (item.testOnly && !Config.TESTING_MODE)
+				{
+					continue;
+				}
+				btnToggle = new SimpleToggleButton(item.label, Config.CTRL_BTN_WIDTH, Config.CTRL_BTN_HEIGHT, item.data);
+				btnToggle.instance.x = 0;
+				btnToggle.instance.y = posY;
+				this._tgCommand.addButton(btnToggle);
+				this.addChild(btnToggle);
+				posY += Config.CTRL_BTN_HEIGHT;
+			}
+			
 			if (Config.TESTING_MODE)
 			{
-				var btnToggle:SimpleToggleButton = null;
-				var item:Object = null;
-				var i:int = 0;
-				var posY:int = 0;
-				
-				this._tgSide = new ToggleButtonGroup();
-				for (i = 0; i < SIDE_LIST.length; i++)
-				{
-					item = SIDE_LIST[i];
-					btnToggle = new SimpleToggleButton(item.label, Config.CTRL_BTN_WIDTH / 3, Config.CTRL_BTN_HEIGHT, item.data);
-					btnToggle.instance.x = Config.CTRL_BTN_WIDTH / 3 * i;
-					btnToggle.instance.y = posY;
-					this._tgSide.addButton(btnToggle);
-					this.addChild(btnToggle);
-				}
-				posY += Config.CTRL_BTN_HEIGHT;
-				
-				this._tgCommand = new ToggleButtonGroup();
-				for (i = 0; i < COMMAND_LIST.length; i++)
-				{
-					item = COMMAND_LIST[i];
-					btnToggle = new SimpleToggleButton(item.label, Config.CTRL_BTN_WIDTH, Config.CTRL_BTN_HEIGHT, item.data);
-					btnToggle.instance.x = 0;
-					btnToggle.instance.y = posY;
-					this._tgCommand.addButton(btnToggle);
-					this.addChild(btnToggle);
-					posY += Config.CTRL_BTN_HEIGHT;
-				}
-				
 				var btn:SimpleButton = null;
 				btn = new SimpleButton("Undo", Config.CTRL_BTN_WIDTH, Config.CTRL_BTN_HEIGHT);
 				btn.instance.x = 0;
@@ -137,60 +141,53 @@ package com.pj
 		{
 			var dataCell:MapCell = p_result as MapCell;
 			
-			if (Config.TESTING_MODE)
+			var dataCommand:Object = this._tgCommand.data;
+			var dataSide:Object = this._tgSide.data;
+			if (!dataCommand)
 			{
-				var dataCommand:Object = this._tgCommand.data;
-				var dataSide:Object = this._tgSide.data;
-				if (!dataCommand)
+				return;
+			}
+			var command:int = dataCommand.command;
+			var side:int = 0;
+			
+			switch (command)
+			{
+			case MapData.COMMAND_TEST_HOSTAGE: 
+			case MapData.COMMAND_TEST_OBSTACLE: 
+				break;
+			default: 
+				if (!dataSide)
 				{
 					return;
 				}
-				var command:int = dataCommand.command;
-				var side:int = 0;
-				
-				switch (command)
-				{
-				case MapData.COMMAND_TEST_HOSTAGE: 
-				case MapData.COMMAND_TEST_OBSTACLE: 
-					break;
-				default: 
-					if (!dataSide)
-					{
-						return;
-					}
-					side = dataSide.side;
-				}
-				
-				var dataState:Object = this._model.command(dataCell.id, side, command);
-				if (dataState)
-				{
-					this._map.setState(dataState.id, dataState.side, dataState.state);
-				}
-				
-					//var x:int = dataCell.keyY;
-					//var y:int = dataCell.keyZ;
-					//var z:int = dataCell.keyX;
-					//dataCell = this._model.getCellByKey(x, y, z);
-					//dataState = this._model.command(dataCell.id, side, command);
-					//if (dataState)
-					//{
-					//this._map.setState(dataState.id, dataState.side, dataState.state);
-					//}
-					//
-					//x = dataCell.keyY;
-					//y = dataCell.keyZ;
-					//z = dataCell.keyX;
-					//dataCell = this._model.getCellByKey(x, y, z);
-					//dataState = this._model.command(dataCell.id, side, command);
-					//if (dataState)
-					//{
-					//this._map.setState(dataState.id, dataState.side, dataState.state);
-					//}
+				side = dataSide.side;
 			}
-			else
+			
+			var dataState:Object = this._model.command(dataCell.id, side, command);
+			if (dataState)
 			{
-				;
+				this._map.setState(dataState.id, dataState.side, dataState.state);
 			}
+		
+			//var x:int = dataCell.keyY;
+			//var y:int = dataCell.keyZ;
+			//var z:int = dataCell.keyX;
+			//dataCell = this._model.getCellByKey(x, y, z);
+			//dataState = this._model.command(dataCell.id, side, command);
+			//if (dataState)
+			//{
+			//this._map.setState(dataState.id, dataState.side, dataState.state);
+			//}
+			//
+			//x = dataCell.keyY;
+			//y = dataCell.keyZ;
+			//z = dataCell.keyX;
+			//dataCell = this._model.getCellByKey(x, y, z);
+			//dataState = this._model.command(dataCell.id, side, command);
+			//if (dataState)
+			//{
+			//this._map.setState(dataState.id, dataState.side, dataState.state);
+			//}
 		}
 	
 	}
@@ -210,7 +207,7 @@ import flash.utils.Timer;
 
 class Config
 {
-	public static const TESTING_MODE:Boolean = true;
+	public static const TESTING_MODE:Boolean = false;
 	
 	public static const BTN_RADIUS:int = 15; // real: 135, test: 15
 	public static const BTN_SIDE:int = 1; // real: 6, test: 1
@@ -708,14 +705,14 @@ class GameModel
 				this.addRoad(p_side, cell.keyX, cell.keyY, cell.keyZ);
 				return {id: p_id, side: p_side, state: MapData.STATE_ROAD};
 			case MapData.COMMAND_ROAD: 
-				if (cell.state != MapData.STATE_NONE)
+				if (cell.state != MapData.STATE_NONE && cell.state != MapData.STATE_HOSTAGE)
 				{
 					return null;
 				}
 				this.addRoad(p_side, cell.keyX, cell.keyY, cell.keyZ);
 				return {id: p_id, side: p_side, state: MapData.STATE_ROAD};
 			case MapData.COMMAND_ROAD_EX: 
-				if (cell.state != MapData.STATE_NONE && cell.state != MapData.STATE_ROAD)
+				if (cell.state != MapData.STATE_NONE && cell.state != MapData.STATE_ROAD && cell.state != MapData.STATE_HOSTAGE)
 				{
 					return null;
 				}
@@ -997,6 +994,7 @@ class ButtonHexagonFace extends AbstractButtonFace
 			{
 				this._imgHostage.visible = true;
 				isSet = true;
+				this._isFlash = true;
 			}
 			break;
 		case FACE_OBSTACLE: 
@@ -1050,9 +1048,15 @@ class ButtonHexagon extends BasicButton
 	{
 		super.init();
 		
-		var format:TextFormat = new TextFormat();
-		format.size = this._fontSize;
-		this._txtTitle.defaultTextFormat = format;
+		this._txtTitle.visible = false;
+		
+		if (Config.TESTING_MODE)
+		{
+			var format:TextFormat = new TextFormat();
+			format.size = this._fontSize;
+			this._txtTitle.defaultTextFormat = format;
+			this._txtTitle.visible = true;
+		}
 	}
 	
 	public function setState(p_side:int, p_state:int):void

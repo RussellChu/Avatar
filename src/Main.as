@@ -10,7 +10,7 @@ package
 	import flash.display.StageScaleMode;
 	import flash.events.Event;
 	
-//	[SWF(width = 1280, height = 800, frameRate = "60", backgroundColor = "#ffffff")]
+	//	[SWF(width = 1280, height = 800, frameRate = "60", backgroundColor = "#ffffff")]
 	[SWF(frameRate = "60", backgroundColor = "#ffffff")]
 	public class Main extends Sprite
 	{
@@ -34,7 +34,11 @@ package
 			//addChild(mc);
 			//});
 			//loader.load(new URLRequest("basket_x000a_p78.swf"));
-			this.stage.addEventListener(Event.ACTIVATE, this.onStage);
+			
+			// for exe
+			this.stage.addEventListener(Event.ACTIVATE, this.onLoad);
+			// for web
+			this.stage.addEventListener(Event.ENTER_FRAME, this.onLoad);
 		}
 		
 		private function init():void
@@ -43,12 +47,7 @@ package
 			this.stage.addEventListener(Event.RESIZE, this.onResize);
 		}
 		
-		private function onResize(p_evt:Event):void
-		{
-			this._project.resize(this.stage.stageWidth, this.stage.stageHeight);
-		}
-		
-		private function onStage(p_evt:Event):void
+		private function onLoad(p_evt:Event):void
 		{
 			if (this._init)
 			{
@@ -57,6 +56,14 @@ package
 			
 			this._init = true;
 			this.init();
+			
+			this.stage.removeEventListener(Event.ACTIVATE, this.onLoad);
+			this.stage.removeEventListener(Event.ENTER_FRAME, this.onLoad);
+		}
+		
+		private function onResize(p_evt:Event):void
+		{
+			this._project.resize(this.stage.stageWidth, this.stage.stageHeight);
 		}
 	
 	}
