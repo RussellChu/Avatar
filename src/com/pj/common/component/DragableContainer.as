@@ -136,10 +136,10 @@ package com.pj.common.component
 			if (posX > this._borderWidth) {
 				return;
 			}
-			if (moveY < 0) {
+			if (posY < 0) {
 				return;
 			}
-			if (moveY > this._borderHeight) {
+			if (posY > this._borderHeight) {
 				return;
 			}
 			

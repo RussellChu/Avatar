@@ -1,13 +1,17 @@
 package com.pj
 {
+	import com.pj.common.AssetLoader;
 	import com.pj.common.Helper;
+	import com.pj.common.JColor;
 	import com.pj.common.component.AbstractButton;
 	import com.pj.common.component.BasicContainer;
+	import com.pj.common.component.Quad;
 	import com.pj.common.component.SimpleButton;
 	import com.pj.common.component.SimpleToggleButton;
 	import com.pj.common.component.Slider;
 	import com.pj.common.component.ToggleButtonGroup;
 	import flash.display.Sprite;
+	import flash.net.FileReference;
 	
 	/**
 	 * ...
@@ -15,6 +19,25 @@ package com.pj
 	 */
 	public class ProjectMacross extends BasicContainer
 	{
+		[Embed(source="/../bin/assets/s01.png")]
+		public static var BMP_S01:Class;
+		[Embed(source="/../bin/assets/s02.png")]
+		public static var BMP_S02:Class;
+		[Embed(source="/../bin/assets/s03.png")]
+		public static var BMP_S03:Class;
+		[Embed(source="/../bin/assets/s04.png")]
+		public static var BMP_S04:Class;
+		[Embed(source="/../bin/assets/s05.png")]
+		public static var BMP_S05:Class;
+		[Embed(source="/../bin/assets/s06.png")]
+		public static var BMP_S06:Class;
+		[Embed(source="/../bin/assets/s07.png")]
+		public static var BMP_S07:Class;
+		[Embed(source="/../bin/assets/s08.png")]
+		public static var BMP_S08:Class;
+		
+		private var _asset:AssetLoader = null;
+		private var _bg:Quad = null;
 		private var _map:ButtonHexagonGroup = null;
 		private var _model:GameModel = null;
 		private var _tgCommand:ToggleButtonGroup = null;
@@ -28,11 +51,13 @@ package com.pj
 		
 		override public function dispose():void
 		{
+			Helper.dispose(this._bg);
 			Helper.dispose(this._map);
 			Helper.dispose(this._model);
 			Helper.dispose(this._tgCommand);
 			Helper.dispose(this._tgSide);
 			Helper.dispose(this._slider);
+			this._bg = null;
 			this._map = null;
 			this._model = null;
 			this._tgCommand = null;
@@ -61,13 +86,12 @@ package com.pj
 			
 			this._model = new GameModel();
 			
+			this._bg = new Quad(this.instance.stage.stageWidth, this.instance.stage.stageHeight, new JColor(0, 0, 0.5, 1).value);
+			this.addChild(this._bg);
+			
 			var totalWidth:int = (Config.MAP_RADIUS * 6 - 3) * Config.BTN_RADIUS;
 			this._slider = new Slider(this, this.instance.stage.stageWidth - Config.CTRL_BTN_WIDTH, this.instance.stage.stageHeight, totalWidth, totalWidth);
 			this._slider.instance.x = Config.CTRL_BTN_WIDTH;
-			
-			this._map = new ButtonHexagonGroup(this._slider, Config.BTN_RADIUS, Config.BTN_SIDE, Config.FONT_SIZE);
-			this._map.createMap(this._model.getCellList());
-			this._map.signal.add(this.onMapSignal);
 			
 			var btnToggle:SimpleToggleButton = null;
 			var item:Object = null;
@@ -125,6 +149,34 @@ package com.pj
 				this.addChild(btn);
 				posY += Config.CTRL_BTN_HEIGHT;
 			}
+			
+			this._asset = new AssetLoader();
+			//this._asset.add("01", "assets/h01.png");
+			//this._asset.add("02", "assets/h02.png");
+			//this._asset.add("03", "assets/h03.png");
+			//this._asset.add("04", "assets/h04.png");
+			//this._asset.add("05", "assets/h05.png");
+			//this._asset.add("06", "assets/h06.png");
+			//this._asset.add("07", "assets/h07.png");
+			//this._asset.add("08", "assets/h08.png");
+			//this._asset.add("s01", "assets/s01.png");
+			//this._asset.add("s02", "assets/s02.png");
+			//this._asset.add("s03", "assets/s03.png");
+			//this._asset.add("s04", "assets/s04.png");
+			//this._asset.add("s05", "assets/s05.png");
+			//this._asset.add("s06", "assets/s06.png");
+			//this._asset.add("s07", "assets/s07.png");
+			//this._asset.add("s08", "assets/s08.png");
+			this._asset.addObject("s01", new ProjectMacross.BMP_S01());
+			this._asset.addObject("s02", new ProjectMacross.BMP_S02());
+			this._asset.addObject("s03", new ProjectMacross.BMP_S03());
+			this._asset.addObject("s04", new ProjectMacross.BMP_S04());
+			this._asset.addObject("s05", new ProjectMacross.BMP_S05());
+			this._asset.addObject("s06", new ProjectMacross.BMP_S06());
+			this._asset.addObject("s07", new ProjectMacross.BMP_S07());
+			this._asset.addObject("s08", new ProjectMacross.BMP_S08());
+			this._asset.signal.add(this.onAssetLoaded);
+			this._asset.load();
 		}
 		
 		override public function reset():void
@@ -134,7 +186,102 @@ package com.pj
 		
 		override public function resize(p_width:int, p_height:int):void
 		{
+			this._bg.resize(p_width, p_height);
 			this._slider.resize(p_width - Config.CTRL_BTN_WIDTH, p_height);
+		}
+		
+		private var _fileReference:FileReference = null;
+		
+		private function onAssetLoaded(p_result:Object):void
+		{
+			trace("load all!!!, fail >> " + JSON.stringify(p_result));
+			/*
+			   var list:Array = ["01", "02", "03", "04"];
+			   //	var list:Array = ["05", "06", "07", "08"];
+			
+			   var saver:JFileSaver = new JFileSaver();
+			
+			   for (var i:int = 0; i < list.length; i++) {
+			   var key:String = list[i];
+			   var item:Bitmap = this._asset.getAsset(key) as Bitmap;
+			   var target:BitmapData = new BitmapData(64, 64);
+			   var r:Object = {};
+			   var g:Object = {};
+			   var b:Object = {};
+			   var a:Object = {};
+			   var c:Object = {};
+			
+			   for (var x2:int = 0; x2 < 64; x2++) {
+			   for (var y2:int = 0; y2 < 64; y2++) {
+			   var cKey2:String = "" + x2 + ":" + y2;
+			   r[cKey2] = 0;
+			   g[cKey2] = 0;
+			   b[cKey2] = 0;
+			   a[cKey2] = 0;
+			   c[cKey2] = 0;
+			   }
+			   }
+			
+			   //var src:ByteArray = item.bitmapData.getPixels(new Rectangle(0, 0, item.bitmapData.width, item.bitmapData.height));
+			   //src.position = 0;
+			
+			   for (var x:int = 0; x < 1653; x++) {
+			   if (x >= item.bitmapData.width) {
+			   continue;
+			   }
+			   for (var y:int = 0; y < 1653; y++) {
+			   if (y >= item.bitmapData.height) {
+			   continue;
+			   }
+			   var cX:int = (x + (1653 - item.bitmapData.width) * 0.5) * 64 / 1653;
+			   var cY:int = (y + (1653 - item.bitmapData.height) * 0.5) * 64 / 1653;
+			   var cKey:String = "" + cX + ":" + cY;
+			   var color:uint = item.bitmapData.getPixel32(x, y);
+			   var colorA:uint = ((color & 0xff000000) >> 24) & 0xff;
+			   var colorR:uint = (color & 0xff0000) >> 16;
+			   var colorG:uint = (color & 0xff00) >> 8;
+			   var colorB:uint = (color & 0xff);
+			   //var colorA:uint = src.readByte();
+			   //var colorR:uint = src.readByte();
+			   //var colorG:uint = src.readByte();
+			   //var colorB:uint = src.readByte();
+			   r[cKey] += colorR;
+			   g[cKey] += colorG;
+			   b[cKey] += colorB;
+			   a[cKey] += colorA;
+			   c[cKey] += 1;
+			   }
+			   }
+			   var ib:ByteArray = new ByteArray();
+			   for (var x2:int = 0; x2 < 64; x2++) {
+			   for (var y2:int = 0; y2 < 64; y2++) {
+			   var cKey2:String = "" + x2 + ":" + y2;
+			   var aC:uint = c[cKey2];
+			   var aA:uint = a[cKey2] / aC;
+			   var aR:uint = r[cKey2] / aC;
+			   var aG:uint = g[cKey2] / aC;
+			   var aB:uint = b[cKey2] / aC;
+			   var aCC:uint = (aA << 24) + (aR << 16) + (aG << 8) + aB;
+			   //ib.writeByte(aA);
+			   //ib.writeByte(aR);
+			   //ib.writeByte(aG);
+			   //ib.writeByte(aB);
+			   target.setPixel32(x2, y2, aCC);
+			   }
+			   }
+			   //target.setPixels(new Rectangle(0, 0, 63, 63), ib);
+			   //	var m:Matrix = new Matrix();
+			   //	m.scale(64/1653, 64/1653);
+			   //	target.draw(item.bitmapData, m,null,null,null,true);
+			   var bArr:ByteArray = PNGEncoder.encode(target);
+			   saver.add("s" + key + ".png", bArr);
+			   trace("finish " + key);
+			   }
+			   saver.save();
+			 */
+			this._map = new ButtonHexagonGroup(this._slider, Config.BTN_RADIUS, Config.BTN_SIDE, Config.FONT_SIZE);
+			this._map.createMap(this._model.getCellList(), this._asset);
+			this._map.signal.add(this.onMapSignal);
 		}
 		
 		private function onMapSignal(p_result:Object):void
@@ -193,6 +340,7 @@ package com.pj
 	}
 }
 
+import com.pj.common.AssetLoader;
 import com.pj.common.JColor;
 import com.pj.common.component.AbstractButton;
 import com.pj.common.component.AbstractButtonFace;
@@ -201,7 +349,9 @@ import com.pj.common.component.BasicContainer;
 import com.pj.common.component.IContainer;
 import flash.display.Bitmap;
 import flash.display.BitmapData;
+import flash.display.Sprite;
 import flash.events.TimerEvent;
+import flash.geom.Matrix;
 import flash.text.TextFormat;
 import flash.utils.Timer;
 
@@ -769,6 +919,10 @@ class ButtonHexagonFace extends AbstractButtonFace
 	public static const FACE_HOSTAGE:int = 10;
 	public static const FACE_OBSTACLE:int = 11;
 	
+	private static const EX_CODE_0:int = 1;
+	private static const EX_CODE_1:int = 2;
+	private static const EX_CODE_2:int = 3;
+	
 	private var _imgBase0:Bitmap = null;
 	private var _imgBase1:Bitmap = null;
 	private var _imgBase2:Bitmap = null;
@@ -776,9 +930,15 @@ class ButtonHexagonFace extends AbstractButtonFace
 	private var _imgRoad0:Bitmap = null;
 	private var _imgRoad1:Bitmap = null;
 	private var _imgRoad2:Bitmap = null;
+	private var _imgRoadEx0:Bitmap = null;
+	private var _imgRoadEx1:Bitmap = null;
+	private var _imgRoadEx2:Bitmap = null;
 	private var _imgHostage:Bitmap = null;
 	private var _imgObstacle:Bitmap = null;
+	private var _imgEx:Bitmap = null;
+	private var _spFront:Sprite = null;
 	
+	private var _exCode:int = 0;
 	private var _isFlash:Boolean = false;
 	private var _timer:Timer = null;
 	private var _timeVal:Number = 0;
@@ -791,6 +951,9 @@ class ButtonHexagonFace extends AbstractButtonFace
 	, p_bmpRoad0:BitmapData = null //
 	, p_bmpRoad1:BitmapData = null //
 	, p_bmpRoad2:BitmapData = null //
+	, p_bmpRoadEx0:BitmapData = null //
+	, p_bmpRoadEx1:BitmapData = null //
+	, p_bmpRoadEx2:BitmapData = null //
 	, p_bmpHostage:BitmapData = null //
 	, p_bmpObstacle:BitmapData = null //
 	):void
@@ -802,6 +965,9 @@ class ButtonHexagonFace extends AbstractButtonFace
 		this._imgRoad0 = new Bitmap(p_bmpRoad0);
 		this._imgRoad1 = new Bitmap(p_bmpRoad1);
 		this._imgRoad2 = new Bitmap(p_bmpRoad2);
+		this._imgRoadEx0 = new Bitmap(p_bmpRoadEx0);
+		this._imgRoadEx1 = new Bitmap(p_bmpRoadEx1);
+		this._imgRoadEx2 = new Bitmap(p_bmpRoadEx2);
 		this._imgHostage = new Bitmap(p_bmpHostage);
 		this._imgObstacle = new Bitmap(p_bmpObstacle);
 		super();
@@ -816,6 +982,9 @@ class ButtonHexagonFace extends AbstractButtonFace
 		this._imgRoad0 = null;
 		this._imgRoad1 = null;
 		this._imgRoad2 = null;
+		this._imgRoadEx0 = null;
+		this._imgRoadEx1 = null;
+		this._imgRoadEx2 = null;
 		this._imgHostage = null;
 		this._imgObstacle = null;
 		super.dispose();
@@ -824,38 +993,52 @@ class ButtonHexagonFace extends AbstractButtonFace
 	override protected function init():void
 	{
 		super.init();
+		this._spFront = new Sprite();
 		this.container.addChild(this._imgBlank);
+		this.container.addChild(this._spFront);
 		if (this._imgBase0)
 		{
-			this.container.addChild(this._imgBase0);
+			this._spFront.addChild(this._imgBase0);
 		}
 		if (this._imgBase1)
 		{
-			this.container.addChild(this._imgBase1);
+			this._spFront.addChild(this._imgBase1);
 		}
 		if (this._imgBase2)
 		{
-			this.container.addChild(this._imgBase2);
+			this._spFront.addChild(this._imgBase2);
 		}
 		if (this._imgRoad0)
 		{
-			this.container.addChild(this._imgRoad0);
+			this._spFront.addChild(this._imgRoad0);
 		}
 		if (this._imgRoad1)
 		{
-			this.container.addChild(this._imgRoad1);
+			this._spFront.addChild(this._imgRoad1);
 		}
 		if (this._imgRoad2)
 		{
-			this.container.addChild(this._imgRoad2);
+			this._spFront.addChild(this._imgRoad2);
+		}
+		if (this._imgRoadEx0)
+		{
+			this._spFront.addChild(this._imgRoadEx0);
+		}
+		if (this._imgRoadEx1)
+		{
+			this._spFront.addChild(this._imgRoadEx1);
+		}
+		if (this._imgRoadEx2)
+		{
+			this._spFront.addChild(this._imgRoadEx2);
 		}
 		if (this._imgHostage)
 		{
-			this.container.addChild(this._imgHostage);
+			this._spFront.addChild(this._imgHostage);
 		}
 		if (this._imgObstacle)
 		{
-			this.container.addChild(this._imgObstacle);
+			this._spFront.addChild(this._imgObstacle);
 		}
 		
 		this._timer = new Timer(20);
@@ -873,6 +1056,14 @@ class ButtonHexagonFace extends AbstractButtonFace
 	
 	private function onTime(p_evt:TimerEvent):void
 	{
+		if (this._exCode > 0)
+		{
+			switch (this._exCode)
+			{
+			case 1: 
+				break;
+			}
+		}
 		if (this._isFlash)
 		{
 			this._timeVal += 0.02;
@@ -880,7 +1071,7 @@ class ButtonHexagonFace extends AbstractButtonFace
 			{
 				this._timeVal -= 1;
 			}
-			this.container.alpha = (Math.sin(Math.PI * 2 * this._timeVal) + 1) * 0.5;
+			this._spFront.alpha = (Math.sin(Math.PI * 2 * this._timeVal) + 1) * 0.5;
 		}
 	}
 	
@@ -910,6 +1101,18 @@ class ButtonHexagonFace extends AbstractButtonFace
 		{
 			this._imgRoad2.visible = false;
 		}
+		if (this._imgRoadEx0)
+		{
+			this._imgRoadEx0.visible = false;
+		}
+		if (this._imgRoadEx1)
+		{
+			this._imgRoadEx1.visible = false;
+		}
+		if (this._imgRoadEx2)
+		{
+			this._imgRoadEx2.visible = false;
+		}
 		if (this._imgHostage)
 		{
 			this._imgHostage.visible = false;
@@ -920,94 +1123,78 @@ class ButtonHexagonFace extends AbstractButtonFace
 		}
 		var isKeepFlash:Boolean = this._isFlash;
 		this._isFlash = false;
-		var isSet:Boolean = false;
 		switch (p_id)
 		{
 		case FACE_BASE_0: 
 			if (this._imgBase0)
 			{
 				this._imgBase0.visible = true;
-				isSet = true;
 			}
 			break;
 		case FACE_BASE_1: 
 			if (this._imgBase1)
 			{
 				this._imgBase1.visible = true;
-				isSet = true;
 			}
 			break;
 		case FACE_BASE_2: 
 			if (this._imgBase2)
 			{
 				this._imgBase2.visible = true;
-				isSet = true;
 			}
 			break;
 		case FACE_ROAD_0: 
 			if (this._imgRoad0)
 			{
 				this._imgRoad0.visible = true;
-				isSet = true;
 			}
 			break;
 		case FACE_ROAD_1: 
 			if (this._imgRoad1)
 			{
 				this._imgRoad1.visible = true;
-				isSet = true;
 			}
 			break;
 		case FACE_ROAD_2: 
 			if (this._imgRoad2)
 			{
 				this._imgRoad2.visible = true;
-				isSet = true;
 			}
 			break;
 		case FACE_ROAD_EX_0: 
-			if (this._imgRoad0)
+			if (this._imgRoadEx0)
 			{
-				this._imgRoad0.visible = true;
-				isSet = true;
-				this._isFlash = true;
+				this._imgRoadEx0.visible = true;
 			}
 			break;
 		case FACE_ROAD_EX_1: 
-			if (this._imgRoad1)
+			if (this._imgRoadEx1)
 			{
-				this._imgRoad1.visible = true;
-				isSet = true;
-				this._isFlash = true;
+				this._imgRoadEx1.visible = true;
 			}
 			break;
 		case FACE_ROAD_EX_2: 
-			if (this._imgRoad0)
+			if (this._imgRoadEx2)
 			{
-				this._imgRoad0.visible = true;
-				isSet = true;
-				this._isFlash = true;
+				this._imgRoadEx2.visible = true;
 			}
 			break;
 		case FACE_HOSTAGE: 
 			if (this._imgHostage)
 			{
 				this._imgHostage.visible = true;
-				isSet = true;
-				this._isFlash = true;
+					//	this._isFlash = true;
 			}
 			break;
 		case FACE_OBSTACLE: 
 			if (this._imgObstacle)
 			{
 				this._imgObstacle.visible = true;
-				isSet = true;
 			}
 			break;
 		case FACE_BLANK: 
 		default: 
 		}
-		this._imgBlank.visible = !isSet;
 		if (this._isFlash)
 		{
 			if (!isKeepFlash)
@@ -1143,6 +1330,9 @@ class ButtonHexagonGroup extends BasicContainer
 	private var _bmpIdleRoad0:BitmapData = null;
 	private var _bmpIdleRoad1:BitmapData = null;
 	private var _bmpIdleRoad2:BitmapData = null;
+	private var _bmpIdleRoadEx0:BitmapData = null;
+	private var _bmpIdleRoadEx1:BitmapData = null;
+	private var _bmpIdleRoadEx2:BitmapData = null;
 	private var _bmpIdleHostage:BitmapData = null;
 	private var _bmpIdleObstacle:BitmapData = null;
 	
@@ -1182,7 +1372,7 @@ class ButtonHexagonGroup extends BasicContainer
 		super.init();
 		
 		var colorDown:uint = new JColor(0, 1, 1, 1).value;
-		var colorIdle:uint = new JColor(0, 0, 0, 0).value;
+		var colorIdle:uint = new JColor(0.5, 0.5, 0.5, 0.5).value;
 		var colorOver:uint = new JColor(1, 1, 0, 1).value;
 		var colorBase0:uint = new JColor(1, 0.411, 0.411, 0.5).value;
 		var colorBase1:uint = new JColor(0, 1, 0, 0.5).value;
@@ -1202,6 +1392,9 @@ class ButtonHexagonGroup extends BasicContainer
 		this._bmpIdleRoad0 = new BitmapData(this._valBtnW, this._valBtnH, true, 0);
 		this._bmpIdleRoad1 = new BitmapData(this._valBtnW, this._valBtnH, true, 0);
 		this._bmpIdleRoad2 = new BitmapData(this._valBtnW, this._valBtnH, true, 0);
+		this._bmpIdleRoadEx0 = new BitmapData(this._valBtnW, this._valBtnH, true, 0);
+		this._bmpIdleRoadEx1 = new BitmapData(this._valBtnW, this._valBtnH, true, 0);
+		this._bmpIdleRoadEx2 = new BitmapData(this._valBtnW, this._valBtnH, true, 0);
 		this._bmpIdleHostage = new BitmapData(this._valBtnW, this._valBtnH, true, 0);
 		this._bmpIdleObstacle = new BitmapData(this._valBtnW, this._valBtnH, true, 0);
 		this._bmpDown.lock();
@@ -1213,6 +1406,9 @@ class ButtonHexagonGroup extends BasicContainer
 		this._bmpIdleRoad0.lock();
 		this._bmpIdleRoad1.lock();
 		this._bmpIdleRoad2.lock();
+		this._bmpIdleRoadEx0.lock();
+		this._bmpIdleRoadEx1.lock();
+		this._bmpIdleRoadEx2.lock();
 		this._bmpIdleHostage.lock();
 		this._bmpIdleObstacle.lock();
 		
@@ -1239,6 +1435,14 @@ class ButtonHexagonGroup extends BasicContainer
 				var s3:int = (Math.cos(Math.PI * (0.4 * 3 - 0.5)) * (i - this._valBtnW * 0.5) + Math.sin(Math.PI * (0.4 * 3 - 0.5)) * (j - this._valBtnH * 0.5) < a) ? 1 : 0;
 				var s4:int = (Math.cos(Math.PI * (0.4 * 4 - 0.5)) * (i - this._valBtnW * 0.5) + Math.sin(Math.PI * (0.4 * 4 - 0.5)) * (j - this._valBtnH * 0.5) < a) ? 1 : 0;
 				
+				a = this._valBtnW * 0.08;
+				var v0:int = int((Math.cos(Math.PI * (1 / 3 * 0 - 0.5)) * (i - this._valBtnW * 0.5) + Math.sin(Math.PI * (1 / 3 * 0 - 0.5)) * (j - this._valBtnH * 0.5)) / a);
+				var v1:int = int((Math.cos(Math.PI * (1 / 3 * 1 - 0.5)) * (i - this._valBtnW * 0.5) + Math.sin(Math.PI * (1 / 3 * 1 - 0.5)) * (j - this._valBtnH * 0.5)) / a);
+				var v2:int = int((Math.cos(Math.PI * (1 / 3 * 2 - 0.5)) * (i - this._valBtnW * 0.5) + Math.sin(Math.PI * (1 / 3 * 2 - 0.5)) * (j - this._valBtnH * 0.5)) / a);
+				var v3:int = int((Math.cos(Math.PI * (1 / 3 * 3 - 0.5)) * (i - this._valBtnW * 0.5) + Math.sin(Math.PI * (1 / 3 * 3 - 0.5)) * (j - this._valBtnH * 0.5)) / a);
+				var v4:int = int((Math.cos(Math.PI * (1 / 3 * 4 - 0.5)) * (i - this._valBtnW * 0.5) + Math.sin(Math.PI * (1 / 3 * 4 - 0.5)) * (j - this._valBtnH * 0.5)) / a);
+				var v5:int = int((Math.cos(Math.PI * (1 / 3 * 5 - 0.5)) * (i - this._valBtnW * 0.5) + Math.sin(Math.PI * (1 / 3 * 5 - 0.5)) * (j - this._valBtnH * 0.5)) / a);
+				
 				if (b0 && b1 && b2 && b3 && b4)
 				{
 					this._bmpDown.setPixel32(i, j, colorDown);
@@ -1250,25 +1454,26 @@ class ButtonHexagonGroup extends BasicContainer
 					this._bmpIdleRoad0.setPixel32(i, j, colorRoad0);
 					this._bmpIdleRoad1.setPixel32(i, j, colorRoad1);
 					this._bmpIdleRoad2.setPixel32(i, j, colorRoad2);
+					this._bmpIdleRoadEx0.setPixel32(i, j, colorRoad0);
+					this._bmpIdleRoadEx1.setPixel32(i, j, colorRoad1);
+					this._bmpIdleRoadEx2.setPixel32(i, j, colorRoad2);
 					if (s0 + s1 + s2 + s3 + s4 >= 4)
 					{
 						this._bmpIdleHostage.setPixel32(i, j, colorHostage);
+					}
+					if (Math.abs(v0 % 2) + Math.abs(v1 % 2) + Math.abs(v2 % 2) + Math.abs(v3 % 2) + Math.abs(v4 % 2) + Math.abs(v5 % 2) == 0)
+					{
+						this._bmpIdleRoadEx0.setPixel32(i, j, colorBase0);
+						this._bmpIdleRoadEx1.setPixel32(i, j, colorBase1);
+						this._bmpIdleRoadEx2.setPixel32(i, j, colorBase2);
 					}
 					this._bmpIdleObstacle.setPixel32(i, j, colorObstacle);
 				}
 				else if (b5 && b6 && b7 && b8)
 				{
-					this._bmpDown.setPixel32(i, j, 0xff000000);
-					this._bmpIdle.setPixel32(i, j, 0xff000000);
-					this._bmpOver.setPixel32(i, j, 0xff000000);
-					this._bmpIdleBase0.setPixel32(i, j, 0xff000000);
-					this._bmpIdleBase1.setPixel32(i, j, 0xff000000);
-					this._bmpIdleBase2.setPixel32(i, j, 0xff000000);
-					this._bmpIdleRoad0.setPixel32(i, j, 0xff000000);
-					this._bmpIdleRoad1.setPixel32(i, j, 0xff000000);
-					this._bmpIdleRoad2.setPixel32(i, j, 0xff000000);
-					this._bmpIdleHostage.setPixel32(i, j, 0xff000000);
-					this._bmpIdleObstacle.setPixel32(i, j, 0xff000000);
+				//	this._bmpDown.setPixel32(i, j, 0xff000000);
+				//	this._bmpIdle.setPixel32(i, j, 0xff000000);
+				//	this._bmpOver.setPixel32(i, j, 0xff000000);
 				}
 			}
 		}
@@ -1281,6 +1486,9 @@ class ButtonHexagonGroup extends BasicContainer
 		this._bmpIdleRoad0.unlock();
 		this._bmpIdleRoad1.unlock();
 		this._bmpIdleRoad2.unlock();
+		this._bmpIdleRoadEx0.unlock();
+		this._bmpIdleRoadEx1.unlock();
+		this._bmpIdleRoadEx2.unlock();
 		this._bmpIdleHostage.unlock();
 		this._bmpIdleObstacle.unlock();
 	}
@@ -1290,16 +1498,54 @@ class ButtonHexagonGroup extends BasicContainer
 		super.reset();
 	}
 	
-	public function createMap(p_list:Array):void
+	public function createMap(p_list:Array, p_asset:AssetLoader):void
 	{
+		var i:int = 0;
+		
 		this._mapBtn = {};
 		
-		for (var i:int = 0; i < p_list.length; i++)
+		var hostageList:Array = [];
+		hostageList.push({key: "s01", bmp: null});
+		hostageList.push({key: "s02", bmp: null});
+		hostageList.push({key: "s03", bmp: null});
+		hostageList.push({key: "s04", bmp: null});
+		hostageList.push({key: "s05", bmp: null});
+		hostageList.push({key: "s06", bmp: null});
+		hostageList.push({key: "s07", bmp: null});
+		hostageList.push({key: "s08", bmp: null});
+		for (i = 0; i < hostageList.length; i++)
+		{
+			var hostage:Bitmap = p_asset.getAsset(hostageList[i].key) as Bitmap;
+			var bmpHostage:BitmapData = new BitmapData(this._valBtnW, this._valBtnH, true, 0);
+			var ratio:Number = this._valBtnH / hostage.height;
+			var mx:Matrix = new Matrix();
+			mx.scale(ratio, ratio);
+			mx.translate((this._valBtnW - hostage.width * this._valBtnH / hostage.height) * 0.5, 0);
+			bmpHostage.lock();
+			bmpHostage.draw(hostage.bitmapData, mx);
+			bmpHostage.unlock();
+			hostageList[i].bmp = bmpHostage;
+		}
+		
+		for (i = 0; i < p_list.length; i++)
 		{
 			var data:MapCell = p_list[i] as MapCell;
 			var faceDown:ButtonHexagonFace = new ButtonHexagonFace(this._bmpDown);
 			var faceIdle:ButtonHexagonFace = new ButtonHexagonFace( //
-			this._bmpIdle, this._bmpIdleBase0, this._bmpIdleBase1, this._bmpIdleBase2, this._bmpIdleRoad0, this._bmpIdleRoad1, this._bmpIdleRoad2, this._bmpIdleHostage, this._bmpIdleObstacle);
+			this._bmpIdle//
+			, this._bmpIdleBase0//
+			, this._bmpIdleBase1//
+			, this._bmpIdleBase2//
+			, this._bmpIdleRoad0//
+			, this._bmpIdleRoad1//
+			, this._bmpIdleRoad2//
+			, this._bmpIdleRoadEx0//
+			, this._bmpIdleRoadEx1//
+			, this._bmpIdleRoadEx2//
+			//, this._bmpIdleHostage//
+			, hostageList[int(Math.random() * hostageList.length)].bmp//
+			, this._bmpIdleObstacle//
+			);
 			var faceOver:ButtonHexagonFace = new ButtonHexagonFace(this._bmpOver);
 			var btn:ButtonHexagon = new ButtonHexagon( //
 			"" + data.id //
