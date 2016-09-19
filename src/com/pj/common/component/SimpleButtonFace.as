@@ -9,7 +9,7 @@ package com.pj.common.component
 	 * @author Russell
 	 */
 	
-	public class SimpleButtonFace extends AbstractButtonFace
+	public class SimpleButtonFace extends BasicButtonFace
 	{
 		public function SimpleButtonFace(p_width:int, p_height:int, p_color:JColor)
 		{

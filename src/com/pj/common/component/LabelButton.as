@@ -1,19 +1,20 @@
-package com.pj.common.component 
+package com.pj.common.component
 {
+	import com.pj.common.Helper;
 	import com.pj.common.JColor;
-	import flash.display.Bitmap;
-	import flash.display.BitmapData;
 	import flash.text.TextField;
 	import flash.text.TextFieldAutoSize;
+	
 	/**
 	 * ...
 	 * @author Russell
 	 */
-	public class LabelButton extends AbstractButton 
+	public class LabelButton extends AbstractButton
 	{
-		private var _faceDown:AbstractButtonFace = null;
-		private var _faceIdle:AbstractButtonFace = null;
-		private var _faceOver:AbstractButtonFace = null;
+		private var _faceDown:BasicButtonFace = null;
+		private var _faceFront:BasicButtonFace = null;
+		private var _faceIdle:BasicButtonFace = null;
+		private var _faceOver:BasicButtonFace = null;
 		protected var _txtTitle:TextField = null;
 		
 		private var _initTitle:String = "";
@@ -22,15 +23,17 @@ package com.pj.common.component
 		private var _alignType:int = 0;
 		private var _alignValue:int = 0;
 		
+		protected var _isMouseDown:Boolean = false;
 		protected var _isMouseOver:Boolean = false;
 		private var _stateImg:int = 0;
 		
-		public function LabelButton(p_title:String, p_width:int, p_height:int, p_faceDown:AbstractButtonFace, p_faceIdle:AbstractButtonFace, p_faceOver:AbstractButtonFace, p_data:Object = null, p_textAlignType:int = 0, p_textAlignValue:int = 0):void
+		public function LabelButton(p_title:String, p_width:int, p_height:int, p_faceDown:BasicButtonFace, p_faceFront:BasicButtonFace, p_faceIdle:BasicButtonFace, p_faceOver:BasicButtonFace, p_data:Object = null, p_textAlignType:int = 0, p_textAlignValue:int = 0):void
 		{
 			this._initTitle = p_title;
 			this._initWidth = p_width;
 			this._initHeight = p_height;
 			this._faceDown = p_faceDown;
+			this._faceFront = p_faceFront;
 			this._faceIdle = p_faceIdle;
 			this._faceOver = p_faceOver;
 			this._alignType = p_textAlignType;
@@ -40,7 +43,12 @@ package com.pj.common.component
 		
 		override public function dispose():void
 		{
+			Helper.dispose(this._faceDown);
+			Helper.dispose(this._faceFront);
+			Helper.dispose(this._faceIdle);
+			Helper.dispose(this._faceOver);
 			this._faceDown = null;
+			this._faceFront = null;
 			this._faceIdle = null;
 			this._faceOver = null;
 			this._txtTitle = null;
@@ -52,16 +60,29 @@ package com.pj.common.component
 		{
 			super.init();
 			
-			this.container.addChild(this._faceDown.instance);
-			this.container.addChild(this._faceIdle.instance);
-			this.container.addChild(this._faceOver.instance);
+			if (this._faceIdle)
+			{
+				this.container.addChild(this._faceIdle.instance);
+			}
+			if (this._faceFront)
+			{
+				this.container.addChild(this._faceFront.instance);
+			}
+			if (this._faceDown)
+			{
+				this.container.addChild(this._faceDown.instance);
+			}
+			if (this._faceOver)
+			{
+				this.container.addChild(this._faceOver.instance);
+			}
 			
 			var mask:Quad = new Quad(this._initWidth, this._initHeight, new JColor(1, 1, 1, 0).value);
 			this.container.addChild(mask.instance);
 			
 			this._txtTitle = new TextField();
 			this._txtTitle.width = this._initWidth;
-		//	this._txtTitle.height = this._initHeight;
+			//	this._txtTitle.height = this._initHeight;
 			this._txtTitle.mask = mask.instance;
 			this._txtTitle.text = "";
 			//	var format:TextFormat = new TextFormat();
@@ -77,6 +98,7 @@ package com.pj.common.component
 		{
 			super.reset();
 			this.text = this._initTitle;
+			this._isMouseDown = false;
 			this._isMouseOver = false;
 			this.setImage(IMG_IDLE);
 		}
@@ -89,16 +111,13 @@ package com.pj.common.component
 			{
 			case IMG_DOWN: 
 				this._faceDown.instance.visible = true;
-				this._faceIdle.instance.visible = false;
 				this._faceOver.instance.visible = false;
 				break;
 			case IMG_OVER: 
 				this._faceOver.instance.visible = true;
 				this._faceDown.instance.visible = false;
-				this._faceIdle.instance.visible = false;
 				break;
 			case IMG_IDLE: 
-				this._faceIdle.instance.visible = true;
 				this._faceDown.instance.visible = false;
 				this._faceOver.instance.visible = false;
 			default: 
@@ -138,8 +157,9 @@ package com.pj.common.component
 			}
 		}
 		
-		public function get faceIdle():AbstractButtonFace {
-			return this._faceIdle;
+		public function get faceFront():BasicButtonFace
+		{
+			return this._faceFront;
 		}
 	
 	}

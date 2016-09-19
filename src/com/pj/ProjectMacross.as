@@ -19,21 +19,21 @@ package com.pj
 	 */
 	public class ProjectMacross extends BasicContainer
 	{
-		[Embed(source="/../bin/assets/s01.png")]
+		[Embed(source = "/../bin/assets/s01.png")]
 		public static var BMP_S01:Class;
-		[Embed(source="/../bin/assets/s02.png")]
+		[Embed(source = "/../bin/assets/s02.png")]
 		public static var BMP_S02:Class;
-		[Embed(source="/../bin/assets/s03.png")]
+		[Embed(source = "/../bin/assets/s03.png")]
 		public static var BMP_S03:Class;
-		[Embed(source="/../bin/assets/s04.png")]
+		[Embed(source = "/../bin/assets/s04.png")]
 		public static var BMP_S04:Class;
-		[Embed(source="/../bin/assets/s05.png")]
+		[Embed(source = "/../bin/assets/s05.png")]
 		public static var BMP_S05:Class;
-		[Embed(source="/../bin/assets/s06.png")]
+		[Embed(source = "/../bin/assets/s06.png")]
 		public static var BMP_S06:Class;
-		[Embed(source="/../bin/assets/s07.png")]
+		[Embed(source = "/../bin/assets/s07.png")]
 		public static var BMP_S07:Class;
-		[Embed(source="/../bin/assets/s08.png")]
+		[Embed(source = "/../bin/assets/s08.png")]
 		public static var BMP_S08:Class;
 		
 		private var _asset:AssetLoader = null;
@@ -343,13 +343,13 @@ package com.pj
 import com.pj.common.AssetLoader;
 import com.pj.common.JColor;
 import com.pj.common.component.AbstractButton;
-import com.pj.common.component.AbstractButtonFace;
 import com.pj.common.component.BasicButton;
+import com.pj.common.component.BasicButtonFace;
 import com.pj.common.component.BasicContainer;
 import com.pj.common.component.IContainer;
 import flash.display.Bitmap;
 import flash.display.BitmapData;
-import flash.display.Sprite;
+import flash.display.DisplayObject;
 import flash.events.TimerEvent;
 import flash.geom.Matrix;
 import flash.text.TextFormat;
@@ -357,7 +357,7 @@ import flash.utils.Timer;
 
 class Config
 {
-	public static const TESTING_MODE:Boolean = false;
+	public static const TESTING_MODE:Boolean = true;
 	
 	public static const BTN_RADIUS:int = 15; // real: 135, test: 15
 	public static const BTN_SIDE:int = 1; // real: 6, test: 1
@@ -714,35 +714,42 @@ class GameModel
 		return true;
 	}
 	
+	static private const CHECK_BASE_LIST:Array = [//
+	{x: -1, y: 0, z: 1}//
+	, {x: -1, y: 1, z: 0}//
+	, {x: 0, y: 1, z: -1}//
+	, {x: 1, y: 0, z: -1}//
+	, {x: 1, y: -1, z: 0}//
+	, {x: 0, y: -1, z: 1}//
+	];
+	
+	static private const CHECK_BASE_EX_LIST:Array = [//
+	{x: -1, y: 0, z: 1}//
+	, {x: -1, y: 1, z: 0}//
+	, {x: 0, y: 1, z: -1}//
+	, {x: 1, y: 0, z: -1}//
+	, {x: 1, y: -1, z: 0}//
+	, {x: 0, y: -1, z: 1}//
+	, {x: -2, y: 0, z: 2}//
+	, {x: -2, y: 1, z: 1}//
+	, {x: -2, y: 2, z: 0}//
+	, {x: -1, y: 2, z: -1}//
+	, {x: 0, y: 2, z: -2}//
+	, {x: 1, y: 1, z: -2}//
+	, {x: 2, y: 0, z: -2}//
+	, {x: 2, y: -1, z: -1}//
+	, {x: 2, y: -2, z: 0}//
+	, {x: 1, y: -2, z: 1}//
+	, {x: 0, y: -2, z: 2}//
+	, {x: -1, y: -1, z: 2}//
+	];
+	
 	private function checkBase(p_id:int, p_side:int, p_isEx:Boolean):Boolean
 	{
 		var checkMap:Object = {};
 		var checkList:Array = [];
 		checkMap[p_id] = true;
 		checkList.push({id: p_id, ex: p_isEx});
-		
-		var next1:Array = [//
-		{x: -1, y: 0, z: 1}//
-		, {x: -1, y: 1, z: 0}//
-		, {x: 0, y: 1, z: -1}//
-		, {x: 1, y: 0, z: -1}//
-		, {x: 1, y: -1, z: 0}//
-		, {x: 0, y: -1, z: 1}//
-		];
-		var next2:Array = [//
-		{x: -2, y: 0, z: 2}//
-		, {x: -2, y: 1, z: 1}//
-		, {x: -2, y: 2, z: 0}//
-		, {x: -1, y: 2, z: -1}//
-		, {x: 0, y: 2, z: -2}//
-		, {x: 1, y: 1, z: -2}//
-		, {x: 2, y: 0, z: -2}//
-		, {x: 2, y: -1, z: -1}//
-		, {x: 2, y: -2, z: 0}//
-		, {x: 1, y: -2, z: 1}//
-		, {x: 0, y: -2, z: 2}//
-		, {x: -1, y: -1, z: 2}//
-		];
 		
 		while (checkList.length > 0)
 		{
@@ -757,12 +764,18 @@ class GameModel
 			var nextX:int = 0;
 			var nextY:int = 0;
 			var nextZ:int = 0;
-			var i:int = 0;
-			for (i = 0; i < next1.length; i++)
+			
+			var checkNearList:Array = CHECK_BASE_LIST;
+			if (currEx)
 			{
-				nextX = currX + next1[i].x;
-				nextY = currY + next1[i].y;
-				nextZ = currZ + next1[i].z;
+				checkNearList = CHECK_BASE_EX_LIST;
+			}
+			
+			for (var i:int = 0; i < checkNearList.length; i++)
+			{
+				nextX = currX + checkNearList[i].x;
+				nextY = currY + checkNearList[i].y;
+				nextZ = currZ + checkNearList[i].z;
 				nextCell = this._map.getCellByKey(nextX, nextY, nextZ);
 				if (!nextCell)
 				{
@@ -779,34 +792,6 @@ class GameModel
 				if (nextCell.state == MapData.STATE_BASE)
 				{
 					return true;
-				}
-				if (nextCell.state == MapData.STATE_ROAD || nextCell.state == MapData.STATE_ROAD_EX)
-				{
-					checkMap[nextCell.id] = true;
-					checkList.push({id: nextCell.id, ex: (nextCell.state == MapData.STATE_ROAD_EX)});
-				}
-			}
-			if (!currEx)
-			{
-				continue;
-			}
-			for (i = 0; i < next2.length; i++)
-			{
-				nextX = currX + next2[i].x;
-				nextY = currY + next2[i].y;
-				nextZ = currZ + next2[i].z;
-				nextCell = this._map.getCellByKey(nextX, nextY, nextZ);
-				if (!nextCell)
-				{
-					continue;
-				}
-				if (nextCell.side != p_side)
-				{
-					continue;
-				}
-				if (checkMap[nextCell.id])
-				{
-					continue;
 				}
 				if (nextCell.state == MapData.STATE_ROAD || nextCell.state == MapData.STATE_ROAD_EX)
 				{
@@ -904,7 +889,7 @@ class GameModel
 
 }
 
-class ButtonHexagonFace extends AbstractButtonFace
+class ButtonHexagonFace extends BasicButtonFace
 {
 	public static const FACE_BLANK:int = 0;
 	public static const FACE_BASE_0:int = 1;
@@ -919,14 +904,9 @@ class ButtonHexagonFace extends AbstractButtonFace
 	public static const FACE_HOSTAGE:int = 10;
 	public static const FACE_OBSTACLE:int = 11;
 	
-	private static const EX_CODE_0:int = 1;
-	private static const EX_CODE_1:int = 2;
-	private static const EX_CODE_2:int = 3;
-	
 	private var _imgBase0:Bitmap = null;
 	private var _imgBase1:Bitmap = null;
 	private var _imgBase2:Bitmap = null;
-	private var _imgBlank:Bitmap = null;
 	private var _imgRoad0:Bitmap = null;
 	private var _imgRoad1:Bitmap = null;
 	private var _imgRoad2:Bitmap = null;
@@ -935,33 +915,30 @@ class ButtonHexagonFace extends AbstractButtonFace
 	private var _imgRoadEx2:Bitmap = null;
 	private var _imgHostage:Bitmap = null;
 	private var _imgObstacle:Bitmap = null;
-	private var _imgEx:Bitmap = null;
-	private var _spFront:Sprite = null;
 	
-	private var _exCode:int = 0;
 	private var _isFlash:Boolean = false;
 	private var _timer:Timer = null;
 	private var _timeVal:Number = 0;
 	
+	private var _mapImage:Object = null;
+	
 	public function ButtonHexagonFace( //
-	p_bmpBlank:BitmapData //
-	, p_bmpBase0:BitmapData = null //
-	, p_bmpBase1:BitmapData = null //
-	, p_bmpBase2:BitmapData = null //
-	, p_bmpRoad0:BitmapData = null //
-	, p_bmpRoad1:BitmapData = null //
-	, p_bmpRoad2:BitmapData = null //
-	, p_bmpRoadEx0:BitmapData = null //
-	, p_bmpRoadEx1:BitmapData = null //
-	, p_bmpRoadEx2:BitmapData = null //
-	, p_bmpHostage:BitmapData = null //
-	, p_bmpObstacle:BitmapData = null //
+	p_bmpBase0:BitmapData//
+	, p_bmpBase1:BitmapData//
+	, p_bmpBase2:BitmapData//
+	, p_bmpRoad0:BitmapData//
+	, p_bmpRoad1:BitmapData//
+	, p_bmpRoad2:BitmapData//
+	, p_bmpRoadEx0:BitmapData//
+	, p_bmpRoadEx1:BitmapData//
+	, p_bmpRoadEx2:BitmapData//
+	, p_bmpHostage:BitmapData//
+	, p_bmpObstacle:BitmapData//
 	):void
 	{
 		this._imgBase0 = new Bitmap(p_bmpBase0);
 		this._imgBase1 = new Bitmap(p_bmpBase1);
 		this._imgBase2 = new Bitmap(p_bmpBase2);
-		this._imgBlank = new Bitmap(p_bmpBlank);
 		this._imgRoad0 = new Bitmap(p_bmpRoad0);
 		this._imgRoad1 = new Bitmap(p_bmpRoad1);
 		this._imgRoad2 = new Bitmap(p_bmpRoad2);
@@ -975,10 +952,15 @@ class ButtonHexagonFace extends AbstractButtonFace
 	
 	override public function dispose():void
 	{
+		if (this._timer)
+		{
+			this._timer.stop();
+			this._timer.removeEventListener(TimerEvent.TIMER, this.onTime);
+			this._timer = null;
+		}
 		this._imgBase0 = null;
 		this._imgBase1 = null;
 		this._imgBase2 = null;
-		this._imgBlank = null;
 		this._imgRoad0 = null;
 		this._imgRoad1 = null;
 		this._imgRoad2 = null;
@@ -987,59 +969,37 @@ class ButtonHexagonFace extends AbstractButtonFace
 		this._imgRoadEx2 = null;
 		this._imgHostage = null;
 		this._imgObstacle = null;
+		this._mapImage = null;
 		super.dispose();
 	}
 	
 	override protected function init():void
 	{
 		super.init();
-		this._spFront = new Sprite();
-		this.container.addChild(this._imgBlank);
-		this.container.addChild(this._spFront);
-		if (this._imgBase0)
-		{
-			this._spFront.addChild(this._imgBase0);
-		}
-		if (this._imgBase1)
-		{
-			this._spFront.addChild(this._imgBase1);
-		}
-		if (this._imgBase2)
-		{
-			this._spFront.addChild(this._imgBase2);
-		}
-		if (this._imgRoad0)
-		{
-			this._spFront.addChild(this._imgRoad0);
-		}
-		if (this._imgRoad1)
-		{
-			this._spFront.addChild(this._imgRoad1);
-		}
-		if (this._imgRoad2)
-		{
-			this._spFront.addChild(this._imgRoad2);
-		}
-		if (this._imgRoadEx0)
-		{
-			this._spFront.addChild(this._imgRoadEx0);
-		}
-		if (this._imgRoadEx1)
-		{
-			this._spFront.addChild(this._imgRoadEx1);
-		}
-		if (this._imgRoadEx2)
-		{
-			this._spFront.addChild(this._imgRoadEx2);
-		}
-		if (this._imgHostage)
-		{
-			this._spFront.addChild(this._imgHostage);
-		}
-		if (this._imgObstacle)
-		{
-			this._spFront.addChild(this._imgObstacle);
-		}
+		this.container.addChild(this._imgBase0);
+		this.container.addChild(this._imgBase1);
+		this.container.addChild(this._imgBase2);
+		this.container.addChild(this._imgRoad0);
+		this.container.addChild(this._imgRoad1);
+		this.container.addChild(this._imgRoad2);
+		this.container.addChild(this._imgRoadEx0);
+		this.container.addChild(this._imgRoadEx1);
+		this.container.addChild(this._imgRoadEx2);
+		this.container.addChild(this._imgHostage);
+		this.container.addChild(this._imgObstacle);
+		
+		this._mapImage = {};
+		this._mapImage[FACE_BASE_0] = this._imgBase0;
+		this._mapImage[FACE_BASE_1] = this._imgBase1;
+		this._mapImage[FACE_BASE_2] = this._imgBase2;
+		this._mapImage[FACE_ROAD_0] = this._imgRoad0;
+		this._mapImage[FACE_ROAD_1] = this._imgRoad1;
+		this._mapImage[FACE_ROAD_2] = this._imgRoad2;
+		this._mapImage[FACE_ROAD_EX_0] = this._imgRoadEx0;
+		this._mapImage[FACE_ROAD_EX_1] = this._imgRoadEx1;
+		this._mapImage[FACE_ROAD_EX_2] = this._imgRoadEx2;
+		this._mapImage[FACE_HOSTAGE] = this._imgHostage;
+		this._mapImage[FACE_OBSTACLE] = this._imgObstacle;
 		
 		this._timer = new Timer(20);
 		this._timer.addEventListener(TimerEvent.TIMER, this.onTime);
@@ -1048,166 +1008,42 @@ class ButtonHexagonFace extends AbstractButtonFace
 	override public function reset():void
 	{
 		super.reset();
-		this._isFlash = false;
-		this._timer.stop();
-		this._timeVal = 0;
+		//this._isFlash = false;
+		//this._timer.stop();
+		//this._timeVal = 0;
 		this.setFace(FACE_BLANK);
 	}
 	
 	private function onTime(p_evt:TimerEvent):void
 	{
-		if (this._exCode > 0)
-		{
-			switch (this._exCode)
-			{
-			case 1: 
-				break;
-			}
-		}
-		if (this._isFlash)
-		{
-			this._timeVal += 0.02;
-			if (this._timeVal > 1)
-			{
-				this._timeVal -= 1;
-			}
-			this._spFront.alpha = (Math.sin(Math.PI * 2 * this._timeVal) + 1) * 0.5;
-		}
+		//if (this._isFlash)
+		//{
+		//this._timeVal += 0.02;
+		//if (this._timeVal > 1)
+		//{
+		//this._timeVal -= 1;
+		//}
+		//this._spFront.alpha = (Math.sin(Math.PI * 2 * this._timeVal) + 1) * 0.5;
+		//}
 	}
 	
 	public function setFace(p_id:int):void
 	{
-		if (this._imgBase0)
-		{
-			this._imgBase0.visible = false;
-		}
-		if (this._imgBase1)
-		{
-			this._imgBase1.visible = false;
-		}
-		if (this._imgBase2)
-		{
-			this._imgBase2.visible = false;
-		}
-		if (this._imgRoad0)
-		{
-			this._imgRoad0.visible = false;
-		}
-		if (this._imgRoad1)
-		{
-			this._imgRoad1.visible = false;
-		}
-		if (this._imgRoad2)
-		{
-			this._imgRoad2.visible = false;
-		}
-		if (this._imgRoadEx0)
-		{
-			this._imgRoadEx0.visible = false;
-		}
-		if (this._imgRoadEx1)
-		{
-			this._imgRoadEx1.visible = false;
-		}
-		if (this._imgRoadEx2)
-		{
-			this._imgRoadEx2.visible = false;
-		}
-		if (this._imgHostage)
-		{
-			this._imgHostage.visible = false;
-		}
-		if (this._imgObstacle)
-		{
-			this._imgObstacle.visible = false;
-		}
-		var isKeepFlash:Boolean = this._isFlash;
-		this._isFlash = false;
-		switch (p_id)
-		{
-		case FACE_BASE_0: 
-			if (this._imgBase0)
-			{
-				this._imgBase0.visible = true;
-			}
-			break;
-		case FACE_BASE_1: 
-			if (this._imgBase1)
-			{
-				this._imgBase1.visible = true;
-			}
-			break;
-		case FACE_BASE_2: 
-			if (this._imgBase2)
-			{
-				this._imgBase2.visible = true;
-			}
-			break;
-		case FACE_ROAD_0: 
-			if (this._imgRoad0)
-			{
-				this._imgRoad0.visible = true;
-			}
-			break;
-		case FACE_ROAD_1: 
-			if (this._imgRoad1)
-			{
-				this._imgRoad1.visible = true;
-			}
-			break;
-		case FACE_ROAD_2: 
-			if (this._imgRoad2)
-			{
-				this._imgRoad2.visible = true;
-			}
-			break;
-		case FACE_ROAD_EX_0: 
-			if (this._imgRoadEx0)
-			{
-				this._imgRoadEx0.visible = true;
-			}
-			break;
-		case FACE_ROAD_EX_1: 
-			if (this._imgRoadEx1)
-			{
-				this._imgRoadEx1.visible = true;
-			}
-			break;
-		case FACE_ROAD_EX_2: 
-			if (this._imgRoadEx2)
-			{
-				this._imgRoadEx2.visible = true;
-			}
-			break;
-		case FACE_HOSTAGE: 
-			if (this._imgHostage)
-			{
-				this._imgHostage.visible = true;
-					//	this._isFlash = true;
-			}
-			break;
-		case FACE_OBSTACLE: 
-			if (this._imgObstacle)
-			{
-				this._imgObstacle.visible = true;
-			}
-			break;
-		case FACE_BLANK: 
-		default: 
-		}
-		if (this._isFlash)
-		{
-			if (!isKeepFlash)
-			{
-				this._timeVal = 0;
-				this._timer.start();
-			}
-		}
-		else
-		{
-			this._timer.stop();
-			this.container.alpha = 1;
-		}
+		var img:DisplayObject = this._mapImage[p_id] as DisplayObject;
+		this.showImage(img);
+		//if (this._isFlash)
+		//{
+		//if (!isKeepFlash)
+		//{
+		//this._timeVal = 0;
+		//this._timer.start();
+		//}
+		//}
+		//else
+		//{
+		//this._timer.stop();
+		//this.container.alpha = 1;
+		//}
 	}
 
 }
@@ -1221,14 +1057,15 @@ class ButtonHexagon extends BasicButton
 	, p_width:int //
 	, p_height:int //
 	, p_fontSize:int //
-	, p_faceDown:ButtonHexagonFace //
-	, p_faceIdle:ButtonHexagonFace //
-	, p_faceOver:ButtonHexagonFace //
+	, p_faceDown:BasicButtonFace //
+	, p_faceFront:ButtonHexagonFace //
+	, p_faceIdle:BasicButtonFace //
+	, p_faceOver:BasicButtonFace //
 	, p_data:Object = null //
 	):void
 	{
 		this._fontSize = p_fontSize;
-		super(p_title, p_width, p_height, p_faceDown, p_faceIdle, p_faceOver, p_data, ALIGN_BOTTON);
+		super(p_title, p_width, p_height, p_faceDown, p_faceFront, p_faceIdle, p_faceOver, p_data, ALIGN_BOTTON);
 	}
 	
 	override protected function init():void
@@ -1248,7 +1085,7 @@ class ButtonHexagon extends BasicButton
 	
 	public function setState(p_side:int, p_state:int):void
 	{
-		var face:ButtonHexagonFace = this.faceIdle as ButtonHexagonFace;
+		var face:ButtonHexagonFace = this.faceFront as ButtonHexagonFace;
 		switch (p_state)
 		{
 		case MapData.STATE_BASE: 
@@ -1371,12 +1208,12 @@ class ButtonHexagonGroup extends BasicContainer
 	{
 		super.init();
 		
-		var colorDown:uint = new JColor(0, 1, 1, 1).value;
+		var colorDown:uint = new JColor(0, 1, 1, 0.5).value;
 		var colorIdle:uint = new JColor(0.5, 0.5, 0.5, 0.5).value;
-		var colorOver:uint = new JColor(1, 1, 0, 1).value;
-		var colorBase0:uint = new JColor(1, 0.411, 0.411, 0.5).value;
-		var colorBase1:uint = new JColor(0, 1, 0, 0.5).value;
-		var colorBase2:uint = new JColor(0.534, 0.534, 1, 0.5).value;
+		var colorOver:uint = new JColor(1, 1, 0, 0.5).value;
+		var colorBase0:uint = new JColor(1, 0.411, 0.411, 1).value;
+		var colorBase1:uint = new JColor(0, 1, 0, 1).value;
+		var colorBase2:uint = new JColor(0.534, 0.534, 1, 1).value;
 		var colorRoad0:uint = new JColor(1, 0, 0, 1).value;
 		var colorRoad1:uint = new JColor(0, 0.509, 0, 1).value;
 		var colorRoad2:uint = new JColor(0.209, 0.209, 1, 1).value;
@@ -1471,9 +1308,9 @@ class ButtonHexagonGroup extends BasicContainer
 				}
 				else if (b5 && b6 && b7 && b8)
 				{
-				//	this._bmpDown.setPixel32(i, j, 0xff000000);
-				//	this._bmpIdle.setPixel32(i, j, 0xff000000);
-				//	this._bmpOver.setPixel32(i, j, 0xff000000);
+					//	this._bmpDown.setPixel32(i, j, 0xff000000);
+					//	this._bmpIdle.setPixel32(i, j, 0xff000000);
+					//	this._bmpOver.setPixel32(i, j, 0xff000000);
 				}
 			}
 		}
@@ -1530,10 +1367,8 @@ class ButtonHexagonGroup extends BasicContainer
 		for (i = 0; i < p_list.length; i++)
 		{
 			var data:MapCell = p_list[i] as MapCell;
-			var faceDown:ButtonHexagonFace = new ButtonHexagonFace(this._bmpDown);
-			var faceIdle:ButtonHexagonFace = new ButtonHexagonFace( //
-			this._bmpIdle//
-			, this._bmpIdleBase0//
+			var faceFront:ButtonHexagonFace = new ButtonHexagonFace( //
+			this._bmpIdleBase0//
 			, this._bmpIdleBase1//
 			, this._bmpIdleBase2//
 			, this._bmpIdleRoad0//
@@ -1546,16 +1381,16 @@ class ButtonHexagonGroup extends BasicContainer
 			, hostageList[int(Math.random() * hostageList.length)].bmp//
 			, this._bmpIdleObstacle//
 			);
-			var faceOver:ButtonHexagonFace = new ButtonHexagonFace(this._bmpOver);
 			var btn:ButtonHexagon = new ButtonHexagon( //
 			"" + data.id //
 			// "" + data.keyX + ":" + data.keyY + ":" + data.keyZ //
 			, this._valBtnW //
 			, this._valBtnH //
 			, this._valFontSize //
-			, faceDown //
-			, faceIdle //
-			, faceOver //
+			, new BasicButtonFace(this._bmpDown) //
+			, faceFront //
+			, new BasicButtonFace(this._bmpIdle) //
+			, new BasicButtonFace(this._bmpOver) //
 			, data //
 			);
 			this._mapBtn[data.id] = btn;
@@ -1580,7 +1415,7 @@ class ButtonHexagonGroup extends BasicContainer
 	private function onSignal(p_result:Object):void
 	{
 		var action:String = p_result.action;
-		if (action == AbstractButton.ACTION_CLICK)
+		if (action == AbstractButton.ACTION_UP)
 		{
 			this.signal.dispatch(p_result.data);
 		}

@@ -13,6 +13,7 @@ package com.pj.common.component
 		{
 			super(p_title, p_width, p_height //
 				, new SimpleButtonFace(p_width, p_height, new JColor(0.8, 0.8, 0.7, 1)) //
+				, null //
 				, new SimpleButtonFace(p_width, p_height, new JColor(0.9, 0.9, 0.9, 1)) //
 				, new SimpleButtonFace(p_width, p_height, new JColor(0.8, 0.8, 0.9, 1)) //
 				, p_data);
