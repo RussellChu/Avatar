@@ -22,8 +22,6 @@ package com.pj.macross
 		static public const COMMAND_ROAD:int = 1;
 		static public const COMMAND_ROAD_EX:int = 2;
 		static public const COMMAND_ATTACK:int = 3; // Replace enemy's cell
-		static public const COMMAND_TEST_HOSTAGE:int = 4;
-		static public const COMMAND_TEST_OBSTACLE:int = 5;
 		
 		public function GameData()
 		{

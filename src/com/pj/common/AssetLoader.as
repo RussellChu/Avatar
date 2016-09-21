@@ -94,9 +94,9 @@ package com.pj.common
 			return true;
 		}
 		
-		public function getAsset(p_key:String):DisplayObject
+		public function getAsset(p_key:String):Object
 		{
-			return this._assetMap[p_key] as DisplayObject;
+			return this._assetMap[p_key];
 		}
 		
 		public function load():void

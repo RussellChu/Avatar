@@ -153,30 +153,7 @@ package com.pj.macross
 						key = "";
 						this.addHostage(x, y, z);
 					}
-					if (GameConfig.TESTING_MODE)
-					{
-						if (key != "")
-						{
-							if (outStoneMax > 0 && Math.random() * 21 < 1 && !outStoneIdMap[key])
-							{
-								outStoneMax--;
-								outStoneIdMap["" + x + ":" + y + ":" + z] = true;
-								outStoneIdMap["" + y + ":" + z + ":" + x] = true;
-								outStoneIdMap["" + z + ":" + x + ":" + y] = true;
-								outStoneIdList.push({x: x, y: y, z: z});
-								outStoneIdList.push({x: y, y: z, z: x});
-								outStoneIdList.push({x: z, y: x, z: y});
-							}
-						}
-					}
 					id++;
-				}
-			}
-			if (GameConfig.TESTING_MODE)
-			{
-				for (i = 0; i < outStoneIdList.length; i++)
-				{
-					//	this.addObstacle(outStoneIdList[i].x, outStoneIdList[i].y, outStoneIdList[i].z);
 				}
 			}
 			
@@ -413,71 +390,47 @@ package com.pj.macross
 			{
 				return null;
 			}
+			if (p_side == 0)
+			{
+				return null;
+			}
+			if (!this.checkBase(p_id, p_side, p_command == GameData.COMMAND_ROAD_EX))
+			{
+				return null;
+			}
+			
+			var preState:int = cell.state;
+			var preSide:int = cell.side;
 			
 			switch (p_command)
 			{
 			case GameData.COMMAND_ATTACK: 
-			case GameData.COMMAND_ROAD: 
-			case GameData.COMMAND_ROAD_EX: 
-				if (p_side == 0)
+				if (cell.side == 0 || cell.side == p_side)
 				{
 					return null;
 				}
-				if (!this.checkBase(p_id, p_side, p_command == GameData.COMMAND_ROAD_EX))
+				if (cell.state != GameData.STATE_ROAD && cell.state != GameData.STATE_ROAD_EX)
 				{
 					return null;
 				}
-				
-				var preState:int = cell.state;
-				var preSide:int = cell.side;
-				
-				switch (p_command)
-				{
-				case GameData.COMMAND_ATTACK: 
-					if (cell.side == 0 || cell.side == p_side)
-					{
-						return null;
-					}
-					if (cell.state != GameData.STATE_ROAD && cell.state != GameData.STATE_ROAD_EX)
-					{
-						return null;
-					}
-					this.addRoad(p_side, cell.keyX, cell.keyY, cell.keyZ);
-					this.addRecord(cell.state, cell.side, cell.keyX, cell.keyY, cell.keyZ, preState, preSide);
-					return {id: cell.id, side: cell.side, state: cell.state};
-				case GameData.COMMAND_ROAD: 
-					if (cell.state != GameData.STATE_NONE && cell.state != GameData.STATE_HOSTAGE)
-					{
-						return null;
-					}
-					this.addRoad(p_side, cell.keyX, cell.keyY, cell.keyZ);
-					this.addRecord(cell.state, cell.side, cell.keyX, cell.keyY, cell.keyZ, preState, preSide);
-					return {id: cell.id, side: cell.side, state: cell.state};
-				case GameData.COMMAND_ROAD_EX: 
-					if (cell.state != GameData.STATE_NONE && cell.state != GameData.STATE_HOSTAGE)
-					{
-						return null;
-					}
-					this.addRoadEx(p_side, cell.keyX, cell.keyY, cell.keyZ);
-					this.addRecord(cell.state, cell.side, cell.keyX, cell.keyY, cell.keyZ, preState, preSide);
-					return {id: cell.id, side: cell.side, state: cell.state};
-				default: 
-					return null;
-					;
-				}
-			case GameData.COMMAND_TEST_HOSTAGE: 
-				if (GameConfig.TESTING_MODE)
-				{
-					return null;
-				}
-				this.addHostage(cell.keyX, cell.keyY, cell.keyZ);
+				this.addRoad(p_side, cell.keyX, cell.keyY, cell.keyZ);
+				this.addRecord(cell.state, cell.side, cell.keyX, cell.keyY, cell.keyZ, preState, preSide);
 				return {id: cell.id, side: cell.side, state: cell.state};
-			case GameData.COMMAND_TEST_OBSTACLE: 
-				if (GameConfig.TESTING_MODE)
+			case GameData.COMMAND_ROAD: 
+				if (cell.state != GameData.STATE_NONE && cell.state != GameData.STATE_HOSTAGE)
 				{
 					return null;
 				}
-				this.addObstacle(cell.keyX, cell.keyY, cell.keyZ);
+				this.addRoad(p_side, cell.keyX, cell.keyY, cell.keyZ);
+				this.addRecord(cell.state, cell.side, cell.keyX, cell.keyY, cell.keyZ, preState, preSide);
+				return {id: cell.id, side: cell.side, state: cell.state};
+			case GameData.COMMAND_ROAD_EX: 
+				if (cell.state != GameData.STATE_NONE && cell.state != GameData.STATE_HOSTAGE)
+				{
+					return null;
+				}
+				this.addRoadEx(p_side, cell.keyX, cell.keyY, cell.keyZ);
+				this.addRecord(cell.state, cell.side, cell.keyX, cell.keyY, cell.keyZ, preState, preSide);
 				return {id: cell.id, side: cell.side, state: cell.state};
 			default: 
 				return null;
@@ -495,8 +448,10 @@ package com.pj.macross
 			return this._map.getList();
 		}
 		
-		public function undo():Object {
-			if (this._record.length == 0) {
+		public function undo():Object
+		{
+			if (this._record.length == 0)
+			{
 				return null;
 			}
 			var item:Array = this._record.pop();
@@ -522,7 +477,7 @@ package com.pj.macross
 			case GameData.STATE_HOSTAGE: 
 				this.addHostage(x, y, z);
 				break;
-			default:
+			default: 
 				this.clearCell(x, y, z);
 			}
 			var cell:MapCell = this._map.getCellByKey(x, y, z);

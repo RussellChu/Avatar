@@ -7,7 +7,6 @@ package com.pj.macross
 	 */
 	public class GameConfig
 	{
-		static public const TESTING_MODE:Boolean = true;
 		static public const SAVE_VERSION:int = 0;
 		
 		static public const BTN_RADIUS:int = 32; // real: 135, test: 15

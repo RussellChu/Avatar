@@ -1,6 +1,7 @@
 package com.pj.macross
 {
 	import com.pj.common.AssetLoader;
+	import com.pj.macross.asset.CellSkin;
 	import com.pj.macross.asset.Galaxy;
 	
 	/**
@@ -45,11 +46,13 @@ package com.pj.macross
 				__loader.addObject("s08", new BMP_S08());
 				__loader.addObject("fold", new BMP_FOLD());
 				__loader.addCreate("galaxy", new Galaxy());
+				__loader.addCreate("cellSkin", new CellSkin(GameConfig.BTN_RADIUS * 2 + 0.5, GameConfig.BTN_RADIUS * 1.732 + 0.5, GameConfig.BTN_SIDE));
 			}
 			return __loader;
 		}
 		
-		public function GameAsset() {
+		public function GameAsset()
+		{
 			;
 		}
 	
