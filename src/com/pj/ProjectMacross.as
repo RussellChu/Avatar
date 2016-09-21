@@ -8,12 +8,13 @@ package com.pj
 	import com.pj.common.component.SimpleToggleButton;
 	import com.pj.common.component.Slider;
 	import com.pj.common.component.ToggleButtonGroup;
-	import com.pj.macross.Background;
+	import com.pj.common.component.JBackground;
 	import com.pj.macross.GameAsset;
 	import com.pj.macross.GameConfig;
 	import com.pj.macross.GameData;
 	import com.pj.macross.GameModel;
 	import com.pj.macross.structure.MapCell;
+	import flash.display.Bitmap;
 	import flash.display.Sprite;
 	import flash.net.FileReference;
 	
@@ -23,7 +24,7 @@ package com.pj
 	 */
 	public class ProjectMacross extends BasicContainer
 	{
-		private var _bg:Background = null;
+		private var _bg:JBackground = null;
 		private var _map:ButtonHexagonGroup = null;
 		private var _model:GameModel = null;
 		private var _tgCommand:ToggleButtonGroup = null;
@@ -70,8 +71,6 @@ package com.pj
 			this._slider.resize(p_width, p_height);
 		}
 		
-		private var _fileReference:FileReference = null;
-		
 		private function onAssetLoaded(p_result:Object):void
 		{
 			var SIDE_LIST:Array = [ //
@@ -90,7 +89,7 @@ package com.pj
 			
 			this._model = new GameModel();
 			
-			this._bg = GameAsset.loader.getCreate("bg") as Background;
+			this._bg = new JBackground((GameAsset.loader.getAsset("galaxy") as Bitmap).bitmapData);
 			this._bg.resize(this.instance.stage.stageWidth, this.instance.stage.stageHeight);
 			this.addChild(this._bg);
 			
@@ -149,6 +148,30 @@ package com.pj
 						return;
 					}
 					_map.setState(dataState.id, dataState.side, dataState.state);
+				});
+				this.addChild(btn);
+				posY += GameConfig.CTRL_BTN_HEIGHT;
+				
+				btn = new SimpleButton("Clear", GameConfig.CTRL_BTN_WIDTH, GameConfig.CTRL_BTN_HEIGHT);
+				btn.instance.x = 0;
+				btn.instance.y = posY;
+				btn.signal.add(function(p_result:Object):void
+				{
+					var action:String = p_result.action;
+					if (action != AbstractButton.ACTION_UP)
+					{
+						return;
+					}
+					var dataState:Object = {};
+					while (dataState)
+					{
+						dataState = _model.undo();
+						if (!dataState)
+						{
+							return;
+						}
+						_map.setState(dataState.id, dataState.side, dataState.state);
+					}
 				});
 				this.addChild(btn);
 				posY += GameConfig.CTRL_BTN_HEIGHT;

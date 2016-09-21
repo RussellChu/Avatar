@@ -1,11 +1,13 @@
-package com.pj.macross
+package com.pj.macross.asset
 {
+	
+	import com.pj.common.Creater;
+	import com.pj.common.ICreatable;
 	import com.pj.common.JColor;
-	import com.pj.common.component.BasicObject;
+	import com.pj.common.JSignal;
 	import com.pj.common.component.JBmp;
 	import flash.display.Bitmap;
 	import flash.display.BitmapData;
-	import flash.display.Sprite;
 	import flash.filters.BitmapFilterQuality;
 	import flash.filters.BlurFilter;
 	import flash.geom.ColorTransform;
@@ -17,34 +19,30 @@ package com.pj.macross
 	 * ...
 	 * @author Russell
 	 */
-	public class Background extends BasicObject
+	public class Galaxy extends Bitmap implements ICreatable
 	{
-		private var _xCount:int = 0;
-		private var _yCount:int = 0;
-		private var _width:int = 0;
-		private var _height:int = 0;
-		private var _bmp:BitmapData = null;
+		static private const FULL_WIDTH:int = 500;
+		static private const FULL_HEIGHT:int = 500;
 		
-		public function Background(p_width:int, p_height:int):void
+		private var _creater:Creater = null;
+		private var _signal:JSignal = null;
+		
+		public function Galaxy():void
 		{
-			this._width = p_width;
-			this._height = p_height;
-			if (this._width < 0)
-			{
-				this._width = 0;
-			}
-			if (this._height < 0)
-			{
-				this._height = 0;
-			}
-			super();
+			super(new BitmapData(FULL_WIDTH, FULL_HEIGHT, true, new JColor(0, 0, 0.2, 1).value));
+			this._creater = new Creater(this);
+			this._signal = new JSignal();
 		}
 		
-		override protected function onCreate():void
+		public function get creater():Creater {
+			return this._creater;
+		}
+		
+		public function onCreate():void
 		{
 			var blur:int = 5;
 			var radius:int = 2;
-			var star:int = 0.002 * this._width * this._height;
+			var star:int = 0.002 * FULL_WIDTH * FULL_HEIGHT;
 			var step:int = 2;
 			var i:int = 0;
 			var j:int = 0;
@@ -110,14 +108,14 @@ package com.pj.macross
 				}
 			}
 			
-			var bmp:BitmapData = new BitmapData(this._width, this._height, true, new JColor(0, 0, 0.2, 1).value);
+			var bmp:BitmapData = this.bitmapData;
 			for (j = 0; j < blur; j++)
 			{
 				bmp.lock();
 				for (i = 0; i < star; i++)
 				{
-					x = Math.random() * this._width;
-					y = Math.random() * this._height;
+					x = Math.random() * FULL_WIDTH;
+					y = Math.random() * FULL_HEIGHT;
 					var ct:ColorTransform = new ColorTransform(Math.random(), Math.random(), 1, Math.random());
 					var mx:Matrix = new Matrix();
 					mx.translate(x, y);
@@ -129,49 +127,18 @@ package com.pj.macross
 					break;
 				}
 				
-				var bmp2:BitmapData = new BitmapData(this._width, this._height, true, 0);
+				var bmp2:BitmapData = new BitmapData(FULL_WIDTH, FULL_HEIGHT, true, 0);
 				bmp2.applyFilter(bmp, new Rectangle(0, 0, bmp.width, bmp.height), new Point(0, 0), new BlurFilter(4, 4, BitmapFilterQuality.HIGH));
 				bmp = bmp2;
 			}
 			
-			this._bmp = bmp;
-			this._xCount = 1;
-			this._yCount = 1;
-			
-			var img:Bitmap = new Bitmap(bmp);
-			var sp:Sprite = this.instance as Sprite;
-			sp.addChild(img);
+			this.bitmapData = bmp;
 		}
 		
-		public function resize(p_width:int, p_height:int):void
+		public function get signal():JSignal
 		{
-			var i:int = 0;
-			var img:Bitmap = null;
-			var sp:Sprite = this.instance as Sprite;
-			while (p_width > this._xCount * this._width)
-			{
-				for (i = 0; i < this._yCount; i++)
-				{
-					img = new Bitmap(this._bmp);
-					img.x = this._xCount * this._width;
-					img.y = i * this._height;
-					sp.addChild(img);
-				}
-				this._xCount++;
-			}
-			while (p_height > this._yCount * this._height)
-			{
-				for (i = 0; i < this._xCount; i++)
-				{
-					img = new Bitmap(this._bmp);
-					img.x = i * this._width;
-					img.y = this._yCount * this._height;
-					sp.addChild(img);
-				}
-				this._yCount++;
-			}
+			return this._signal;
 		}
 	
 	}
-
 }

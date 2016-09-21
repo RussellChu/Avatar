@@ -1,7 +1,7 @@
 package com.pj.macross
 {
 	import com.pj.common.AssetLoader;
-	import com.pj.common.JSignal;
+	import com.pj.macross.asset.Galaxy;
 	
 	/**
 	 * ...
@@ -44,9 +44,7 @@ package com.pj.macross
 				__loader.addObject("s07", new BMP_S07());
 				__loader.addObject("s08", new BMP_S08());
 				__loader.addObject("fold", new BMP_FOLD());
-				
-				var bg:Background = new Background(800, 800);
-				__loader.addCreate("bg", bg);
+				__loader.addCreate("galaxy", new Galaxy());
 			}
 			return __loader;
 		}

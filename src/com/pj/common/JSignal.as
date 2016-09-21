@@ -45,6 +45,25 @@ package com.pj.common
 			return true;
 		}
 		
+		public function remove(p_func:Function, p_event:String = ""):void
+		{
+			var i:int = 0;
+			while(i < this._targetList.length)
+			{
+				var item:Object = this._targetList[i];
+				var func:Function = item.func;
+				var event:String = item.event;
+				if (func == p_func) {
+					if (p_event == "" || event == p_event)
+					{
+						this._targetList.splice(i, 1);
+						continue;
+					}
+				}
+				i++;
+			}
+		}
+		
 		public function dispatch(p_data:Object, p_event:String = ""):void
 		{
 			for (var i:int = 0; i < this._targetList.length; i++)
