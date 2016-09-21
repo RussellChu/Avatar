@@ -48,6 +48,10 @@ package com.pj.macross
 			}
 			return __loader;
 		}
+		
+		public function GameAsset() {
+			;
+		}
 	
 	}
 }

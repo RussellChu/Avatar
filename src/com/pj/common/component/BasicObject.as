@@ -16,7 +16,7 @@ package com.pj.common.component
 		private var _instance:DisplayObject = null;
 		protected var _signal:JSignal = null;
 		
-		public function BasicObject(p_inst:DisplayObject = null, p_parent:IContainer = null):void
+		public function BasicObject(p_inst:DisplayObject = null, p_parent:IContainer = null)
 		{
 			if (p_inst)
 			{

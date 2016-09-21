@@ -27,7 +27,7 @@ package com.pj.common.component
 		protected var _isMouseOver:Boolean = false;
 		private var _stateImg:int = 0;
 		
-		public function LabelButton(p_title:String, p_width:int, p_height:int, p_faceDown:BasicButtonFace, p_faceFront:BasicButtonFace, p_faceIdle:BasicButtonFace, p_faceOver:BasicButtonFace, p_data:Object = null, p_textAlignType:int = 0, p_textAlignValue:int = 0):void
+		public function LabelButton(p_title:String, p_width:int, p_height:int, p_faceDown:BasicButtonFace, p_faceFront:BasicButtonFace, p_faceIdle:BasicButtonFace, p_faceOver:BasicButtonFace, p_data:Object = null, p_textAlignType:int = 0, p_textAlignValue:int = 0)
 		{
 			this._initTitle = p_title;
 			this._initWidth = p_width;

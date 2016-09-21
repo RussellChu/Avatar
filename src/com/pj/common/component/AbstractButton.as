@@ -25,7 +25,7 @@ package com.pj.common.component
 		
 		protected var _data:Object = null;
 		
-		public function AbstractButton(p_data:Object = null):void
+		public function AbstractButton(p_data:Object = null)
 		{
 			this._data = p_data;
 			super();

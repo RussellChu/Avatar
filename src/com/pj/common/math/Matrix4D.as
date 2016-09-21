@@ -10,7 +10,7 @@ package com.pj.common.math
 	{
 		public var e:Array = null;
 		
-		public function Matrix4D():void
+		public function Matrix4D()
 		{
 			this.e = [];
 			this.e.push([0, 0, 0, 0]);

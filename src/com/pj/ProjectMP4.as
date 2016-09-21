@@ -9,7 +9,7 @@ package com.pj
 	 */
 	public class ProjectMP4 extends BasicContainer
 	{
-		public function ProjectMP4(p_inst:Sprite):void
+		public function ProjectMP4(p_inst:Sprite)
 		{
 			super(null, p_inst);
 			var video:JVideo = new JVideo("test.mp4", this);
@@ -30,7 +30,7 @@ class JVideo extends BasicObject
 {
 	private var _ns:NetStream = null;
 	
-	public function JVideo(p_path:String, p_parent:IContainer):void
+	public function JVideo(p_path:String, p_parent:IContainer)
 	{
 		super(new Video(), p_parent);
 		

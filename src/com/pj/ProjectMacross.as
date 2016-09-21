@@ -292,7 +292,7 @@ class ButtonHexagonFace extends BasicButtonFace
 	, p_bmpFold:BitmapData//
 	, p_bmpHostage:BitmapData//
 	, p_bmpObstacle:BitmapData//
-	):void
+	)
 	{
 		this._imgBase0 = new Bitmap(p_bmpBase0);
 		this._imgBase1 = new Bitmap(p_bmpBase1);
@@ -427,7 +427,7 @@ class ButtonHexagon extends BasicButton
 	, p_faceIdle:BasicButtonFace //
 	, p_faceOver:BasicButtonFace //
 	, p_data:Object = null //
-	):void
+	)
 	{
 		this._fontSize = p_fontSize;
 		super(p_title, p_width, p_height, p_faceDown, p_faceFront, p_faceIdle, p_faceOver, p_data, ALIGN_BOTTON);
@@ -537,7 +537,7 @@ class ButtonHexagonGroup extends BasicContainer
 	
 	private var _mapBtn:Object = null;
 	
-	public function ButtonHexagonGroup(p_parent:IContainer, p_valBtnRadius:Number, p_valSide:Number, p_valFontSize:int):void
+	public function ButtonHexagonGroup(p_parent:IContainer, p_valBtnRadius:Number, p_valSide:Number, p_valFontSize:int)
 	{
 		this._valBtnW = p_valBtnRadius * 2 + 0.5;
 		this._valBtnH = p_valBtnRadius * 1.732 + 0.5;

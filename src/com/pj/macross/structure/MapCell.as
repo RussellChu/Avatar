@@ -17,7 +17,7 @@ package com.pj.macross.structure
 		public var state:int = 0;
 		public var side:int = 0;
 		
-		public function MapCell(p_id:int, p_keyX:int, p_keyY:int, p_keyZ:int, p_posX:int, p_posY:int):void
+		public function MapCell(p_id:int, p_keyX:int, p_keyY:int, p_keyZ:int, p_posX:int, p_posY:int)
 		{
 			this.id = p_id;
 			this.keyX = p_keyX;

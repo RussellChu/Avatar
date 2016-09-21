@@ -10,7 +10,7 @@ package com.pj.common.component
 	{
 		private var _initInst:BasicObject = null;
 		
-		public function StandObject(p_inst:BasicObject):void
+		public function StandObject(p_inst:BasicObject)
 		{
 			this._initInst = p_inst;
 			super(new Sprite());

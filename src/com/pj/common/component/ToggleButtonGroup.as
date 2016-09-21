@@ -13,7 +13,7 @@ package com.pj.common.component
 		private var _list:Vector.<BasicToggleButton> = null;
 		private var _selectedIndex:int = 0;
 		
-		public function ToggleButtonGroup():void
+		public function ToggleButtonGroup()
 		{
 			this.init();
 			this.reset();

@@ -24,7 +24,7 @@ package com.pj.common.j3d
 		private var _screenWidth:Number = 0; // screen radius
 		private var _screenHeight:Number = 0; // screen radius
 		
-		public function Camera3D(p_pos:Vector3D = null, p_target:Vector3D = null, p_up:Vector3D = null):void
+		public function Camera3D(p_pos:Vector3D = null, p_target:Vector3D = null, p_up:Vector3D = null)
 		{
 			this.reset();
 			if (p_pos)

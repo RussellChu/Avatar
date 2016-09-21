@@ -17,7 +17,7 @@ package com.pj.common.component
 		private var _child:Vector.<World3DObj> = null;
 		private var _width:Number = 0;
 		
-		public function World3D(p_parent:BasicContainer):void
+		public function World3D(p_parent:BasicContainer)
 		{
 			super(new Sprite(), p_parent);
 		}

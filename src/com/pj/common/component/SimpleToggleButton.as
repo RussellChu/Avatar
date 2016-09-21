@@ -9,7 +9,7 @@ package com.pj.common.component
 	 */
 	public class SimpleToggleButton extends BasicToggleButton
 	{
-		public function SimpleToggleButton(p_title:String, p_width:int, p_height:int, p_data:Object = null):void
+		public function SimpleToggleButton(p_title:String, p_width:int, p_height:int, p_data:Object = null)
 		{
 			super(p_title, p_width, p_height //
 				, new SimpleButtonFace(p_width, p_height, new JColor(0.8, 0.8, 0.7, 1)) //

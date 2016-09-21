@@ -2,7 +2,6 @@ package com.pj
 {
 	import com.pj.common.Helper;
 	import com.pj.common.component.BasicContainer;
-	import com.pj.common.component.SimpleButton;
 	import com.pj.common.component.World3D;
 	import com.pj.common.component.World3DObj;
 	import com.pj.common.image.JImage_Circle;
@@ -26,7 +25,7 @@ package com.pj
 		private var _timer:Timer = null;
 		private var _world:World3D = null;
 		
-		public function ProjectWorld(p_inst:Sprite):void
+		public function ProjectWorld(p_inst:Sprite)
 		{
 			super(null, p_inst);
 			
@@ -112,7 +111,7 @@ class MoveInput extends BasicObject implements IMoveHandler
 {
 	private var _dragable:DragableObject = null;
 	
-	public function MoveInput(p_parent:IContainer, p_bg:BasicObject, p_cursor:BasicObject):void
+	public function MoveInput(p_parent:IContainer, p_bg:BasicObject, p_cursor:BasicObject)
 	{
 		super(null, p_parent);
 		
@@ -133,4 +132,5 @@ class MoveInput extends BasicObject implements IMoveHandler
 	{
 		;
 	}
+
 }

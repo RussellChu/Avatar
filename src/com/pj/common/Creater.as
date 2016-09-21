@@ -10,7 +10,7 @@ package com.pj.common
 	{
 		private var _inst:ICreatable = null;
 		
-		public function Creater(p_inst:ICreatable):void
+		public function Creater(p_inst:ICreatable)
 		{
 			this._inst = p_inst;
 		}

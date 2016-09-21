@@ -12,7 +12,7 @@ package com.pj.common.math
 		public var z:Number = 0;
 		public var w:Number = 0;
 		
-		public function Vector4D(p_x:Number = 0, p_y:Number = 0, p_z:Number = 0, p_w:Number = 0):void
+		public function Vector4D(p_x:Number = 0, p_y:Number = 0, p_z:Number = 0, p_w:Number = 0)
 		{
 			this.x = p_x;
 			this.y = p_y;

@@ -10,7 +10,7 @@ package com.pj.common.math
 		public var x:Number = 0;
 		public var y:Number = 0;
 		
-		public function Vector2D(p_x:Number = 0, p_y:Number = 0):void
+		public function Vector2D(p_x:Number = 0, p_y:Number = 0)
 		{
 			this.x = p_x;
 			this.y = p_y;

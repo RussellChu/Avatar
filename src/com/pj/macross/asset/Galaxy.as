@@ -27,7 +27,7 @@ package com.pj.macross.asset
 		private var _creater:Creater = null;
 		private var _signal:JSignal = null;
 		
-		public function Galaxy():void
+		public function Galaxy()
 		{
 			super(new BitmapData(FULL_WIDTH, FULL_HEIGHT, true, new JColor(0, 0, 0.2, 1).value));
 			this._creater = new Creater(this);

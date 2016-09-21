@@ -15,7 +15,7 @@ package com.pj.common.image
 		static public const STYLE_DEFAULT:int = 0;
 		static public const STYLE_RAND:int = 1;
 		
-		public function JImage_Circle(p_radius:Number, p_style:int = STYLE_DEFAULT, p_setting:Object = null):void
+		public function JImage_Circle(p_radius:Number, p_style:int = STYLE_DEFAULT, p_setting:Object = null)
 		{
 			super();
 			

@@ -42,7 +42,7 @@ package com.pj.common.j3d
 		private var _program:Program3D = null;
 		private var _texture:J3DTextureManager = null;
 		
-		public function J3D(p_parent:IContainer):void
+		public function J3D(p_parent:IContainer)
 		{
 			super(null, p_parent);
 		}

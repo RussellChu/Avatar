@@ -29,7 +29,7 @@ package com.pj.common.component
 		private var _enableSideMoving:Boolean = false;
 		private var _mask:Shape = null;
 		
-		public function DragableContainer(p_parent:IContainer, p_borderWidth:int = 0, p_borderHeight:int = 0, p_contentWidth:int = 0, p_contentHeight:int = 0, p_enableSideMoving:Boolean = false):void
+		public function DragableContainer(p_parent:IContainer, p_borderWidth:int = 0, p_borderHeight:int = 0, p_contentWidth:int = 0, p_contentHeight:int = 0, p_enableSideMoving:Boolean = false)
 		{
 			this._borderWidth = p_borderWidth;
 			this._borderHeight = p_borderHeight;

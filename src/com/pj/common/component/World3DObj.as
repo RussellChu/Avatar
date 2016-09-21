@@ -13,7 +13,7 @@ package com.pj.common.component
 		private var _pos:Vector3D = null;
 		private var _project:Vector4D = null;
 		
-		public function World3DObj(p_inst:BasicObject):void
+		public function World3DObj(p_inst:BasicObject)
 		{
 			super(p_inst);
 		}

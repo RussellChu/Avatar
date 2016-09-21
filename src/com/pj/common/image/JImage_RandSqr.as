@@ -13,7 +13,7 @@ package com.pj.common.image
 	 */
 	public class JImage_RandSqr extends BasicObject
 	{
-		public function JImage_RandSqr(p_parent:IContainer, p_width:int, p_height:int):void
+		public function JImage_RandSqr(p_parent:IContainer, p_width:int, p_height:int)
 		{
 			super(new Sprite(), p_parent);
 			

@@ -12,7 +12,7 @@ package com.pj.common.component
 		private var _id:int = 0;
 		private var _value:Boolean = false;
 		
-		public function BasicToggleButton(p_title:String, p_width:int, p_height:int, p_faceDown:BasicButtonFace, p_faceFront:BasicButtonFace, p_faceIdle:BasicButtonFace, p_faceOver:BasicButtonFace, p_data:Object = null, p_textAlignType:int = 0, p_textAlignValue:int = 0):void
+		public function BasicToggleButton(p_title:String, p_width:int, p_height:int, p_faceDown:BasicButtonFace, p_faceFront:BasicButtonFace, p_faceIdle:BasicButtonFace, p_faceOver:BasicButtonFace, p_data:Object = null, p_textAlignType:int = 0, p_textAlignValue:int = 0)
 		{
 			super(p_title, p_width, p_height, p_faceDown, p_faceFront, p_faceIdle, p_faceOver, p_data, p_textAlignType, p_textAlignValue);
 		}

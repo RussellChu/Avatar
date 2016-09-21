@@ -28,7 +28,7 @@ package com.pj
 		private var _camera:Camera3D = null;
 		private var _vs:J3DShader = null;
 		
-		public function ProjectFlash3D(p_inst:Sprite):void
+		public function ProjectFlash3D(p_inst:Sprite)
 		{
 			super(null, p_inst);
 		}

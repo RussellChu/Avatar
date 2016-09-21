@@ -23,7 +23,7 @@ package com.pj.common.component
 		private var _wheelX:int = 0;
 		private var _wheelY:int = 0;
 		
-		public function DragableObject(p_target:BasicObject, p_moveChecker:IMoveHandler = null, p_isEnableWheel:Boolean = true):void
+		public function DragableObject(p_target:BasicObject, p_moveChecker:IMoveHandler = null, p_isEnableWheel:Boolean = true)
 		{
 			this._moveChecker = p_moveChecker;
 			this._target = p_target;

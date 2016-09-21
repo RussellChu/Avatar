@@ -36,7 +36,7 @@ package com.pj.common.j3d.shader
 		private var _uniform:Object = null;
 		private var _vecMap:Object = null;
 		
-		public function J3DShader(p_data:Object = null):void
+		public function J3DShader(p_data:Object = null)
 		{
 			this._assembler = null;
 			this._attribute = {};

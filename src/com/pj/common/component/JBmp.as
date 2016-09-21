@@ -14,7 +14,7 @@ package com.pj.common.component
 		private var _height:int = 0;
 		private var _data:Object = null;
 		
-		public function JBmp(p_width:int, p_height:int):void
+		public function JBmp(p_width:int, p_height:int)
 		{
 			this._width = p_width;
 			this._height = p_height;

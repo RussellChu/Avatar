@@ -17,7 +17,7 @@ package
 		private var _init:Boolean = false;
 		private var _project:BasicContainer = null;
 		
-		public function Main():void
+		public function Main()
 		{
 			this.stage.align = StageAlign.TOP_LEFT;
 			this.stage.scaleMode = StageScaleMode.NO_SCALE;

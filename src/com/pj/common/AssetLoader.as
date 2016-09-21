@@ -30,7 +30,7 @@ package com.pj.common
 		private var _registerMap:Object = null;
 		private var _signal:JSignal = null;
 		
-		public function AssetLoader():void
+		public function AssetLoader()
 		{
 			this._assetMap = {};
 			this._failList = [];

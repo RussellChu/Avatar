@@ -49,7 +49,7 @@ package com.pj.macross
 		private var _save:Object = null;
 		private var _so:SharedObject = null;
 		
-		public function GameModel():void
+		public function GameModel()
 		{
 			this._map = new MapCellCroup();
 			var outStoneMax:int = 10;

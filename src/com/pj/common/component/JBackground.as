@@ -15,7 +15,7 @@ package com.pj.common.component
 		private var _xCount:int = 0;
 		private var _yCount:int = 0;
 		
-		public function JBackground(p_bmp:BitmapData):void
+		public function JBackground(p_bmp:BitmapData)
 		{
 			this._bmp = p_bmp;
 			super();
