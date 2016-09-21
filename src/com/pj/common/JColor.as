@@ -8,7 +8,7 @@ package com.pj.common
 	 */
 	public class JColor
 	{
-		public static function setRGBA(p_r:Number, p_g:Number, p_b:Number, p_a:Number):uint
+		static public function setRGBA(p_r:Number, p_g:Number, p_b:Number, p_a:Number):uint
 		{
 			var r:int = JMath.bound(p_r * 255, 0, 255);
 			var g:int = JMath.bound(p_g * 255, 0, 255);
@@ -17,7 +17,7 @@ package com.pj.common
 			return (0x1000000 * a) | (0x10000 * r) | (0x100 * g) | b;
 		}
 		
-		public static function setRGBAByInt(p_r:uint, p_g:uint, p_b:uint, p_a:uint):uint
+		static public function setRGBAByInt(p_r:uint, p_g:uint, p_b:uint, p_a:uint):uint
 		{
 			var r:int = JMath.bound(p_r, 0, 255);
 			var g:int = JMath.bound(p_g, 0, 255);
@@ -26,7 +26,7 @@ package com.pj.common
 			return (0x1000000 * a) | (0x10000 * r) | (0x100 * g) | b;
 		}
 		
-		public static function createColorByHex(p_value:uint):JColor
+		static public function createColorByHex(p_value:uint):JColor
 		{
 			var a:uint = (p_value & 0xff000000) >> 24;
 			var r:uint = (p_value & 0xff0000) >> 16;

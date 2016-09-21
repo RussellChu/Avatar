@@ -8,7 +8,7 @@ package com.pj.common.math
 	public class JMath
 	{
 		
-		public static function bound(p_value:Number, p_b0:Number, p_b1:Number):Number
+		static public function bound(p_value:Number, p_b0:Number, p_b1:Number):Number
 		{
 			var b0:Number = p_b0;
 			var b1:Number = p_b1;
@@ -28,7 +28,7 @@ package com.pj.common.math
 			return p_value;
 		}
 		
-		public static function randCirleArea():Object
+		static public function randCirleArea():Object
 		{
 			var v0:Number = Math.random();
 			var r:Number = Math.sqrt(v0);
@@ -36,7 +36,7 @@ package com.pj.common.math
 			return {x: result.x * r, y: result.y * r, z: 0};
 		}
 		
-		public static function randCirlePerimeter():Object
+		static public function randCirlePerimeter():Object
 		{
 			var v0:Number = Math.random();
 			var x:Number = Math.sin(v0 * Math.PI * 2);
@@ -44,7 +44,7 @@ package com.pj.common.math
 			return {x: x, y: y, z: 0};
 		}
 		
-		public static function randSphereSurface():Object
+		static public function randSphereSurface():Object
 		{
 			var v0:Number = Math.random();
 			var z:Number = v0 * 2 - 1;
@@ -53,7 +53,7 @@ package com.pj.common.math
 			return {x: result.x * r, y: result.y * r, z: z};
 		}
 		
-		public static function randSphereVolume():Object
+		static public function randSphereVolume():Object
 		{
 			var v0:Number = Math.random();
 			var r:Number = Math.pow(v0, 1 / 3);

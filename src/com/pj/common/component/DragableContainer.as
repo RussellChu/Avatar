@@ -17,7 +17,7 @@ package com.pj.common.component
 	 */
 	public class DragableContainer extends BasicObject implements IContainer, IMoveHandler
 	{
-		private static const SIDE_MOVING_WIDTH:Number = 0.25;
+		static private const SIDE_MOVING_WIDTH:Number = 0.25;
 		
 		private var _active:Boolean = false;
 		private var _borderWidth:int = 0;

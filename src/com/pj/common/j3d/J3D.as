@@ -24,9 +24,9 @@ package com.pj.common.j3d
 	 */
 	public class J3D extends BasicObject implements I3DContainer
 	{
-		private static var __instance:J3D = null;
+		static private var __instance:J3D = null;
 		
-		public static function init(p_parent:IContainer):J3D
+		static public function init(p_parent:IContainer):J3D
 		{
 			if (!__instance)
 			{

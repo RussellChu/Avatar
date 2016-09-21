@@ -17,11 +17,11 @@ package com.pj.common.component
 	 */
 	public class Slider extends BasicObject implements IContainer
 	{
-		private static const WHEEL_STEP:int = 10; // 10 * 3(3:system setting) = 30
+		static private const WHEEL_STEP:int = 10; // 10 * 3(3:system setting) = 30
 		
-		private static const CTRL_BAR_COLOR:uint = 0xffc8c8c8;
-		private static const CTRL_BG_COLOR:uint = 0xfff0f0f0;
-		private static const CTRL_WIDTH:int = 15;
+		static private const CTRL_BAR_COLOR:uint = 0xffc8c8c8;
+		static private const CTRL_BG_COLOR:uint = 0xfff0f0f0;
+		static private const CTRL_WIDTH:int = 15;
 		
 		private var _borderWidth:int = 0;
 		private var _borderHeight:int = 0;

@@ -11,8 +11,8 @@ package com.pj.common.j3d
 	 */
 	public class Camera3D implements IDisposable, IResetable
 	{
-		public static const MODE_ORTHOGONAL:int = 0;
-		public static const MODE_PERSPECTIVE:int = 1;
+		static public const MODE_ORTHOGONAL:int = 0;
+		static public const MODE_PERSPECTIVE:int = 1;
 		
 		private var _mode:int = 0;
 		private var _target:Vector3D = null;

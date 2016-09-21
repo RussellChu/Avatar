@@ -3,9 +3,11 @@ package com.pj.common.component
 	import com.pj.common.Helper;
 	import com.pj.common.IDisposable;
 	import com.pj.common.IResetable;
-	import com.pj.common.events.JSignal;
+	import com.pj.common.JSignal;
+	import flash.accessibility.Accessibility;
 	import flash.display.DisplayObject;
 	import flash.display.Sprite;
+	import flash.utils.setTimeout;
 	
 	/**
 	 * ...
@@ -46,6 +48,17 @@ package com.pj.common.component
 		protected function init():void
 		{
 			this._signal = new JSignal();
+		}
+		
+		public function create():void {
+			setTimeout(function ():void {
+				onCreate();
+				signal.dispatch(null, JSignal.EVENT_ON_CREATE);
+			}, 1);
+		}
+		
+		protected function onCreate():void {
+			;
 		}
 		
 		public function reset():void

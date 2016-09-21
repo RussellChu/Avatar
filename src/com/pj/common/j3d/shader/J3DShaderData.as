@@ -18,11 +18,11 @@ package com.pj.common.j3d.shader
 	 */
 	public class J3DShaderData
 	{
-		public static const ATTRIBUTE_DIFFUSE:String = "diffuse";
-		public static const ATTRIBUTE_POS:String = "pos";
-		public static const ATTRIBUTE_UV:String = "uv";
+		static public const ATTRIBUTE_DIFFUSE:String = "diffuse";
+		static public const ATTRIBUTE_POS:String = "pos";
+		static public const ATTRIBUTE_UV:String = "uv";
 		
-		public static const SHADER_VERTEX_SIMPLE:Object = { //
+		static public const SHADER_VERTEX_SIMPLE:Object = { //
 			type: "vertex"
 			, attribute: { // va0, va1
 				pos: {code: 0, type: "vec3"} //
@@ -59,7 +59,7 @@ package com.pj.common.j3d.shader
 			, "mov op, vt0" // copy vt0(loc0) to op(vertex output)
 			]};
 		
-		public static const SHADER_VERTEX_TEXTURE:Object = { //
+		static public const SHADER_VERTEX_TEXTURE:Object = { //
 			type: "vertex"
 			, attribute: { // va0, va1
 				pos: {code: 0, type: "vec3"} //
@@ -70,7 +70,7 @@ package com.pj.common.j3d.shader
 			, "m44 op, va0, vc0" // transform va0(myPos) by vc0(matrix) to op(vertex output)
 			]};
 			
-		public static const SHADER_PIXEL_SIMPLE:Object = { //
+		static public const SHADER_PIXEL_SIMPLE:Object = { //
 			type: "fragment"
 			, code: ["" // nothing
 			, "mov ft0, v0" // copy v0(=color channel 0) to oc(color output)
@@ -78,7 +78,7 @@ package com.pj.common.j3d.shader
 			, "mov oc, ft0" // copy v0(=color channel 0) to oc(color output)
 			]};
 			
-		public static const SHADER_PIXEL_TEXTURE:Object = { //
+		static public const SHADER_PIXEL_TEXTURE:Object = { //
 			type: "fragment"
 			, code: ["" // nothing
 			, "tex ft0, v0, fs0 <2d,clamp,linear>"

@@ -19,9 +19,9 @@ package com.pj
 	 */
 	public class ProjectWorld extends BasicContainer
 	{
-		private static const CIRCLE_AMOUNT:int = 150;
-		private static const CIRCLE_RADIUS:int = 20;
-		private static const SPACE_RADIUS:int = 200;
+		static private const CIRCLE_AMOUNT:int = 150;
+		static private const CIRCLE_RADIUS:int = 20;
+		static private const SPACE_RADIUS:int = 200;
 		
 		private var _timer:Timer = null;
 		private var _world:World3D = null;
@@ -44,13 +44,6 @@ package com.pj
 			this.createCircle();
 			
 			this._timer.start();
-			
-			var btn:SimpleButton = new SimpleButton("Hello world!", 200, 50, "HW!");
-			this.addChild(btn);
-			btn.signal.add(function(p_result:Object):void
-			{
-				trace(JSON.stringify(p_result));
-			});
 		
 			//	var testHolder:DragableContainer = new DragableContainer(this, 200, 200, 400, 400);
 			//	new JImage_RandSqr(testHolder, 400, 400);

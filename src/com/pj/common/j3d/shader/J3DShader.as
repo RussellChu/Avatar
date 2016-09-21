@@ -20,14 +20,14 @@ package com.pj.common.j3d.shader
 	 */
 	public class J3DShader implements IDisposable, IResetable
 	{
-		public static const CONST_TYPE_INT:String = "int";
-		public static const CONST_TYPE_FLOAT:String = "float";
-		public static const CONST_TYPE_VEC2:String = "vec2";
-		public static const CONST_TYPE_VEC3:String = "vec3";
-		public static const CONST_TYPE_VEC4:String = "vec4";
-		public static const CONST_TYPE_MATRIX:String = "matrix";
+		static public const CONST_TYPE_INT:String = "int";
+		static public const CONST_TYPE_FLOAT:String = "float";
+		static public const CONST_TYPE_VEC2:String = "vec2";
+		static public const CONST_TYPE_VEC3:String = "vec3";
+		static public const CONST_TYPE_VEC4:String = "vec4";
+		static public const CONST_TYPE_MATRIX:String = "matrix";
 		
-		private static const VERSION:int = 2;
+		static private const VERSION:int = 2;
 		
 		private var _assembler:AGALMiniAssembler = null;
 		private var _attribute:Object = null;

@@ -36,7 +36,6 @@ package com.pj.common.component
 			var item:Object = this._list.shift();
 			var path:String = item.path;
 			var data:ByteArray = item.data;
-			trace("save " + path);
 			this._fileReference.save(data, path);
 		}
 		

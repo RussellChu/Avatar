@@ -25,7 +25,6 @@ package
 			//new ProjectFlash3D(this);
 			// new ProjectMacross(this);
 			//new ProjectMP4(this);
-			//trace("Hello World!");
 			//loader = new Loader();
 			//loader.contentLoaderInfo.addEventListener(Event.COMPLETE, function(e:Event):void
 			//{

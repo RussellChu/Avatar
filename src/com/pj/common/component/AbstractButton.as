@@ -10,11 +10,11 @@ package com.pj.common.component
 	 */
 	public class AbstractButton extends BasicObject
 	{
-		public static const ACTION_CLICK:String = 'click';
-		public static const ACTION_DOWN:String = 'down';
-		public static const ACTION_OUT:String = 'out';
-		public static const ACTION_OVER:String = 'over';
-		public static const ACTION_UP:String = 'up';
+		static public const ACTION_CLICK:String = 'click';
+		static public const ACTION_DOWN:String = 'down';
+		static public const ACTION_OUT:String = 'out';
+		static public const ACTION_OVER:String = 'over';
+		static public const ACTION_UP:String = 'up';
 		
 		protected static const ALIGN_CENTER:int = 0;
 		protected static const ALIGN_BOTTON:int = 1;
