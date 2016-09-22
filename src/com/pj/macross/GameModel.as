@@ -48,6 +48,7 @@ package com.pj.macross
 		private var _record:Array = null;
 		private var _save:Object = null;
 		private var _so:SharedObject = null;
+		private var _score:Object = null;
 		
 		public function GameModel()
 		{
@@ -160,6 +161,21 @@ package com.pj.macross
 			this.loadSave();
 		}
 		
+		public function getScore(p_side:int):int {
+			if (!this._score) {
+				this._score = {};
+			}
+			if (!this._score[p_side]) {
+				this._score[p_side] = 0;
+			}
+			return this._score[p_side];
+		}
+		
+		private function setScore(p_side:int, p_score:int):void {
+			this.getScore(p_side);
+			this._score[p_side] = p_score;
+		}
+		
 		private function loadSave():void
 		{
 			this._so = SharedObject.getLocal("macross");
@@ -185,6 +201,8 @@ package com.pj.macross
 				var x:int = item[2];
 				var y:int = item[3];
 				var z:int = item[4];
+				var score:int = item[7];
+				this.setScore(side, score);
 				switch (state)
 				{
 				case GameData.STATE_BASE: 
@@ -206,7 +224,7 @@ package com.pj.macross
 			}
 		}
 		
-		private function addRecord(p_state:int, p_side:int, p_x:int, p_y:int, p_z:int, p_preState:int, p_preSide:int):void
+		private function addRecord(p_state:int, p_side:int, p_x:int, p_y:int, p_z:int, p_preState:int, p_preSide:int, p_score:int, p_preScore:int):void
 		{
 			var item:Array = [];
 			item.push(p_state);
@@ -216,6 +234,8 @@ package com.pj.macross
 			item.push(p_z);
 			item.push(p_preState);
 			item.push(p_preSide);
+			item.push(p_score);
+			item.push(p_preScore);
 			this._record.push(item);
 		}
 		
@@ -401,6 +421,8 @@ package com.pj.macross
 			
 			var preState:int = cell.state;
 			var preSide:int = cell.side;
+			var score:int = this.getScore(p_side);
+			var preScore:int = this.getScore(p_side);
 			
 			switch (p_command)
 			{
@@ -414,24 +436,32 @@ package com.pj.macross
 					return null;
 				}
 				this.addRoad(p_side, cell.keyX, cell.keyY, cell.keyZ);
-				this.addRecord(cell.state, cell.side, cell.keyX, cell.keyY, cell.keyZ, preState, preSide);
-				return {id: cell.id, side: cell.side, state: cell.state};
+				this.addRecord(cell.state, cell.side, cell.keyX, cell.keyY, cell.keyZ, preState, preSide, score, preScore);
+				return {id: cell.id, side: cell.side, state: cell.state, scoreSide:cell.side, score: score};
 			case GameData.COMMAND_ROAD: 
 				if (cell.state != GameData.STATE_NONE && cell.state != GameData.STATE_HOSTAGE)
 				{
 					return null;
 				}
+				if (cell.state == GameData.STATE_HOSTAGE) {
+					score++;
+					this.setScore(p_side, score);
+				}
 				this.addRoad(p_side, cell.keyX, cell.keyY, cell.keyZ);
-				this.addRecord(cell.state, cell.side, cell.keyX, cell.keyY, cell.keyZ, preState, preSide);
-				return {id: cell.id, side: cell.side, state: cell.state};
+				this.addRecord(cell.state, cell.side, cell.keyX, cell.keyY, cell.keyZ, preState, preSide, score, preScore);
+				return {id: cell.id, side: cell.side, state: cell.state, scoreSide:cell.side, score: score};
 			case GameData.COMMAND_ROAD_EX: 
 				if (cell.state != GameData.STATE_NONE && cell.state != GameData.STATE_HOSTAGE)
 				{
 					return null;
 				}
+				if (cell.state == GameData.STATE_HOSTAGE) {
+					score++;
+					this.setScore(p_side, score);
+				}
 				this.addRoadEx(p_side, cell.keyX, cell.keyY, cell.keyZ);
-				this.addRecord(cell.state, cell.side, cell.keyX, cell.keyY, cell.keyZ, preState, preSide);
-				return {id: cell.id, side: cell.side, state: cell.state};
+				this.addRecord(cell.state, cell.side, cell.keyX, cell.keyY, cell.keyZ, preState, preSide, score, preScore);
+				return {id: cell.id, side: cell.side, state: cell.state, scoreSide:cell.side, score: score};
 			default: 
 				return null;
 				;
@@ -448,6 +478,71 @@ package com.pj.macross
 			return this._map.getList();
 		}
 		
+		public function getMovableList(p_command:int, p_side:int):Array
+		{
+			var result:Array = [];
+			if (p_side == 0)
+			{
+				return result;
+			}
+			
+			var list:Array = this._map.getList();
+			var cell:MapCell = null;
+			var i:int = 0;
+			switch (p_command)
+			{
+			case GameData.COMMAND_ATTACK: 
+				for (i = 0; i < list.length; i++)
+				{
+					cell = list[i] as MapCell;
+					if (cell.state != GameData.STATE_ROAD && cell.state != GameData.STATE_ROAD_EX)
+					{
+						continue;
+					}
+					if (cell.side == p_side)
+					{
+						continue;
+					}
+					if (this.checkBase(cell.id, p_side, false))
+					{
+						result.push(cell.id);
+					}
+				}
+				break;
+			case GameData.COMMAND_ROAD: 
+				for (i = 0; i < list.length; i++)
+				{
+					cell = list[i] as MapCell;
+					if (cell.state != GameData.STATE_NONE)
+					{
+						continue;
+					}
+					if (this.checkBase(cell.id, p_side, false))
+					{
+						result.push(cell.id);
+					}
+				}
+				break;
+			case GameData.COMMAND_ROAD_EX: 
+				for (i = 0; i < list.length; i++)
+				{
+					cell = list[i] as MapCell;
+					if (cell.state != GameData.STATE_NONE)
+					{
+						continue;
+					}
+					if (this.checkBase(cell.id, p_side, true))
+					{
+						result.push(cell.id);
+					}
+				}
+				break;
+			default: 
+				;
+			}
+			return result;
+		}
+		
 		public function undo():Object
 		{
 			if (this._record.length == 0)
@@ -455,21 +550,23 @@ package com.pj.macross
 				return null;
 			}
 			var item:Array = this._record.pop();
-			var state:int = item[5];
-			var side:int = item[6];
+			var preState:int = item[5];
+			var preSide:int = item[6];
 			var x:int = item[2];
 			var y:int = item[3];
 			var z:int = item[4];
-			switch (state)
+			var side:int = item[1];
+			var preScore:int = item[8];
+			switch (preState)
 			{
 			case GameData.STATE_BASE: 
-				this.addBase(side, x, y, z);
+				this.addBase(preSide, x, y, z);
 				break;
 			case GameData.STATE_ROAD: 
-				this.addRoad(side, x, y, z);
+				this.addRoad(preSide, x, y, z);
 				break;
 			case GameData.STATE_ROAD_EX: 
-				this.addRoadEx(side, x, y, z);
+				this.addRoadEx(preSide, x, y, z);
 				break;
 			case GameData.STATE_OBSTACLE: 
 				this.addObstacle(x, y, z);
@@ -481,7 +578,7 @@ package com.pj.macross
 				this.clearCell(x, y, z);
 			}
 			var cell:MapCell = this._map.getCellByKey(x, y, z);
-			return {id: cell.id, side: cell.side, state: cell.state};
+			return {id: cell.id, side: cell.side, state: cell.state, scoreSide:side, score:preScore};
 		}
 	
 	}

@@ -25,8 +25,9 @@ package com.pj.macross.asset
 		static public const IMG_ROAD_1:int = 8;
 		static public const IMG_ROAD_2:int = 9;
 		static public const IMG_FOLD:int = 10;
-		static public const IMG_HOSTAGE:int = 11;
-		static public const IMG_OBSTACLE:int = 12;
+		static public const IMG_ATTACK:int = 11;
+		static public const IMG_HOSTAGE:int = 12;
+		static public const IMG_OBSTACLE:int = 13;
 		
 		private var _bmpDown:BitmapData = null;
 		private var _bmpIdle:BitmapData = null;
@@ -37,7 +38,7 @@ package com.pj.macross.asset
 		private var _bmpIdleRoad0:BitmapData = null;
 		private var _bmpIdleRoad1:BitmapData = null;
 		private var _bmpIdleRoad2:BitmapData = null;
-		private var _bmpIdleHostage:BitmapData = null;
+		private var _bmpIdleAttack:BitmapData = null;
 		private var _bmpFold:BitmapData = null;
 		private var _bmpIdleObstacle:BitmapData = null;
 		private var _bmpHostageList:Array = null;
@@ -73,7 +74,7 @@ package com.pj.macross.asset
 			var colorRoad0:uint = new JColor(1, 0, 0, 1).value;
 			var colorRoad1:uint = new JColor(0, 0.509, 0, 1).value;
 			var colorRoad2:uint = new JColor(0.209, 0.209, 1, 1).value;
-			var colorHostage:uint = new JColor(0.967, 0.673, 0.9055, 0.5).value;
+			var colorAttack:uint = new JColor(0.967, 0.673, 0.9055, 0.5).value;
 			var colorObstacle:uint = new JColor(0.286, 0.0485, 0, 0.5).value;
 			
 			this._bmpDown = new BitmapData(this._width, this._height, true, 0);
@@ -85,7 +86,7 @@ package com.pj.macross.asset
 			this._bmpIdleRoad0 = new BitmapData(this._width, this._height, true, 0);
 			this._bmpIdleRoad1 = new BitmapData(this._width, this._height, true, 0);
 			this._bmpIdleRoad2 = new BitmapData(this._width, this._height, true, 0);
-			this._bmpIdleHostage = new BitmapData(this._width, this._height, true, 0);
+			this._bmpIdleAttack = new BitmapData(this._width, this._height, true, 0);
 			this._bmpIdleObstacle = new BitmapData(this._width, this._height, true, 0);
 			this._bmpDown.lock();
 			this._bmpIdle.lock();
@@ -96,7 +97,7 @@ package com.pj.macross.asset
 			this._bmpIdleRoad0.lock();
 			this._bmpIdleRoad1.lock();
 			this._bmpIdleRoad2.lock();
-			this._bmpIdleHostage.lock();
+			this._bmpIdleAttack.lock();
 			this._bmpIdleObstacle.lock();
 			
 			var v0:Number = 0;
@@ -168,7 +169,7 @@ package com.pj.macross.asset
 					}
 					if (sum == s - 1)
 					{
-						this._bmpIdleHostage.setPixel32(i, j, colorHostage);
+						this._bmpIdleAttack.setPixel32(i, j, colorAttack);
 					}
 				}
 			}
@@ -181,7 +182,7 @@ package com.pj.macross.asset
 			this._bmpIdleRoad0.unlock();
 			this._bmpIdleRoad1.unlock();
 			this._bmpIdleRoad2.unlock();
-			this._bmpIdleHostage.unlock();
+			this._bmpIdleAttack.unlock();
 			this._bmpIdleObstacle.unlock();
 			
 			this._bmpHostageList = [];
@@ -206,7 +207,6 @@ package com.pj.macross.asset
 				mx.scale(ratio, ratio);
 				mx.translate((this._width - hostage.width * this._height / hostage.height) * 0.5, 0);
 				bmpHostage.lock();
-				bmpHostage.draw(this._bmpIdleHostage);
 				bmpHostage.draw(hostage.bitmapData, mx);
 				bmpHostage.unlock();
 				this._bmpHostageList[i].bmp = bmpHostage;
@@ -262,6 +262,8 @@ package com.pj.macross.asset
 				return this._bmpIdleRoad2;
 			case IMG_FOLD: 
 				return this._bmpFold;
+			case IMG_ATTACK: 
+				return this._bmpIdleAttack;
 			case IMG_HOSTAGE: 
 				return this._bmpHostageList[int(Math.random() * this._bmpHostageList.length)].bmp as BitmapData;
 			case IMG_OBSTACLE: 

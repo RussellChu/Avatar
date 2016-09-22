@@ -46,7 +46,8 @@ package com.pj.macross
 				__loader.addObject("s08", new BMP_S08());
 				__loader.addObject("fold", new BMP_FOLD());
 				__loader.addCreate("galaxy", new Galaxy());
-				__loader.addCreate("cellSkin", new CellSkin(GameConfig.BTN_RADIUS * 2 + 0.5, GameConfig.BTN_RADIUS * 1.732 + 0.5, GameConfig.BTN_SIDE));
+				__loader.addCreate(GameConfig.ASSET_KEY_MAP_CELL, new CellSkin(GameConfig.CELL_RADIUS_MAP * 2 + 0.5, GameConfig.CELL_RADIUS_MAP * 1.732 + 0.5, GameConfig.CELL_SIDE_MAP));
+				__loader.addCreate(GameConfig.ASSET_KEY_CMD_CELL, new CellSkin(GameConfig.CELL_RADIUS_CMD * 2 + 0.5, GameConfig.CELL_RADIUS_CMD * 1.732 + 0.5, GameConfig.CELL_SIDE_CMD));
 			}
 			return __loader;
 		}

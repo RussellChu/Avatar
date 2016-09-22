@@ -2,6 +2,7 @@ package com.pj.common.component
 {
 	import com.pj.common.Helper;
 	import com.pj.common.IDisposable;
+	import com.pj.common.IHasSignal;
 	import com.pj.common.IResetable;
 	import com.pj.common.JSignal;
 	import flash.display.DisplayObject;
@@ -11,7 +12,7 @@ package com.pj.common.component
 	 * ...
 	 * @author Russell
 	 */
-	public class BasicObject implements IDisposable, IResetable
+	public class BasicObject implements IDisposable, IHasSignal, IResetable
 	{
 		private var _instance:DisplayObject = null;
 		protected var _signal:JSignal = null;

@@ -1,6 +1,5 @@
 package com.pj.common.component
 {
-	import flash.display.BitmapData;
 	import flash.events.MouseEvent;
 	
 	/**
