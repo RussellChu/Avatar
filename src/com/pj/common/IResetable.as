@@ -7,7 +7,8 @@ package com.pj.common
 	 */
 	public interface IResetable 
 	{
-		function reset():void
+		function clear():void;
+		function reset():void;
 	}
 	
 }

@@ -7,6 +7,6 @@ package com.pj.common
 	 */
 	public interface IHasSignal
 	{
-		function get signal():JSignal
+		function get signal():JSignal;
 	}
 }

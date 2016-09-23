@@ -33,6 +33,7 @@ package com.pj.common.component
 			}
 			
 			this.init();
+			this.clear();
 			this.reset();
 		}
 		
@@ -47,6 +48,11 @@ package com.pj.common.component
 		protected function init():void
 		{
 			this._signal = new JSignal();
+		}
+		
+		public function clear():void
+		{
+			this._signal.clear();
 		}
 		
 		public function reset():void

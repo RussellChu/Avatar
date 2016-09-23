@@ -51,6 +51,11 @@ package com.pj.common.component
 			this._target = null;
 		}
 		
+		public function clear():void
+		{
+			;
+		}
+		
 		public function reset():void
 		{
 			this._state = 0;

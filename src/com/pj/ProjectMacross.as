@@ -190,9 +190,8 @@ import com.pj.common.Helper;
 import com.pj.common.JColor;
 import com.pj.common.component.AbstractButton;
 import com.pj.common.component.BasicButton;
-import com.pj.common.component.BasicButtonFace;
 import com.pj.common.component.BasicContainer;
-import com.pj.common.component.BasicToggleButton;
+import com.pj.common.component.BasicSkin;
 import com.pj.common.component.IContainer;
 import com.pj.common.component.ToggleButtonGroup;
 import com.pj.macross.GameAsset;
@@ -208,7 +207,7 @@ import flash.events.TimerEvent;
 import flash.text.TextFormat;
 import flash.utils.Timer;
 
-class ButtonHexagonFace extends BasicButtonFace
+class ButtonHexagonFace extends BasicSkin
 {
 	static public const FACE_BLANK:int = 0;
 	static public const FACE_BASE_0:int = 1;
@@ -224,6 +223,9 @@ class ButtonHexagonFace extends BasicButtonFace
 	static public const FACE_HOSTAGE:int = 11;
 	static public const FACE_OBSTACLE:int = 12;
 	
+	private var _imgBlank:Bitmap = null;
+	private var _imgDown:Bitmap = null;
+	private var _imgOver:Bitmap = null;
 	private var _imgBase0:Bitmap = null;
 	private var _imgBase1:Bitmap = null;
 	private var _imgBase2:Bitmap = null;
@@ -241,10 +243,14 @@ class ButtonHexagonFace extends BasicButtonFace
 	private var _timeFlash:Number = 0;
 	private var _timeRotate:Number = 0;
 	
+	private var _spFlash:Sprite = null;
 	private var _mapImage:Object = null;
 	
 	public function ButtonHexagonFace( //
-	p_bmpBase0:BitmapData//
+	p_bmpBlank:BitmapData//
+	, p_bmpDown:BitmapData//
+	, p_bmpOver:BitmapData//
+	, p_bmpBase0:BitmapData//
 	, p_bmpBase1:BitmapData//
 	, p_bmpBase2:BitmapData//
 	, p_bmpRoad0:BitmapData//
@@ -256,6 +262,9 @@ class ButtonHexagonFace extends BasicButtonFace
 	, p_bmpObstacle:BitmapData//
 	)
 	{
+		this._imgBlank = new Bitmap(p_bmpBlank);
+		this._imgDown = new Bitmap(p_bmpDown);
+		this._imgOver = new Bitmap(p_bmpOver);
 		this._imgBase0 = new Bitmap(p_bmpBase0);
 		this._imgBase1 = new Bitmap(p_bmpBase1);
 		this._imgBase2 = new Bitmap(p_bmpBase2);
@@ -283,6 +292,9 @@ class ButtonHexagonFace extends BasicButtonFace
 			this._timer.removeEventListener(TimerEvent.TIMER, this.onTime);
 			this._timer = null;
 		}
+		this._imgBlank = null;
+		this._imgDown = null;
+		this._imgOver = null;
 		this._imgBase0 = null;
 		this._imgBase1 = null;
 		this._imgBase2 = null;
@@ -300,16 +312,21 @@ class ButtonHexagonFace extends BasicButtonFace
 	override protected function init():void
 	{
 		super.init();
-		this.container.addChild(this._imgBase0);
-		this.container.addChild(this._imgBase1);
-		this.container.addChild(this._imgBase2);
-		this.container.addChild(this._imgRoad0);
-		this.container.addChild(this._imgRoad1);
-		this.container.addChild(this._imgRoad2);
-		this.container.addChild(this._imgFold);
-		this.container.addChild(this._imgAttack);
-		this.container.addChild(this._imgHostage);
-		this.container.addChild(this._imgObstacle);
+		this.container.addChild(this._imgBlank);
+		this._spFlash = new Sprite();
+		this.container.addChild(this._spFlash);
+		this._spFlash.addChild(this._imgBase0);
+		this._spFlash.addChild(this._imgBase1);
+		this._spFlash.addChild(this._imgBase2);
+		this._spFlash.addChild(this._imgRoad0);
+		this._spFlash.addChild(this._imgRoad1);
+		this._spFlash.addChild(this._imgRoad2);
+		this._spFlash.addChild(this._imgFold);
+		this._spFlash.addChild(this._imgAttack);
+		this._spFlash.addChild(this._imgHostage);
+		this._spFlash.addChild(this._imgObstacle);
+		this.container.addChild(this._imgDown);
+		this.container.addChild(this._imgOver);
 		
 		this._mapImage = {};
 		this._mapImage[FACE_BASE_0] = this._imgBase0;
@@ -360,12 +377,34 @@ class ButtonHexagonFace extends BasicButtonFace
 			}
 			if (this._timeFlash < 1)
 			{
-				this.container.alpha = this._timeFlash;
+				this._spFlash.alpha = this._timeFlash;
 			}
 			else
 			{
-				this.container.alpha = 2 - this._timeFlash;
+				this._spFlash.alpha = 2 - this._timeFlash;
 			}
+		}
+	}
+	
+	override public function show(p_id:int):void
+	{
+		switch (p_id)
+		{
+		case BasicButton.SKIN_IDLE: 
+			this._imgBlank.visible = true;
+			this._imgDown.visible = false;
+			this._imgOver.visible = false;
+			break;
+		case BasicButton.SKIN_DOWN: 
+			this._imgDown.visible = true;
+			this._imgOver.visible = false;
+			break;
+		case BasicButton.SKIN_OVER: 
+			this._imgDown.visible = false;
+			this._imgOver.visible = true;
+			break;
+		default: 
+			;
 		}
 	}
 	
@@ -385,8 +424,11 @@ class ButtonHexagonFace extends BasicButtonFace
 			realId = FACE_ROAD_2;
 		}
 		
-		var img:DisplayObject = this._mapImage[realId] as DisplayObject;
-		this.showImage(img);
+		for (var key:String in this._mapImage)
+		{
+			var img:DisplayObject = this._mapImage[key] as DisplayObject;
+			img.visible = (key == String(realId));
+		}
 		this._imgFold.visible = (realId != p_id);
 		this.rotate(realId != p_id);
 	}
@@ -420,12 +462,18 @@ class ButtonHexagonFace extends BasicButtonFace
 			{
 				this._timer.start();
 			}
-			this.container.alpha = 0;
+			if (this._spFlash)
+			{
+				this._spFlash.alpha = 0;
+			}
 			this._isFlash = true;
 		}
 		else
 		{
-			this.container.alpha = 1;
+			if (this._spFlash)
+			{
+				this._spFlash.alpha = 1;
+			}
 			this._isFlash = false;
 			this._timeFlash = 0;
 			if (!this._isFlash && !this._isRotate)
@@ -448,8 +496,11 @@ class ButtonHexagon extends BasicButton
 		this._fontSize = p_fontSize;
 		
 		var cellSkin:CellSkin = GameAsset.loader.getAsset(p_assetKey) as CellSkin;
-		var faceFront:ButtonHexagonFace = new ButtonHexagonFace( //
-		cellSkin.getBitmap(CellSkin.IMG_BASE_0)//
+		var skin:ButtonHexagonFace = new ButtonHexagonFace( //
+		cellSkin.getBitmap(CellSkin.IMG_BLANK)//
+		, cellSkin.getBitmap(CellSkin.IMG_DOWN)//
+		, cellSkin.getBitmap(CellSkin.IMG_OVER)//
+		, cellSkin.getBitmap(CellSkin.IMG_BASE_0)//
 		, cellSkin.getBitmap(CellSkin.IMG_BASE_1)//
 		, cellSkin.getBitmap(CellSkin.IMG_BASE_2)//
 		, cellSkin.getBitmap(CellSkin.IMG_ROAD_0)//
@@ -464,10 +515,7 @@ class ButtonHexagon extends BasicButton
 		super(p_title//
 		, cellSkin.width//
 		, cellSkin.height//
-		, new BasicButtonFace(cellSkin.getBitmap(CellSkin.IMG_DOWN))//
-		, faceFront//
-		, new BasicButtonFace(cellSkin.getBitmap(CellSkin.IMG_BLANK))//
-		, new BasicButtonFace(cellSkin.getBitmap(CellSkin.IMG_OVER))//
+		, skin//
 		, p_data//
 		, ALIGN_BOTTON//
 		);
@@ -485,7 +533,7 @@ class ButtonHexagon extends BasicButton
 	
 	public function flash(p_value:Boolean, p_side:int, p_state:int):void
 	{
-		var face:ButtonHexagonFace = this.faceFront as ButtonHexagonFace;
+		var face:ButtonHexagonFace = this.skin as ButtonHexagonFace;
 		face.flash(p_value);
 		if (!p_value)
 		{
@@ -498,7 +546,7 @@ class ButtonHexagon extends BasicButton
 	
 	private function setStateFinal(p_side:int, p_state:int):void
 	{
-		var face:ButtonHexagonFace = this.faceFront as ButtonHexagonFace;
+		var face:ButtonHexagonFace = this.skin as ButtonHexagonFace;
 		switch (p_state)
 		{
 		case GameData.STATE_BASE: 
@@ -572,7 +620,7 @@ class ButtonHexagon extends BasicButton
 
 }
 
-class CommandHexagonToggle extends BasicToggleButton
+class CommandHexagonToggle extends BasicButton
 {
 	private var _fontSize:int = 0;
 	
@@ -581,8 +629,11 @@ class CommandHexagonToggle extends BasicToggleButton
 		this._fontSize = p_fontSize;
 		
 		var cellSkin:CellSkin = GameAsset.loader.getAsset(p_assetKey) as CellSkin;
-		var faceFront:ButtonHexagonFace = new ButtonHexagonFace( //
-		cellSkin.getBitmap(CellSkin.IMG_BASE_0)//
+		var skin:ButtonHexagonFace = new ButtonHexagonFace( //
+		cellSkin.getBitmap(CellSkin.IMG_BLANK)//
+		, cellSkin.getBitmap(CellSkin.IMG_DOWN)//
+		, cellSkin.getBitmap(CellSkin.IMG_OVER)//
+		, cellSkin.getBitmap(CellSkin.IMG_BASE_0)//
 		, cellSkin.getBitmap(CellSkin.IMG_BASE_1)//
 		, cellSkin.getBitmap(CellSkin.IMG_BASE_2)//
 		, cellSkin.getBitmap(CellSkin.IMG_ROAD_0)//
@@ -597,13 +648,11 @@ class CommandHexagonToggle extends BasicToggleButton
 		super(p_title//
 		, cellSkin.width//
 		, cellSkin.height//
-		, new BasicButtonFace(cellSkin.getBitmap(CellSkin.IMG_DOWN))//
-		, faceFront//
-		, new BasicButtonFace(cellSkin.getBitmap(CellSkin.IMG_BLANK))//
-		, new BasicButtonFace(cellSkin.getBitmap(CellSkin.IMG_OVER))//
+		, skin//
 		, p_data//
 		, ALIGN_CENTER//
-		);
+		, 0//
+		, true);
 	}
 	
 	override protected function init():void
@@ -619,7 +668,7 @@ class CommandHexagonToggle extends BasicToggleButton
 	
 	public function setState(p_side:int, p_state:int):void
 	{
-		var face:ButtonHexagonFace = this.faceFront as ButtonHexagonFace;
+		var face:ButtonHexagonFace = this.skin as ButtonHexagonFace;
 		switch (p_state)
 		{
 		case GameData.STATE_BASE: 
@@ -767,10 +816,16 @@ class CommandGroup extends BasicContainer
 		}
 	}
 	
+	public override function clear():void
+	{
+		super.clear();
+		//	this._btnGroup.clear();
+	}
+	
 	public override function reset():void
 	{
 		super.reset();
-		this._btnGroup.setDefault();
+		this._btnGroup.reset();
 	}
 	
 	public function get command():int
@@ -813,17 +868,14 @@ class CommandGroup extends BasicContainer
 	
 	private function onToggle(p_result:Object):void
 	{
-		if (!p_result)
-		{
-			this._signal.dispatch(null);
-			return;
-		}
-		var command:int = p_result.command as int;
+		var target:CommandHexagonToggle = p_result.target as CommandHexagonToggle;
+		var data:Object = target.data;
+		var command:int = data.command as int;
 		if (command == GameData.COMMAND_UNDO || command == GameData.COMMAND_CLEAR || command == GameData.COMMAND_SAVE || command == GameData.COMMAND_NONE)
 		{
-			this._btnGroup.setDefault();
+			this._btnGroup.reset();
 		}
-		this._signal.dispatch(p_result);
+		this._signal.dispatch(data);
 	}
 
 }

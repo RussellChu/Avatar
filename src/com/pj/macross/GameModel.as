@@ -161,17 +161,21 @@ package com.pj.macross
 			this.loadSave();
 		}
 		
-		public function getScore(p_side:int):int {
-			if (!this._score) {
+		public function getScore(p_side:int):int
+		{
+			if (!this._score)
+			{
 				this._score = {};
 			}
-			if (!this._score[p_side]) {
+			if (!this._score[p_side])
+			{
 				this._score[p_side] = 0;
 			}
 			return this._score[p_side];
 		}
 		
-		private function setScore(p_side:int, p_score:int):void {
+		private function setScore(p_side:int, p_score:int):void
+		{
 			this.getScore(p_side);
 			this._score[p_side] = p_score;
 		}
@@ -437,31 +441,33 @@ package com.pj.macross
 				}
 				this.addRoad(p_side, cell.keyX, cell.keyY, cell.keyZ);
 				this.addRecord(cell.state, cell.side, cell.keyX, cell.keyY, cell.keyZ, preState, preSide, score, preScore);
-				return {id: cell.id, side: cell.side, state: cell.state, scoreSide:cell.side, score: score};
+				return {id: cell.id, side: cell.side, state: cell.state, scoreSide: cell.side, score: score};
 			case GameData.COMMAND_ROAD: 
 				if (cell.state != GameData.STATE_NONE && cell.state != GameData.STATE_HOSTAGE)
 				{
 					return null;
 				}
-				if (cell.state == GameData.STATE_HOSTAGE) {
+				if (cell.state == GameData.STATE_HOSTAGE)
+				{
 					score++;
 					this.setScore(p_side, score);
 				}
 				this.addRoad(p_side, cell.keyX, cell.keyY, cell.keyZ);
 				this.addRecord(cell.state, cell.side, cell.keyX, cell.keyY, cell.keyZ, preState, preSide, score, preScore);
-				return {id: cell.id, side: cell.side, state: cell.state, scoreSide:cell.side, score: score};
+				return {id: cell.id, side: cell.side, state: cell.state, scoreSide: cell.side, score: score};
 			case GameData.COMMAND_ROAD_EX: 
 				if (cell.state != GameData.STATE_NONE && cell.state != GameData.STATE_HOSTAGE)
 				{
 					return null;
 				}
-				if (cell.state == GameData.STATE_HOSTAGE) {
+				if (cell.state == GameData.STATE_HOSTAGE)
+				{
 					score++;
 					this.setScore(p_side, score);
 				}
 				this.addRoadEx(p_side, cell.keyX, cell.keyY, cell.keyZ);
 				this.addRecord(cell.state, cell.side, cell.keyX, cell.keyY, cell.keyZ, preState, preSide, score, preScore);
-				return {id: cell.id, side: cell.side, state: cell.state, scoreSide:cell.side, score: score};
+				return {id: cell.id, side: cell.side, state: cell.state, scoreSide: cell.side, score: score};
 			default: 
 				return null;
 				;
@@ -578,7 +584,7 @@ package com.pj.macross
 				this.clearCell(x, y, z);
 			}
 			var cell:MapCell = this._map.getCellByKey(x, y, z);
-			return {id: cell.id, side: cell.side, state: cell.state, scoreSide:side, score:preScore};
+			return {id: cell.id, side: cell.side, state: cell.state, scoreSide: side, score: preScore};
 		}
 	
 	}

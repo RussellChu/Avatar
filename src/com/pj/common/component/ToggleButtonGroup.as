@@ -12,13 +12,14 @@ package com.pj.common.component
 	 */
 	public class ToggleButtonGroup implements IDisposable, IHasSignal, IResetable
 	{
-		private var _list:Vector.<BasicToggleButton> = null;
+		private var _list:Vector.<BasicButton> = null;
 		private var _selectedIndex:int = 0;
 		private var _signal:JSignal = null;
 		
 		public function ToggleButtonGroup()
 		{
 			this.init();
+			this.clear();
 			this.reset();
 		}
 		
@@ -34,28 +35,31 @@ package com.pj.common.component
 			this._signal = new JSignal();
 		}
 		
+		public function clear():void
+		{
+			this._list = new Vector.<BasicButton>();
+			this._selectedIndex = -1;
+			this._signal.clear();
+		}
+		
 		public function reset():void
 		{
-			this._list = new Vector.<BasicToggleButton>();
-			this._selectedIndex = -1;
+			for (var i:int = 0; i < this._list.length; i++)
+			{
+				var btn:BasicButton = this._list[i];
+				btn.value = false;
+			}
 			this._signal.reset();
 		}
 		
-		public function setDefault():void {
-			for (var i:int = 0; i < this._list.length; i++) {
-				var btn:BasicToggleButton = this._list[i];
-				btn.value = false;
-			}
-		}
-		
-		public function addButton(p_btn:BasicToggleButton):void
+		public function addButton(p_btn:BasicButton):void
 		{
 			if (!p_btn)
 			{
 				return;
 			}
 			var id:int = this._list.length;
-			p_btn.setId(id);
+			p_btn.id = id;
 			p_btn.signal.add(this.onSignal);
 			this._list.push(p_btn);
 		}
@@ -84,25 +88,25 @@ package com.pj.common.component
 		{
 			var action:String = p_result.action;
 			var data:Object = p_result.data;
-			if (action == AbstractButton.ACTION_CLICK)
+			var target:BasicButton = p_result.target as BasicButton;
+			if (action != BasicButton.ACTION_VALUE_CHANGE)
 			{
-				var id:int = p_result.id;
-				var value:Boolean = p_result.value;
-				if (value)
+				return;
+			}
+			if (target.value)
+			{
+				if (this._selectedIndex > -1)
 				{
-					if (this._selectedIndex > -1)
-					{
-						var btn:BasicToggleButton = this._list[this._selectedIndex];
-						btn.value = false;
-					}
-					this._selectedIndex = id;
-					this._signal.dispatch(data);
+					var btn:BasicButton = this._list[this._selectedIndex];
+					btn.value = false;
 				}
-				else
-				{
-					this._selectedIndex = -1;
-					this._signal.dispatch(null);
-				}
+				this._selectedIndex = target.id;
+				this._signal.dispatch(p_result);
+			}
+			else
+			{
+				this._selectedIndex = -1;
+				this._signal.dispatch(p_result);
 			}
 		}
 	

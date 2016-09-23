@@ -16,13 +16,6 @@ package com.pj.common.component
 		static public const ACTION_OVER:String = 'over';
 		static public const ACTION_UP:String = 'up';
 		
-		protected static const ALIGN_CENTER:int = 0;
-		protected static const ALIGN_BOTTON:int = 1;
-		
-		protected static const IMG_DOWN:int = 0;
-		protected static const IMG_IDLE:int = 1;
-		protected static const IMG_OVER:int = 2;
-		
 		protected var _data:Object = null;
 		
 		public function AbstractButton(p_data:Object = null)
@@ -53,6 +46,11 @@ package com.pj.common.component
 			this.container.addEventListener(MouseEvent.ROLL_OUT, this.onMouseRollOut);
 		}
 		
+		override public function clear():void
+		{
+			super.clear();
+		}
+		
 		override public function reset():void
 		{
 			super.reset();
@@ -70,27 +68,27 @@ package com.pj.common.component
 		
 		protected function onMouseClick(p_evt:MouseEvent):void
 		{
-			this.signal.dispatch({action: ACTION_CLICK, data: this._data});
+			this.signal.dispatch({action: ACTION_CLICK, data: this._data, target: this});
 		}
 		
 		protected function onMouseDown(p_evt:MouseEvent):void
 		{
-			this.signal.dispatch({action: ACTION_DOWN, data: this._data});
+			this.signal.dispatch({action: ACTION_DOWN, data: this._data, target: this});
 		}
 		
 		protected function onMouseOver(p_evt:MouseEvent):void
 		{
-			this.signal.dispatch({action: ACTION_OVER, data: this._data});
+			this.signal.dispatch({action: ACTION_OVER, data: this._data, target: this});
 		}
 		
 		protected function onMouseUp(p_evt:MouseEvent):void
 		{
-			this.signal.dispatch({action: ACTION_UP, data: this._data});
+			this.signal.dispatch({action: ACTION_UP, data: this._data, target: this});
 		}
 		
 		protected function onMouseRollOut(p_evt:MouseEvent):void
 		{
-			this.signal.dispatch({action: ACTION_OUT, data: this._data});
+			this.signal.dispatch({action: ACTION_OUT, data: this._data, target: this});
 		}
 	
 	}

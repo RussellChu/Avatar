@@ -7,6 +7,6 @@ package com.pj.common
 	 */
 	public interface IDisposable
 	{
-		function dispose():void
+		function dispose():void;
 	}
 }

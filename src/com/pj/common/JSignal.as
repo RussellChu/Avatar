@@ -15,6 +15,7 @@ package com.pj.common
 		
 		public function JSignal()
 		{
+			this.clear();
 			this.reset();
 		}
 		
@@ -23,9 +24,14 @@ package com.pj.common
 			this._targetList = null;
 		}
 		
-		public function reset():void
+		public function clear():void
 		{
 			this._targetList = new Vector.<Object>();
+		}
+		
+		public function reset():void
+		{
+			;
 		}
 		
 		public function add(p_func:Function, p_event:String = ""):Boolean
@@ -48,12 +54,13 @@ package com.pj.common
 		public function remove(p_func:Function, p_event:String = ""):void
 		{
 			var i:int = 0;
-			while(i < this._targetList.length)
+			while (i < this._targetList.length)
 			{
 				var item:Object = this._targetList[i];
 				var func:Function = item.func;
 				var event:String = item.event;
-				if (func == p_func) {
+				if (func == p_func)
+				{
 					if (p_event == "" || event == p_event)
 					{
 						this._targetList.splice(i, 1);
