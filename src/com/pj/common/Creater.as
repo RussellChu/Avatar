@@ -23,5 +23,6 @@ package com.pj.common
 				_inst.signal.dispatch(null, JSignal.EVENT_ON_CREATE);
 			}, 1);
 		}
+		
 	}
 }

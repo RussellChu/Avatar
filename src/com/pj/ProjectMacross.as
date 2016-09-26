@@ -1,6 +1,7 @@
 package com.pj
 {
 	import com.pj.common.Helper;
+	import com.pj.common.JColor;
 	import com.pj.common.component.BasicContainer;
 	import com.pj.common.component.JBackground;
 	import com.pj.common.component.Slider;
@@ -8,9 +9,12 @@ package com.pj
 	import com.pj.macross.GameConfig;
 	import com.pj.macross.GameData;
 	import com.pj.macross.GameModel;
+	import com.pj.macross.asset.CellSkin;
 	import com.pj.macross.structure.MapCell;
 	import flash.display.Bitmap;
 	import flash.display.Sprite;
+	import flash.text.TextField;
+	import flash.text.TextFieldAutoSize;
 	
 	/**
 	 * ...
@@ -21,6 +25,7 @@ package com.pj
 		private var _bg:JBackground = null;
 		private var _command:CommandGroup = null;
 		private var _map:ButtonHexagonGroup = null;
+		private var _msg:TextField = null;
 		private var _model:GameModel = null;
 		private var _slider:Slider = null;
 		
@@ -93,6 +98,18 @@ package com.pj
 			this._command.setScore(GameData.SIDE_B, this._model.getScore(GameData.SIDE_B));
 			this._command.setScore(GameData.SIDE_C, this._model.getScore(GameData.SIDE_C));
 			this._command.signal.add(this.onCommand);
+			
+			// to do
+			var cellSkin:CellSkin = GameAsset.loader.getAsset(GameConfig.ASSET_KEY_CMD_CELL) as CellSkin;
+			this._msg = new TextField();
+			this._msg.x = cellSkin.width * 3;
+			this._msg.mouseEnabled = false;
+			this._msg.alpha = 0.5
+			this._msg.background = true;
+			this._msg.backgroundColor = new JColor(1, 1, 1, 1).value;
+			this._msg.autoSize = TextFieldAutoSize.LEFT;
+			this.container.addChild(this._msg);
+			this.setMsg("");
 		}
 		
 		private function onCommand(p_result:Object):void
@@ -139,23 +156,41 @@ package com.pj
 			case GameData.COMMAND_NONE: 
 				break;
 			default: 
-				this.updateMovable(command, side);
+			//	this.updateMovable(command, side);
 			}
 		}
 		
-		private function updateMovable(p_command:int, p_side:int):void
-		{
-			var list:Array = this._model.getMovableList(p_command, p_side);
-			var state:int = 0;
-			if (p_command == GameData.COMMAND_ROAD_EX)
-			{
-				state = GameData.STATE_ROAD_EX;
-			}
-			else
-			{
-				state = GameData.STATE_ROAD;
-			}
-			this._map.flash(p_side, state, list);
+		//private function updateMovable(p_command:int, p_side:int):void
+		//{
+			//var list:Array = this._model.getMovableList(p_command, p_side);
+			//var state:int = 0;
+			//if (p_command == GameData.COMMAND_ROAD_EX)
+			//{
+				//state = GameData.STATE_ROAD_EX;
+			//}
+			//else
+			//{
+				//state = GameData.STATE_ROAD;
+			//}
+			//this._map.flash(p_side, state, list);
+			//
+			//var otherSide0:int = GameData.SIDE_B;
+			//var otherSide1:int = GameData.SIDE_C;
+			//if (p_side == GameData.SIDE_B) {
+				//otherSide0 = GameData.SIDE_A;
+			//}
+			//if (p_side == GameData.SIDE_C) {
+				//otherSide1 = GameData.SIDE_A;
+			//}
+			//var moveId:int = this._model.findMoveId(p_side);
+			//var runId0:int = this._model.findRunId(p_side, otherSide0);
+			//var runId1:int = this._model.findRunId(p_side, otherSide1);
+			//this.setMsg("" + moveId + " - " + runId0 + " - " + runId1);
+		//}
+		
+		private function setMsg(p_str:String):void {
+			this._msg.text = p_str;
+			this._msg.height = this._msg.textHeight;
 		}
 		
 		private function onMapSignal(p_result:Object):void
@@ -179,7 +214,7 @@ package com.pj
 			{
 				this._map.setState(dataState.id, dataState.side, dataState.state);
 				this._command.setScore(dataState.scoreSide, dataState.score);
-				this.updateMovable(command, side);
+			//	this.updateMovable(command, side);
 			}
 		}
 	
@@ -220,8 +255,10 @@ class ButtonHexagonFace extends BasicSkin
 	static public const FACE_ROAD_EX_1:int = 8;
 	static public const FACE_ROAD_EX_2:int = 9;
 	static public const FACE_ATTACK:int = 10;
-	static public const FACE_HOSTAGE:int = 11;
-	static public const FACE_OBSTACLE:int = 12;
+	static public const FACE_HOSTAGE_0:int = 11;
+	static public const FACE_HOSTAGE_1:int = 12;
+	static public const FACE_HOSTAGE_2:int = 13;
+	static public const FACE_OBSTACLE:int = 14;
 	
 	private var _imgBlank:Bitmap = null;
 	private var _imgDown:Bitmap = null;
@@ -336,7 +373,7 @@ class ButtonHexagonFace extends BasicSkin
 		this._mapImage[FACE_ROAD_1] = this._imgRoad1;
 		this._mapImage[FACE_ROAD_2] = this._imgRoad2;
 		this._mapImage[FACE_ATTACK] = this._imgAttack;
-		this._mapImage[FACE_HOSTAGE] = this._imgHostage;
+	//	this._mapImage[FACE_HOSTAGE] = this._imgHostage;
 		this._mapImage[FACE_OBSTACLE] = this._imgObstacle;
 		
 		this._timer = new Timer(20);
@@ -410,18 +447,41 @@ class ButtonHexagonFace extends BasicSkin
 	
 	public function setFace(p_id:int):void
 	{
+		var isFold:Boolean = false;
+		var isHostage:Boolean = false;
+		
 		var realId:int = p_id;
 		if (p_id == FACE_ROAD_EX_0)
 		{
 			realId = FACE_ROAD_0;
+			isFold = true;
 		}
 		if (p_id == FACE_ROAD_EX_1)
 		{
 			realId = FACE_ROAD_1;
+			isFold = true;
 		}
 		if (p_id == FACE_ROAD_EX_2)
 		{
 			realId = FACE_ROAD_2;
+			isFold = true;
+		}
+		
+
+		if (p_id == FACE_HOSTAGE_0)
+		{
+			realId = FACE_ROAD_0;
+			isHostage = true;
+		}
+		if (p_id == FACE_HOSTAGE_1)
+		{
+			realId = FACE_ROAD_1;
+			isHostage = true;
+		}
+		if (p_id == FACE_HOSTAGE_2)
+		{
+			realId = FACE_ROAD_2;
+			isHostage = true;
 		}
 		
 		for (var key:String in this._mapImage)
@@ -429,8 +489,10 @@ class ButtonHexagonFace extends BasicSkin
 			var img:DisplayObject = this._mapImage[key] as DisplayObject;
 			img.visible = (key == String(realId));
 		}
-		this._imgFold.visible = (realId != p_id);
-		this.rotate(realId != p_id);
+		this._imgFold.visible = isFold;
+		this.rotate(isFold);
+		
+		this._imgHostage.visible = isHostage;
 	}
 	
 	private function rotate(p_value:Boolean):void
@@ -528,6 +590,7 @@ class ButtonHexagon extends BasicButton
 		var format:TextFormat = new TextFormat();
 		format.size = this._fontSize;
 		this._txtTitle.defaultTextFormat = format;
+		this._txtTitle.textColor = new JColor(0.75, 0.5, 1, 1).value;
 		this._txtTitle.visible = true;
 	}
 	
@@ -569,7 +632,20 @@ class ButtonHexagon extends BasicButton
 			face.setFace(ButtonHexagonFace.FACE_ATTACK);
 			break;
 		case GameData.STATE_HOSTAGE: 
-			face.setFace(ButtonHexagonFace.FACE_HOSTAGE);
+			switch (p_side)
+			{
+			case GameData.SIDE_A: 
+				face.setFace(ButtonHexagonFace.FACE_HOSTAGE_0);
+				break;
+			case GameData.SIDE_B: 
+				face.setFace(ButtonHexagonFace.FACE_HOSTAGE_1);
+				break;
+			case GameData.SIDE_C: 
+				face.setFace(ButtonHexagonFace.FACE_HOSTAGE_2);
+				break;
+			default: 
+				face.setFace(ButtonHexagonFace.FACE_BLANK);
+			}
 			break;
 		case GameData.STATE_OBSTACLE: 
 			face.setFace(ButtonHexagonFace.FACE_OBSTACLE);
@@ -691,7 +767,20 @@ class CommandHexagonToggle extends BasicButton
 			face.setFace(ButtonHexagonFace.FACE_ATTACK);
 			break;
 		case GameData.STATE_HOSTAGE: 
-			face.setFace(ButtonHexagonFace.FACE_HOSTAGE);
+			switch (p_side)
+			{
+			case GameData.SIDE_A: 
+				face.setFace(ButtonHexagonFace.FACE_HOSTAGE_0);
+				break;
+			case GameData.SIDE_B: 
+				face.setFace(ButtonHexagonFace.FACE_HOSTAGE_1);
+				break;
+			case GameData.SIDE_C: 
+				face.setFace(ButtonHexagonFace.FACE_HOSTAGE_2);
+				break;
+			default: 
+				face.setFace(ButtonHexagonFace.FACE_BLANK);
+			}
 			break;
 		case GameData.STATE_OBSTACLE: 
 			face.setFace(ButtonHexagonFace.FACE_OBSTACLE);

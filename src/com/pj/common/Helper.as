@@ -156,6 +156,11 @@ package com.pj.common
 			return p_default;
 		}
 		
+		static public function selectFrom(p_arr:Array):Object {
+			var index:int = int(Math.random() * p_arr.length);
+			return p_arr[index];
+		}
+		
 		public function Helper()
 		{
 			;

@@ -1,5 +1,6 @@
 package com.pj.macross
 {
+	import com.pj.common.Helper;
 	import com.pj.macross.GameConfig;
 	import com.pj.macross.GameData;
 	import com.pj.macross.structure.MapCell;
@@ -53,9 +54,7 @@ package com.pj.macross
 		public function GameModel()
 		{
 			this._map = new MapCellCroup();
-			var outStoneMax:int = 10;
-			var outStoneIdList:Array = [];
-			var outStoneIdMap:Object = {};
+			var hostageSide:Object = {};
 			
 			var i:int = 0;
 			var j:int = 0;
@@ -151,8 +150,21 @@ package com.pj.macross
 					}
 					if (GameConfig.CELL_HOSTAGE.indexOf(id) >= 0)
 					{
-						key = "";
-						this.addHostage(x, y, z);
+						if (!hostageSide["" + x + ":" + y + ":" + z]) {
+							var select:Array = Helper.selectFrom([//
+							[GameData.SIDE_A, GameData.SIDE_B, GameData.SIDE_C]//
+							, [GameData.SIDE_A, GameData.SIDE_C, GameData.SIDE_B]//
+							, [GameData.SIDE_B, GameData.SIDE_A, GameData.SIDE_C]//
+							, [GameData.SIDE_B, GameData.SIDE_C, GameData.SIDE_A]//
+							, [GameData.SIDE_C, GameData.SIDE_A, GameData.SIDE_B]//
+							, [GameData.SIDE_C, GameData.SIDE_B, GameData.SIDE_A]//
+							]) as Array;
+							hostageSide["" + x + ":" + y + ":" + z] = select[0];
+							hostageSide["" + y + ":" + z + ":" + x] = select[1];
+							hostageSide["" + z + ":" + x + ":" + y] = select[2];
+						}
+						var side:int = hostageSide["" + x + ":" + y + ":" + z];
+						this.addHostage(side, x, y, z);
 					}
 					id++;
 				}
@@ -222,7 +234,7 @@ package com.pj.macross
 					this.addObstacle(x, y, z);
 					break;
 				case GameData.STATE_HOSTAGE: 
-					this.addHostage(x, y, z);
+					this.addHostage(side, x, y, z);
 					break;
 				}
 			}
@@ -299,14 +311,14 @@ package com.pj.macross
 			return true;
 		}
 		
-		private function addHostage(p_keyX:int, p_keyY:int, p_keyZ:int):Boolean
+		private function addHostage(p_side:int, p_keyX:int, p_keyY:int, p_keyZ:int):Boolean
 		{
 			var cell:MapCell = this._map.getCellByKey(p_keyX, p_keyY, p_keyZ);
 			if (!cell)
 			{
 				return false;
 			}
-			cell.side = 0;
+			cell.side = p_side;
 			cell.state = GameData.STATE_HOSTAGE;
 			return true;
 		}
@@ -447,6 +459,10 @@ package com.pj.macross
 				{
 					return null;
 				}
+				if (cell.state == GameData.STATE_HOSTAGE && cell.side != p_side)
+				{
+					return null;
+				}
 				if (cell.state == GameData.STATE_HOSTAGE)
 				{
 					score++;
@@ -457,6 +473,10 @@ package com.pj.macross
 				return {id: cell.id, side: cell.side, state: cell.state, scoreSide: cell.side, score: score};
 			case GameData.COMMAND_ROAD_EX: 
 				if (cell.state != GameData.STATE_NONE && cell.state != GameData.STATE_HOSTAGE)
+				{
+					return null;
+				}
+				if (cell.state == GameData.STATE_HOSTAGE && cell.side != p_side)
 				{
 					return null;
 				}
@@ -519,7 +539,7 @@ package com.pj.macross
 				for (i = 0; i < list.length; i++)
 				{
 					cell = list[i] as MapCell;
-					if (cell.state != GameData.STATE_NONE)
+					if (cell.state != GameData.STATE_NONE && cell.state != GameData.STATE_HOSTAGE)
 					{
 						continue;
 					}
@@ -533,7 +553,7 @@ package com.pj.macross
 				for (i = 0; i < list.length; i++)
 				{
 					cell = list[i] as MapCell;
-					if (cell.state != GameData.STATE_NONE)
+					if (cell.state != GameData.STATE_NONE && cell.state != GameData.STATE_HOSTAGE)
 					{
 						continue;
 					}
@@ -578,7 +598,7 @@ package com.pj.macross
 				this.addObstacle(x, y, z);
 				break;
 			case GameData.STATE_HOSTAGE: 
-				this.addHostage(x, y, z);
+				this.addHostage(preSide, x, y, z);
 				break;
 			default: 
 				this.clearCell(x, y, z);
