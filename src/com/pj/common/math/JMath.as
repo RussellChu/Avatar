@@ -28,6 +28,14 @@ package com.pj.common.math
 			return p_value;
 		}
 		
+		static public function ratio(p_value:Number, p_from:Number, p_to:Number):Number {
+			if (p_from == p_to) {
+				return 0;
+			}
+			
+			return (p_value - p_from) / (p_to - p_from);
+		}
+		
 		static public function randCirleArea():Object
 		{
 			var v0:Number = Math.random();

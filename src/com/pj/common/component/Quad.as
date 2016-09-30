@@ -13,7 +13,7 @@ package com.pj.common.component
 		private var _height:int = 0;
 		private var _color:uint = 0;
 		
-		public function Quad(p_width:int, p_height:int, p_color:uint)
+		public function Quad(p_width:int, p_height:int, p_color:uint = 0)
 		{
 			this._width = p_width;
 			this._height = p_height;

@@ -10,6 +10,7 @@ package com.pj.common
 	public class JSignal implements IDisposable, IResetable
 	{
 		static public const EVENT_ON_CREATE:String = "EVENT_ON_CREATE";
+		static public const EVENT_ON_TIME:String = "EVENT_ON_TIME";
 		
 		private var _targetList:Vector.<Object> = null;
 		

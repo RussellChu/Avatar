@@ -28,7 +28,7 @@ package com.pj.common
 		
 		static public function createColorByHex(p_value:uint):JColor
 		{
-			var a:uint = (p_value & 0xff000000) >> 24;
+			var a:uint = ((p_value & 0xff000000) >> 24) & 0xff;
 			var r:uint = (p_value & 0xff0000) >> 16;
 			var g:uint = (p_value & 0xff00) >> 8;
 			var b:uint = (p_value & 0xff);
@@ -54,13 +54,19 @@ package com.pj.common
 			return new JColor(this.r, this.g, this.b, this.a);
 		}
 		
-		public function toString():String {
+		public function toString():String
+		{
 			return "(" + this.r + ", " + this.g + ", " + this.b + ", " + this.a + ")";
 		}
 		
 		public function get value():uint
 		{
 			return JColor.setRGBA(this.r, this.g, this.b, this.a);
+		}
+		
+		public function get luma():Number
+		{
+			return 0.299 * this.r + 0.587 * this.g + 0.114 * this.b;
 		}
 	
 	}

@@ -27,7 +27,10 @@ package com.pj.macross.asset
 		static public const IMG_FOLD:int = 10;
 		static public const IMG_ATTACK:int = 11;
 		static public const IMG_HOSTAGE:int = 12;
-		static public const IMG_OBSTACLE:int = 13;
+		static public const IMG_HOSTAGE_BG_0:int = 13;
+		static public const IMG_HOSTAGE_BG_1:int = 14;
+		static public const IMG_HOSTAGE_BG_2:int = 15;
+		static public const IMG_OBSTACLE:int = 16;
 		
 		private var _bmpDown:BitmapData = null;
 		private var _bmpIdle:BitmapData = null;
@@ -41,6 +44,9 @@ package com.pj.macross.asset
 		private var _bmpIdleAttack:BitmapData = null;
 		private var _bmpFold:BitmapData = null;
 		private var _bmpIdleObstacle:BitmapData = null;
+		private var _bmpHostageBg0:BitmapData = null;
+		private var _bmpHostageBg1:BitmapData = null;
+		private var _bmpHostageBg2:BitmapData = null;
 		private var _bmpHostageList:Array = null;
 		
 		private var _width:int = 0;
@@ -212,15 +218,25 @@ package com.pj.macross.asset
 				this._bmpHostageList[i].bmp = bmpHostage;
 			}
 			
-			var imgFold:Bitmap = GameAsset.loader.getAsset("fold") as Bitmap;
 			this._bmpFold = new BitmapData(this._width, this._height, true, 0);
-			ratio = this._height / imgFold.height;
-			mx = new Matrix();
-			mx.scale(ratio, ratio);
-			mx.translate((this._width - imgFold.width * this._height / imgFold.height) * 0.5, 0);
-			this._bmpFold.lock();
-			this._bmpFold.draw(imgFold.bitmapData, mx);
-			this._bmpFold.unlock();
+			this._bmpHostageBg0 = new BitmapData(this._width, this._height, true, 0);
+			this._bmpHostageBg1 = new BitmapData(this._width, this._height, true, 0);
+			this._bmpHostageBg2 = new BitmapData(this._width, this._height, true, 0);
+			var copyList:Array = [{src: "fold", des: this._bmpFold}, {src: "triA", des: this._bmpHostageBg0}, {src: "triB", des: this._bmpHostageBg1}, {src: "triC", des: this._bmpHostageBg2}];
+			for (i = 0; i < copyList.length; i++)
+			{
+				var item:Object = copyList[i];
+				var name:String = item.src;
+				var bmpDes:BitmapData = item.des;
+				var imgSrc:Bitmap = GameAsset.loader.getAsset(name) as Bitmap;
+				ratio = this._height / imgSrc.height;
+				mx = new Matrix();
+				mx.scale(ratio, ratio);
+				mx.translate((this._width - imgSrc.width * this._height / imgSrc.height) * 0.5, 0);
+				bmpDes.lock();
+				bmpDes.draw(imgSrc.bitmapData, mx);
+				bmpDes.unlock();
+			}
 		}
 		
 		public function get signal():JSignal
@@ -266,6 +282,12 @@ package com.pj.macross.asset
 				return this._bmpIdleAttack;
 			case IMG_HOSTAGE: 
 				return this._bmpHostageList[int(Math.random() * this._bmpHostageList.length)].bmp as BitmapData;
+			case IMG_HOSTAGE_BG_0: 
+				return this._bmpHostageBg0;
+			case IMG_HOSTAGE_BG_1: 
+				return this._bmpHostageBg1;
+			case IMG_HOSTAGE_BG_2: 
+				return this._bmpHostageBg2;
 			case IMG_OBSTACLE: 
 				return this._bmpIdleObstacle;
 			default: 

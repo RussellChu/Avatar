@@ -17,7 +17,8 @@ package com.pj.macross
 		static public const STATE_ROAD_EX:int = 3;
 		static public const STATE_OBSTACLE:int = 4;
 		static public const STATE_HOSTAGE:int = 5;
-		static public const STATE_ATTACK:int = 6;
+		static public const STATE_HOSTAGE_BG:int = 6;
+		static public const STATE_ATTACK:int = 7;
 		
 		static public const COMMAND_NONE:int = 0;
 		static public const COMMAND_ROAD:int = 1;
