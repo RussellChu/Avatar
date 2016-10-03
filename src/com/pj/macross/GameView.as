@@ -40,6 +40,7 @@ package com.pj.macross
 }
 
 import com.pj.common.Helper;
+import com.pj.common.component.BasicContainer;
 import com.pj.common.component.BasicImage;
 import com.pj.common.component.BasicObject;
 import com.pj.macross.GameAsset;
@@ -175,6 +176,7 @@ class SkinStore
 			return item;
 		}
 		
+		var addFold:Boolean = false;
 		var assetKey:String = "";
 		var bmp:BitmapData = null;
 		var img:Bitmap = null;
@@ -216,18 +218,31 @@ class SkinStore
 			assetKey = GameAsset.KEY_CELL_DOWN;
 			break;
 		case TYPE_ROAD_EX_0: 
+			addFold = true;
+			assetKey = GameAsset.KEY_CELL_ROAD_A;
+			break;
 		case TYPE_ROAD_EX_1: 
+			addFold = true;
+			assetKey = GameAsset.KEY_CELL_ROAD_B;
+			break;
 		case TYPE_ROAD_EX_2: 
-			item = GameAsset.loader.getAsset(GameAsset.KEY_FOLD_MC) as BasicObject;
+			addFold = true;
+			assetKey = GameAsset.KEY_CELL_ROAD_C;
 			break;
 		case TYPE_HOSTAGE_0: 
 			item = GameAsset.loader.getAsset(GameAsset.getHostageKeyById(0, GameData.SIDE_A)) as BasicObject;
+			item.instance.scaleX = 0.5;
+			item.instance.scaleY = 0.5;
 			break;
 		case TYPE_HOSTAGE_1: 
 			item = GameAsset.loader.getAsset(GameAsset.getHostageKeyById(0, GameData.SIDE_B)) as BasicObject;
+			item.instance.scaleX = 0.5;
+			item.instance.scaleY = 0.5;
 			break;
 		case TYPE_HOSTAGE_2: 
 			item = GameAsset.loader.getAsset(GameAsset.getHostageKeyById(0, GameData.SIDE_C)) as BasicObject;
+			item.instance.scaleX = 0.5;
+			item.instance.scaleY = 0.5;
 			break;
 		case TYPE_HOSTAGE_BG_0: 
 		case TYPE_HOSTAGE_BG_1: 
@@ -245,6 +260,17 @@ class SkinStore
 			img.y = -img.height * 0.5;
 			sp.addChild(img);
 			item = new BasicObject(sp);
+		}
+		
+		if (addFold) {
+			var bg:BasicObject = item;
+			var container:BasicContainer = new BasicContainer();
+			var fold:BasicObject = GameAsset.loader.getAsset(GameAsset.KEY_FOLD_MC) as BasicObject;
+			fold.instance.scaleX = 0.5;
+			fold.instance.scaleY = 0.5;
+			container.addChild(bg);
+			container.addChild(fold);
+			item = container;
 		}
 		
 		return item;
