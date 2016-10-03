@@ -2,7 +2,6 @@ package com.pj
 {
 	import com.pj.common.Helper;
 	import com.pj.common.JColor;
-	import com.pj.common.JSignal;
 	import com.pj.common.component.BasicContainer;
 	import com.pj.common.component.JBackground;
 	import com.pj.common.component.Slider;
@@ -10,11 +9,11 @@ package com.pj
 	import com.pj.macross.GameConfig;
 	import com.pj.macross.GameData;
 	import com.pj.macross.GameModel;
+	import com.pj.macross.GameView;
 	import com.pj.macross.asset.CellSkin;
 	import com.pj.macross.structure.MapCell;
 	import flash.display.Bitmap;
 	import flash.display.Sprite;
-	import flash.events.Event;
 	import flash.text.TextField;
 	import flash.text.TextFieldAutoSize;
 	
@@ -54,8 +53,6 @@ package com.pj
 			super.init();
 			GameAsset.loader.signal.add(this.onAssetLoaded);
 			GameAsset.loader.load();
-			
-			JTimerCtrl.setStage(this.instance.stage);
 		}
 		
 		override public function reset():void
@@ -65,54 +62,60 @@ package com.pj
 		
 		override public function resize(p_width:int, p_height:int):void
 		{
-			this._bg.resize(p_width, p_height);
-			this._slider.resize(p_width, p_height);
-			var totalWidth:int = (GameConfig.MAP_RADIUS * 6 - 3) * GameConfig.CELL_RADIUS_MAP;
-			var posX:int = (p_width - totalWidth) * 0.5;
-			var posY:int = (p_height - totalWidth) * 0.5;
-			if (posX < 0)
-			{
-				posX = 0;
-			}
-			if (posY < 0)
-			{
-				posY = 0;
-			}
-			this._map.instance.x = posX;
-			this._map.instance.y = posY;
+			//this._bg.resize(p_width, p_height);
+			//this._slider.resize(p_width, p_height);
+			//var totalWidth:int = (GameConfig.MAP_RADIUS * 6 - 3) * GameConfig.CELL_RADIUS_MAP;
+			//var posX:int = (p_width - totalWidth) * 0.5;
+			//var posY:int = (p_height - totalWidth) * 0.5;
+			//if (posX < 0)
+			//{
+				//posX = 0;
+			//}
+			//if (posY < 0)
+			//{
+				//posY = 0;
+			//}
+			//this._map.instance.x = posX;
+			//this._map.instance.y = posY;
 		}
 		
 		private function onAssetLoaded(p_result:Object):void
 		{
 			this._model = new GameModel();
+			var a:GameView = new GameView();
+			this.container.addChild(a.instance);
 			
-			this._bg = new JBackground((GameAsset.loader.getAsset("galaxy") as Bitmap).bitmapData);
-			this._bg.resize(this.instance.stage.stageWidth, this.instance.stage.stageHeight);
-			this.addChild(this._bg);
+			a.createMap(this._model.getCellList());
 			
-			var totalWidth:int = (GameConfig.MAP_RADIUS * 6 - 3) * GameConfig.CELL_RADIUS_MAP;
-			this._slider = new Slider(this, this.instance.stage.stageWidth, this.instance.stage.stageHeight, totalWidth, totalWidth);
-			
-			this._map = new ButtonHexagonGroup(this._slider);
-			this._map.createMap(this._model.getCellList());
-			this._map.signal.add(this.onMapSignal);
-			
-			this._command = new CommandGroup(this);
-			this._command.setScore(GameData.SIDE_A, this._model.getScore(GameData.SIDE_A));
-			this._command.setScore(GameData.SIDE_B, this._model.getScore(GameData.SIDE_B));
-			this._command.setScore(GameData.SIDE_C, this._model.getScore(GameData.SIDE_C));
-			this._command.signal.add(this.onCommand);
-			
-			var cellSkin:CellSkin = GameAsset.loader.getAsset(GameConfig.ASSET_KEY_CMD_CELL) as CellSkin;
-			this._msg = new TextField();
-			this._msg.x = cellSkin.width * 3;
-			this._msg.mouseEnabled = false;
-			this._msg.alpha = 0.5;
-			this._msg.background = true;
-			this._msg.backgroundColor = new JColor(1, 1, 1, 1).value;
-			this._msg.autoSize = TextFieldAutoSize.LEFT;
-			this.container.addChild(this._msg);
-			this.setMsg("");
+			//this._model = new GameModel();
+			//
+			//this._bg = new JBackground((GameAsset.loader.getAsset("galaxy") as Bitmap).bitmapData);
+			//this._bg.resize(this.instance.stage.stageWidth, this.instance.stage.stageHeight);
+			//this.addChild(this._bg);
+			//
+			//var totalWidth:int = (GameConfig.MAP_RADIUS * 6 - 3) * GameConfig.CELL_RADIUS_MAP;
+			//this._slider = new Slider(this, this.instance.stage.stageWidth, this.instance.stage.stageHeight, totalWidth, totalWidth);
+			//
+			//this._map = new ButtonHexagonGroup(this._slider);
+			//this._map.createMap(this._model.getCellList());
+			//this._map.signal.add(this.onMapSignal);
+			//
+			//this._command = new CommandGroup(this);
+			//this._command.setScore(GameData.SIDE_A, this._model.getScore(GameData.SIDE_A));
+			//this._command.setScore(GameData.SIDE_B, this._model.getScore(GameData.SIDE_B));
+			//this._command.setScore(GameData.SIDE_C, this._model.getScore(GameData.SIDE_C));
+			//this._command.signal.add(this.onCommand);
+			//
+			//var cellSkin:CellSkin = GameAsset.loader.getAsset(GameConfig.ASSET_KEY_CMD_CELL) as CellSkin;
+			//this._msg = new TextField();
+			//this._msg.x = cellSkin.width * 3;
+			//this._msg.mouseEnabled = false;
+			//this._msg.alpha = 0.5;
+			//this._msg.background = true;
+			//this._msg.backgroundColor = new JColor(1, 1, 1, 1).value;
+			//this._msg.autoSize = TextFieldAutoSize.LEFT;
+			//this.container.addChild(this._msg);
+			//this.setMsg("");
 		}
 		
 		private function onCommand(p_result:Object):void
@@ -227,6 +230,7 @@ package com.pj
 
 import com.pj.common.Helper;
 import com.pj.common.JColor;
+import com.pj.common.JTimer;
 import com.pj.common.component.AbstractButton;
 import com.pj.common.component.BasicButton;
 import com.pj.common.component.BasicContainer;
@@ -243,148 +247,7 @@ import flash.display.Bitmap;
 import flash.display.BitmapData;
 import flash.display.DisplayObject;
 import flash.display.Sprite;
-import flash.display.Stage;
-import flash.events.Event;
-import flash.events.TimerEvent;
 import flash.text.TextFormat;
-import flash.utils.Timer;
-import flash.utils.setTimeout;
-
-class JTimerCtrl
-{
-	static private var __inst:JTimerCtrl = null;
-	private var _list:Vector.<JTimer> = null;
-	private var _timer:Timer = null;
-	private var _count:int = 0;
-	
-	static public function add(p_timer:JTimer):int
-	{
-		if (!__inst)
-		{
-			__inst = new JTimerCtrl();
-		}
-		__inst._list.push(p_timer);
-		return __inst._list.length;
-	}
-	
-	static public function setStage(p_stage:Stage):void {
-		if (!__inst)
-		{
-			__inst = new JTimerCtrl();
-		}
-		//	p_stage.addEventListener(Event.ENTER_FRAME, __inst.onTime);
-	}
-	
-	public function JTimerCtrl()
-	{
-		this._list = new Vector.<JTimer>();
-		this._timer = new Timer(20);
-		this._timer.addEventListener(TimerEvent.TIMER, this.onTime);
-	//	this.loop();
-		this._timer.start();
-	}
-	
-	private function onTime(p_evt:Event):void
-	{
-		if (this._list.length == 0)
-		{
-			return;
-		}
-		
-		var a:Number = new Date().time;
-		var count:int = 0;
-		var id:int = -1;
-		var timer:JTimer = null;
-		while (a == new Date().time)
-		{
-			timer = this._list.shift();
-			if (timer.isDisposed())
-			{
-				if (this._list.length == 0)
-				{
-					return;
-				}
-				timer = null;
-				continue;
-			}
-			if (id == -1)
-			{
-				id = timer.id;
-			}
-			else
-			{
-				if (id == timer.id)
-				{
-					this._list.push(timer);
-					break;
-				}
-			}
-			if (!timer.state())
-			{
-				this._list.push(timer);
-				timer = null;
-				continue;
-			}
-			timer.run();
-			this._list.push(timer);
-			count++;
-		}
-		trace(count);
-	}
-}
-
-class JTimer
-{
-	private var _dispose:Boolean = false;
-	private var _func:Function;
-	private var _id:int = 0;
-	private var _run:Boolean = false;
-	private var _time:Number = 0;
-	
-	public function JTimer(p_func:Function)
-	{
-		this._func = p_func;
-		this._id = JTimerCtrl.add(this);
-	}
-	
-	public function get id():int
-	{
-		return this._id;
-	}
-	
-	public function dispose():void
-	{
-		this._dispose = true;
-	}
-	
-	public function isDisposed():Boolean
-	{
-		return this._dispose;
-	}
-	
-	public function run():void
-	{
-		var currTime:Number = new Date().time;
-		this._func(currTime - this._time);
-		this._time = currTime;
-	}
-	
-	public function start():void
-	{
-		this._time = new Date().time;
-		this._run = true;
-	}
-	
-	public function state():Boolean
-	{
-		return this._run;
-	}
-	
-	public function stop():void
-	{
-		this._run = false;
-	}
-}
 
 class ButtonHexagonFace extends BasicSkin
 {

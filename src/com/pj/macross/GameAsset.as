@@ -10,6 +10,38 @@ package com.pj.macross
 	 */
 	public class GameAsset
 	{
+		static public const KEY_S01:String = "s01";
+		static public const KEY_S02:String = "s02";
+		static public const KEY_S03:String = "s03";
+		static public const KEY_S04:String = "s04";
+		static public const KEY_S05:String = "s05";
+		static public const KEY_S06:String = "s06";
+		static public const KEY_S07:String = "s07";
+		static public const KEY_S08:String = "s08";
+		static public const KEY_GALAXY:String = "galaxy";
+		static public const KEY_FOLD:String = "fold";
+		static public const KEY_FOLD_MC:String = "foldMc";
+		static public const KEY_TRI_A:String = "triA";
+		static public const KEY_TRI_B:String = "triB";
+		static public const KEY_TRI_C:String = "triC";
+		static public const KEY_CELL_BLANK:String = "KEY_CELL_BLANK";
+		static public const KEY_CELL_DOWN:String = "KEY_CELL_DOWN";
+		static public const KEY_CELL_OVER:String = "KEY_CELL_OVER";
+		static public const KEY_CELL_BASE_A:String = "KEY_CELL_BASE_A";
+		static public const KEY_CELL_BASE_B:String = "KEY_CELL_BASE_B";
+		static public const KEY_CELL_BASE_C:String = "KEY_CELL_BASE_C";
+		static public const KEY_CELL_OBSTACLE:String = "KEY_CELL_OBSTACLE";
+		static public const KEY_CELL_ROAD_A:String = "KEY_CELL_ROAD_A";
+		static public const KEY_CELL_ROAD_B:String = "KEY_CELL_ROAD_B";
+		static public const KEY_CELL_ROAD_C:String = "KEY_CELL_ROAD_C";
+		static public const KEY_CELL_ATTACK:String = "KEY_CELL_ATTACK";
+		//static public const KEY_CELL_HOSTAGE_01_A:String = "KEY_CELL_HOSTAGE_01_A";
+		//static public const KEY_CELL_HOSTAGE_01_B:String = "KEY_CELL_HOSTAGE_01_B";
+		//static public const KEY_CELL_HOSTAGE_01_C:String = "KEY_CELL_HOSTAGE_01_C";
+		//static public const KEY_CELL_HOSTAGE_02_A:String = "KEY_CELL_HOSTAGE_02_A";
+		//static public const KEY_CELL_HOSTAGE_02_B:String = "KEY_CELL_HOSTAGE_02_B";
+		//static public const KEY_CELL_HOSTAGE_02_C:String = "KEY_CELL_HOSTAGE_02_C";
+		
 		[Embed(source = "/../bin/assets/s01.png")]
 		static private var BMP_S01:Class;
 		[Embed(source = "/../bin/assets/s02.png")]
@@ -33,27 +65,63 @@ package com.pj.macross
 		
 		static private var __loader:AssetLoader = null;
 		
+		static public function getHostageKeyById(p_id:int, p_side:int):String
+		{
+			var list:Array = [KEY_S01, KEY_S02, KEY_S03, KEY_S04, KEY_S05, KEY_S06, KEY_S07, KEY_S08];
+			return getHostageKey(list[p_id], p_side);
+		}
+		
+		static private function getHostageKey(p_key:String, p_side:int):String
+		{
+			return "KEY_CELL_HOSTAGE_" + p_key + "_" + p_side;
+		}
+		
 		static public function get loader():AssetLoader
 		{
 			if (!__loader)
 			{
 				__loader = new AssetLoader();
-				__loader.addObject("s01", new BMP_S01());
-				__loader.addObject("s02", new BMP_S02());
-				__loader.addObject("s03", new BMP_S03());
-				__loader.addObject("s04", new BMP_S04());
-				__loader.addObject("s05", new BMP_S05());
-				__loader.addObject("s06", new BMP_S06());
-				__loader.addObject("s07", new BMP_S07());
-				__loader.addObject("s08", new BMP_S08());
-				//	__loader.addObject("fold", new BMP_FOLD());
-				__loader.addCreate("galaxy", new Galaxy());
-				//	__loader.addObject("galaxySrc", new BMP_GALAXY_03());
-				//	__loader.addCreate("galaxyDes", new GalaxyTest01());
-				__loader.addCreate("fold", new Fold());
-				__loader.addCreate("triA", new HostageTriangle(new JColor(1, 0.411, 0.411, 1)));
-				__loader.addCreate("triB", new HostageTriangle(new JColor(0, 1, 0, 1)));
-				__loader.addCreate("triC", new HostageTriangle(new JColor(0.534, 0.534, 1, 1)));
+				__loader.addObject(KEY_S01, new BMP_S01());
+				__loader.addObject(KEY_S02, new BMP_S02());
+				__loader.addObject(KEY_S03, new BMP_S03());
+				__loader.addObject(KEY_S04, new BMP_S04());
+				__loader.addObject(KEY_S05, new BMP_S05());
+				__loader.addObject(KEY_S06, new BMP_S06());
+				__loader.addObject(KEY_S07, new BMP_S07());
+				__loader.addObject(KEY_S08, new BMP_S08());
+				__loader.addCreate(KEY_GALAXY, new Galaxy());
+				__loader.addCreate(KEY_FOLD, new Fold());
+				__loader.addShared(KEY_FOLD_MC, FoldMc);
+				__loader.addCreate(KEY_TRI_A, new HostageTriangle(new JColor(1, 0.411, 0.411, 1)));
+				__loader.addCreate(KEY_TRI_B, new HostageTriangle(new JColor(0, 1, 0, 1)));
+				__loader.addCreate(KEY_TRI_C, new HostageTriangle(new JColor(0.534, 0.534, 1, 1)));
+				__loader.addShared(KEY_FOLD_MC, FoldMc);
+				
+				var sideList:Array = [GameData.SIDE_A, GameData.SIDE_B, GameData.SIDE_C];
+				var keyList:Array = [KEY_S01, KEY_S02, KEY_S03, KEY_S04, KEY_S05, KEY_S06, KEY_S07, KEY_S08];
+				for (var i:int = 0; i < sideList.length; i++)
+				{
+					for (var j:int = 0; j < keyList.length; j++)
+					{
+						var key:String = getHostageKey(keyList[j], sideList[i]);
+						__loader.addShared(key, Hostage, {key: keyList[j], side: sideList[i]});
+					}
+				}
+				
+				var width:int = GameConfig.CELL_RADIUS_MAP * 2 + 0.5;
+				var height:int = GameConfig.CELL_RADIUS_MAP * 1.732 + 0.5;
+				__loader.addCreate(KEY_CELL_BLANK, new CellImage(CellImage.TYPE_BASE, width, height, GameConfig.CELL_SIDE_MAP, new JColor(0.5, 0.5, 0.5, 0.5).value));
+				__loader.addCreate(KEY_CELL_DOWN, new CellImage(CellImage.TYPE_BASE, width, height, GameConfig.CELL_SIDE_MAP, new JColor(0, 1, 1, 0.5).value));
+				__loader.addCreate(KEY_CELL_OVER, new CellImage(CellImage.TYPE_BASE, width, height, GameConfig.CELL_SIDE_MAP, new JColor(1, 1, 0, 0.5).value));
+				__loader.addCreate(KEY_CELL_BASE_A, new CellImage(CellImage.TYPE_BASE, width, height, GameConfig.CELL_SIDE_MAP, new JColor(1, 0.411, 0.411, 1).value));
+				__loader.addCreate(KEY_CELL_BASE_B, new CellImage(CellImage.TYPE_BASE, width, height, GameConfig.CELL_SIDE_MAP, new JColor(0, 1, 0, 1).value));
+				__loader.addCreate(KEY_CELL_BASE_C, new CellImage(CellImage.TYPE_BASE, width, height, GameConfig.CELL_SIDE_MAP, new JColor(0.534, 0.534, 1, 1).value));
+				__loader.addCreate(KEY_CELL_OBSTACLE, new CellImage(CellImage.TYPE_BASE, width, height, GameConfig.CELL_SIDE_MAP, new JColor(0.286, 0.0485, 0, 0.5).value));
+				__loader.addCreate(KEY_CELL_ROAD_A, new CellImage(CellImage.TYPE_ROAD_A, width, height, GameConfig.CELL_SIDE_MAP, new JColor(1, 0, 0, 1).value));
+				__loader.addCreate(KEY_CELL_ROAD_B, new CellImage(CellImage.TYPE_ROAD_A, width, height, GameConfig.CELL_SIDE_MAP, new JColor(0, 0.509, 0, 1).value));
+				__loader.addCreate(KEY_CELL_ROAD_C, new CellImage(CellImage.TYPE_ROAD_A, width, height, GameConfig.CELL_SIDE_MAP, new JColor(0.209, 0.209, 1, 1).value));
+				__loader.addCreate(KEY_CELL_ATTACK, new CellImage(CellImage.TYPE_ROAD_B, width, height, GameConfig.CELL_SIDE_MAP, new JColor(0.967, 0.673, 0.9055, 0.5).value));
+				
 				__loader.addCreate(GameConfig.ASSET_KEY_MAP_CELL, new CellSkin(GameConfig.CELL_RADIUS_MAP * 2 + 0.5, GameConfig.CELL_RADIUS_MAP * 1.732 + 0.5, GameConfig.CELL_SIDE_MAP));
 				__loader.addCreate(GameConfig.ASSET_KEY_CMD_CELL, new CellSkin(GameConfig.CELL_RADIUS_CMD * 2 + 0.5, GameConfig.CELL_RADIUS_CMD * 1.732 + 0.5, GameConfig.CELL_SIDE_CMD));
 			}
@@ -69,15 +137,22 @@ package com.pj.macross
 }
 
 import com.adobe.images.PNGEncoder;
+import com.adobe.utils.NumberFormatter;
 import com.pj.common.Creater;
+import com.pj.common.Helper;
 import com.pj.common.ICreatable;
 import com.pj.common.JColor;
 import com.pj.common.JSignal;
+import com.pj.common.JTimer;
+import com.pj.common.component.BasicObject;
 import com.pj.common.component.JBmp;
+import com.pj.common.component.Quad;
 import com.pj.common.math.JMath;
 import com.pj.macross.GameAsset;
+import com.pj.macross.GameData;
 import flash.display.Bitmap;
 import flash.display.BitmapData;
+import flash.display.Sprite;
 import flash.filters.BitmapFilterQuality;
 import flash.filters.BlurFilter;
 import flash.geom.ColorTransform;
@@ -174,10 +249,66 @@ class Fold extends CreatableBitmap
 			}
 		}
 		bmp.unlock();
-		//var ba:ByteArray = PNGEncoder.encode(bmp);
-		//var fileReference:FileReference = new FileReference();
-		//fileReference.save(ba, "fold.png");
 	}
+}
+
+class FoldMc extends BasicObject
+{
+	private var _angle:Number = 0;
+	private var _sp:Sprite = null;
+	private var _timer:JTimer = null;
+	
+	public function FoldMc(p_data:Object)
+	{
+		super();
+	}
+	
+	override public function dispose():void
+	{
+		Helper.dispose(this._timer);
+		this._timer = null;
+		
+		super.dispose();
+	}
+	
+	override protected function init():void
+	{
+		super.init();
+		
+		var bmp:BitmapData = (GameAsset.loader.getAsset(GameAsset.KEY_FOLD) as Bitmap).bitmapData;
+		var img:Bitmap = new Bitmap(bmp);
+		img.x = -img.width * 0.5;
+		img.y = -img.height * 0.5;
+		
+		this._sp = new Sprite();
+		this._sp.addChild(img);
+		this.container.addChild(this._sp);
+		
+		this._timer = new JTimer(this.onTime);
+		this._timer.start();
+	}
+	
+	private function onTime(p_delta:Number):void
+	{
+		if (!this._sp)
+		{
+			return;
+		}
+		
+		this._angle += 0.0001 * p_delta;
+		if (this._angle > 1)
+		{
+			this._angle -= 1;
+		}
+		
+		this._sp.rotation = 360 * this._angle;
+	}
+	
+	private function get container():Sprite
+	{
+		return (this.instance as Sprite);
+	}
+
 }
 
 class HostageTriangle extends CreatableBitmap
@@ -254,9 +385,211 @@ class HostageTriangle extends CreatableBitmap
 			}
 		}
 		bmp.unlock();
-		//var ba:ByteArray = PNGEncoder.encode(bmp);
-		//var fileReference:FileReference = new FileReference();
-		//fileReference.save(ba, "tri.png");
+	}
+}
+
+class Hostage extends BasicObject
+{
+	private var _assetKey:String = "";
+	private var _side:int = 0;
+	private var _sp:Sprite = null;
+	
+	private var _angle:Number = 0;
+	private var _timer:JTimer = null;
+	
+	public function Hostage(p_data:Object)
+	{
+		this._assetKey = p_data.key;
+		this._side = p_data.side;
+		super();
+	}
+	
+	override public function dispose():void
+	{
+		Helper.dispose(this._timer);
+		this._sp = null;
+		this._timer = null;
+		
+		super.dispose();
+	}
+	
+	override protected function init():void
+	{
+		super.init();
+		
+		var bmpTri:BitmapData = null;
+		switch (this._side)
+		{
+		case GameData.SIDE_A: 
+			bmpTri = (GameAsset.loader.getAsset(GameAsset.KEY_TRI_A) as Bitmap).bitmapData;
+			break;
+		case GameData.SIDE_B: 
+			bmpTri = (GameAsset.loader.getAsset(GameAsset.KEY_TRI_B) as Bitmap).bitmapData;
+			break;
+		case GameData.SIDE_C: 
+			bmpTri = (GameAsset.loader.getAsset(GameAsset.KEY_TRI_C) as Bitmap).bitmapData;
+			break;
+		}
+		var bmpMan:BitmapData = (GameAsset.loader.getAsset(this._assetKey) as Bitmap).bitmapData;
+		
+		var imgTri:Bitmap = new Bitmap(bmpTri);
+		this._sp = new Sprite();
+		this._sp.addChild(imgTri);
+		imgTri.x = -imgTri.width * 0.5;
+		imgTri.y = -imgTri.height * 0.5;
+		this._sp.y = imgTri.height * 0.2;
+		
+		var imgManA:Bitmap = new Bitmap(bmpMan);
+		imgManA.x = -imgManA.width * 0.5;
+		imgManA.y = -imgManA.height * 0.5;
+		var imgManB:Bitmap = new Bitmap(bmpMan);
+		imgManB.x = -imgManB.width * 0.5;
+		imgManB.y = -imgManB.height * 0.5;
+		
+		this.container.addChild(imgManA);
+		this.container.addChild(this._sp);
+		this.container.addChild(imgManB);
+		
+		var mask:Quad = new Quad(imgManA.width, imgManA.height * 0.3);
+		mask.instance.x = imgManA.x;
+		mask.instance.y = imgManA.y + imgManA.height * 0.7;
+		this.container.addChild(mask.instance);
+		imgManA.mask = mask.instance;
+		
+		mask = new Quad(imgManB.width, imgManB.height * 0.7);
+		mask.instance.x = imgManB.x;
+		mask.instance.y = imgManB.y;
+		this.container.addChild(mask.instance);
+		imgManB.mask = mask.instance;
+		
+		this._timer = new JTimer(this.onTime);
+		this._timer.start();
+	}
+	
+	private function onTime(p_delta:Number):void
+	{
+		if (!this._sp)
+		{
+			return;
+		}
+		
+		this._angle += 0.0001 * p_delta;
+		if (this._angle > 1)
+		{
+			this._angle -= 1;
+		}
+		
+		this._sp.rotation = 360 * this._angle;
+	}
+	
+	private function get container():Sprite
+	{
+		return (this.instance as Sprite);
+	}
+
+}
+
+class CellImage extends CreatableBitmap
+{
+	static public const TYPE_BASE:int = 1;
+	static public const TYPE_ROAD_A:int = 2;
+	static public const TYPE_ROAD_B:int = 3;
+	
+	private var _type:int = 0;
+	private var _width:int = 0;
+	private var _height:int = 0;
+	private var _margin:int = 0;
+	private var _color:uint = 0;
+	
+	public function CellImage(p_type:int, p_width:int, p_height:int, p_margin:int, p_color:uint)
+	{
+		this._type = p_type;
+		this._width = p_width;
+		this._height = p_height;
+		this._margin = p_margin;
+		this._color = p_color;
+		super(p_width, p_height, true, 0);
+	}
+	
+	override public function onCreate():void
+	{
+		var bmp:BitmapData = this.bitmapData;
+		bmp.lock();
+		
+		var v0:Number = 0;
+		var v1:Number = 0;
+		var v2:Number = 0;
+		var v3:Number = 0;
+		var v4:Number = 0;
+		
+		var funcHex:Function = function(p_d:Number):Boolean
+		{
+			var r:Number = p_d * _width * 4;
+			var b0:Boolean = (v0 > r);
+			var b1:Boolean = (v1 < -r);
+			var b2:Boolean = (v2 < -r);
+			var b3:Boolean = (v3 > r);
+			var b4:Boolean = v4 >= p_d && v4 < _height - p_d;
+			return b0 && b1 && b2 && b3 && b4;
+		}
+		
+		for (var i:int = 0; i < this._width; i++)
+		{
+			for (var j:int = 0; j < this._height; j++)
+			{
+				v0 = 4 * this._height * i + 2 * this._width * j - this._width * this._height;
+				v1 = -4 * this._height * i + 2 * this._width * j - this._width * this._height;
+				v2 = 4 * this._height * i + 2 * this._width * j - 5 * this._width * this._height;
+				v3 = -4 * this._height * i + 2 * this._width * j + 3 * this._width * this._height;
+				v4 = j;
+				
+				if (this._type == TYPE_BASE)
+				{
+					if (funcHex(this._margin))
+					{
+						bmp.setPixel32(i, j, this._color);
+					}
+				}
+				
+				var a:Number = 0;
+				var sum:int = 0;
+				if (this._type == TYPE_ROAD_A)
+				{
+					if (funcHex(this._height * 0.1875))
+					{
+						bmp.setPixel32(i, j, this._color);
+					}
+					
+					var k:int = 0;
+					var s:int = 6;
+					a = this._width * 0.1;
+					sum = 0;
+					for (k = 0; k < s; k++)
+					{
+						sum += ((Math.cos(Math.PI * (2 / s * k - 0.5)) * (i - this._width * 0.5) + Math.sin(Math.PI * (2 / s * k - 0.5)) * (j - this._height * 0.5) < a) ? 1 : 0);
+					}
+					if (sum == s - 1)
+					{
+						bmp.setPixel32(i, j, 0);
+					}
+				}
+				
+				if (this._type == TYPE_ROAD_B)
+				{
+					a = this._width * 0.2;
+					sum = 0;
+					for (k = 0; k < s; k++)
+					{
+						sum += ((Math.cos(Math.PI * (2 / s * k)) * (i - this._width * 0.5) + Math.sin(Math.PI * (2 / s * k)) * (j - this._height * 0.5) < a) ? 1 : 0);
+					}
+					if (sum == s - 1)
+					{
+						bmp.setPixel32(i, j, this._color);
+					}
+				}
+			}
+		}
+		bmp.unlock();
 	}
 }
 
@@ -368,61 +701,61 @@ class Galaxy extends CreatableBitmap
 	}
 }
 
-class GalaxyTest01 extends CreatableBitmap
-{
-	static private const FULL_WIDTH:int = 1280;
-	static private const FULL_HEIGHT:int = 720;
-	
-	public function GalaxyTest01()
-	{
-		super(FULL_WIDTH, FULL_HEIGHT, true, 0);
-	}
-	
-	override public function onCreate():void
-	{
-		var srcImg:Bitmap = GameAsset.loader.getAsset("galaxySrc") as Bitmap;
-		var srcBmp:BitmapData = srcImg.bitmapData;
-		var bmp:BitmapData = this.bitmapData;
-		bmp.lock();
-		var getColor:Function = function(p_x:int, p_y:int):JColor
-		{
-			if (p_x < 0 || p_x >= srcBmp.width || p_y < 0 || p_y >= srcBmp.height)
-			{
-				return new JColor(0, 0, 0, 0);
-			}
-			
-			var c:uint = srcBmp.getPixel32(p_x, p_y);
-			return JColor.createColorByHex(c);
-		}
-		
-		var s:Number = 0.49;
-		for (var x:int = 0; x < srcBmp.width; x++)
-		{
-			for (var y:int = 0; y < srcBmp.height; y++)
-			{
-				var c0:JColor = getColor(x - 1, y - 1);
-				var c1:JColor = getColor(x + 0, y - 1);
-				var c2:JColor = getColor(x + 1, y - 1);
-				var c3:JColor = getColor(x - 1, y + 0);
-				var c4:JColor = getColor(x + 0, y + 0);
-				var c5:JColor = getColor(x + 1, y + 0);
-				var c6:JColor = getColor(x - 1, y + 1);
-				var c7:JColor = getColor(x + 0, y + 1);
-				var c8:JColor = getColor(x + 1, y + 1);
-				var r:Number = (c0.r + c1.r + c2.r + c3.r + c5.r + c6.r + c7.r + c8.r - c4.r * 8 + 8) / 16;
-				var g:Number = (c0.g + c1.g + c2.g + c3.g + c5.g + c6.g + c7.g + c8.g - c4.g * 8 + 8) / 16;
-				var b:Number = (c0.b + c1.r + c2.b + c3.b + c5.b + c6.b + c7.b + c8.b - c4.b * 8 + 8) / 16;
-				var a:Number = (c0.a + c1.a + c2.a + c3.a + c5.a + c6.a + c7.a + c8.a - c4.a * 8 + 8) / 16;
-				r = JMath.bound((r - 0.5) / (1 - s * 2) + 0.5, 0, 1);
-				g = JMath.bound((g - 0.5) / (1 - s * 2) + 0.5, 0, 1);
-				b = JMath.bound((b - 0.5) / (1 - s * 2) + 0.5, 0, 1);
-				a = JMath.bound((a - 0.5) / (1 - s * 2) + 0.5, 0, 1);
-				bmp.setPixel32(x, y, JColor.setRGBA(r, g, b, a));
-			}
-		}
-		bmp.unlock();
-		var ba:ByteArray = PNGEncoder.encode(bmp);
-		var fileReference:FileReference = new FileReference();
-		fileReference.save(ba, "tg.png");
-	}
-}
+//class GalaxyTest01 extends CreatableBitmap
+//{
+//static private const FULL_WIDTH:int = 1280;
+//static private const FULL_HEIGHT:int = 720;
+//
+//public function GalaxyTest01()
+//{
+//super(FULL_WIDTH, FULL_HEIGHT, true, 0);
+//}
+//
+//override public function onCreate():void
+//{
+//var srcImg:Bitmap = GameAsset.loader.getAsset("galaxySrc") as Bitmap;
+//var srcBmp:BitmapData = srcImg.bitmapData;
+//var bmp:BitmapData = this.bitmapData;
+//bmp.lock();
+//var getColor:Function = function(p_x:int, p_y:int):JColor
+//{
+//if (p_x < 0 || p_x >= srcBmp.width || p_y < 0 || p_y >= srcBmp.height)
+//{
+//return new JColor(0, 0, 0, 0);
+//}
+//
+//var c:uint = srcBmp.getPixel32(p_x, p_y);
+//return JColor.createColorByHex(c);
+//}
+//
+//var s:Number = 0.49;
+//for (var x:int = 0; x < srcBmp.width; x++)
+//{
+//for (var y:int = 0; y < srcBmp.height; y++)
+//{
+//var c0:JColor = getColor(x - 1, y - 1);
+//var c1:JColor = getColor(x + 0, y - 1);
+//var c2:JColor = getColor(x + 1, y - 1);
+//var c3:JColor = getColor(x - 1, y + 0);
+//var c4:JColor = getColor(x + 0, y + 0);
+//var c5:JColor = getColor(x + 1, y + 0);
+//var c6:JColor = getColor(x - 1, y + 1);
+//var c7:JColor = getColor(x + 0, y + 1);
+//var c8:JColor = getColor(x + 1, y + 1);
+//var r:Number = (c0.r + c1.r + c2.r + c3.r + c5.r + c6.r + c7.r + c8.r - c4.r * 8 + 8) / 16;
+//var g:Number = (c0.g + c1.g + c2.g + c3.g + c5.g + c6.g + c7.g + c8.g - c4.g * 8 + 8) / 16;
+//var b:Number = (c0.b + c1.r + c2.b + c3.b + c5.b + c6.b + c7.b + c8.b - c4.b * 8 + 8) / 16;
+//var a:Number = (c0.a + c1.a + c2.a + c3.a + c5.a + c6.a + c7.a + c8.a - c4.a * 8 + 8) / 16;
+//r = JMath.bound((r - 0.5) / (1 - s * 2) + 0.5, 0, 1);
+//g = JMath.bound((g - 0.5) / (1 - s * 2) + 0.5, 0, 1);
+//b = JMath.bound((b - 0.5) / (1 - s * 2) + 0.5, 0, 1);
+//a = JMath.bound((a - 0.5) / (1 - s * 2) + 0.5, 0, 1);
+//bmp.setPixel32(x, y, JColor.setRGBA(r, g, b, a));
+//}
+//}
+//bmp.unlock();
+//var ba:ByteArray = PNGEncoder.encode(bmp);
+//var fileReference:FileReference = new FileReference();
+//fileReference.save(ba, "tg.png");
+//}
+//}

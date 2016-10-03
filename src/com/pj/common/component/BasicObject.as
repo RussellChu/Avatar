@@ -47,16 +47,22 @@ package com.pj.common.component
 		
 		protected function init():void
 		{
-			this._signal = new JSignal();
+			;
 		}
 		
 		public function clear():void
 		{
+			if (!this._signal) {
+				return;
+			}
 			this._signal.clear();
 		}
 		
 		public function reset():void
 		{
+			if (!this._signal) {
+				return;
+			}
 			this._signal.reset();
 		}
 		
@@ -67,6 +73,9 @@ package com.pj.common.component
 		
 		public function get signal():JSignal
 		{
+			if (!this._signal) {
+				this._signal = new JSignal();
+			}
 			return this._signal;
 		}
 	

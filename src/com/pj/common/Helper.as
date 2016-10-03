@@ -91,6 +91,12 @@ package com.pj.common
 			}
 		}
 		
+		static public function hasValue(p_obj:Object, p_key:String):Boolean {
+			if (!p_obj) {return false;}
+			if (!p_obj.hasOwnProperty(p_key)) {return false;}
+			return true;
+		}
+		
 		static public function hasValueBoolean(p_obj:Object, p_key:String):Boolean {
 			if (!p_obj) {return false;}
 			if (!p_obj.hasOwnProperty(p_key)) {return false;}

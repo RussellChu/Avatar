@@ -39,11 +39,11 @@ package com.pj.common.component
 		override protected function init():void
 		{
 			super.init();
-			this.container.addEventListener(MouseEvent.CLICK, this.onMouseClick);
-			this.container.addEventListener(MouseEvent.MOUSE_DOWN, this.onMouseDown);
-			this.container.addEventListener(MouseEvent.MOUSE_OVER, this.onMouseOver);
-			this.container.addEventListener(MouseEvent.MOUSE_UP, this.onMouseUp);
-			this.container.addEventListener(MouseEvent.ROLL_OUT, this.onMouseRollOut);
+			//this.container.addEventListener(MouseEvent.CLICK, this.onMouseClick);
+			//this.container.addEventListener(MouseEvent.MOUSE_DOWN, this.onMouseDown);
+			//this.container.addEventListener(MouseEvent.MOUSE_OVER, this.onMouseOver);
+			//this.container.addEventListener(MouseEvent.MOUSE_UP, this.onMouseUp);
+			//this.container.addEventListener(MouseEvent.ROLL_OUT, this.onMouseRollOut);
 		}
 		
 		override public function clear():void

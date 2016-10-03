@@ -28,6 +28,7 @@ package com.pj.common
 		private var _loader:Loader = null;
 		private var _registerList:Array = null;
 		private var _registerMap:Object = null;
+		private var _sharedMap:Object = null;
 		private var _signal:JSignal = null;
 		
 		public function AssetLoader()
@@ -37,6 +38,7 @@ package com.pj.common
 			this._registerList = [];
 			this._registerMap = {};
 			this._signal = new JSignal();
+			this._sharedMap = {};
 		}
 		
 		public function dispose():void
@@ -53,6 +55,7 @@ package com.pj.common
 			this._registerList = null;
 			this._registerMap = null;
 			this._signal = null;
+			this._sharedMap = null;
 		}
 		
 		public function add(p_key:String, p_path:String):Boolean
@@ -94,8 +97,25 @@ package com.pj.common
 			return true;
 		}
 		
+		public function addShared(p_key:String, p_cls:Class, p_data:Object =  null):Boolean {
+			if (this._registerMap[p_key])
+			{
+				return false;
+			}
+			
+			this._registerMap[p_key] = true;
+			this._sharedMap[p_key] = {cls:p_cls, data:p_data};
+			return true;
+		}
+		
 		public function getAsset(p_key:String):Object
 		{
+			if (this._sharedMap[p_key]) {
+				var cls:Class = this._sharedMap[p_key].cls as Class;
+				var data:Object = this._sharedMap[p_key].data;
+				return new cls(data);
+			}
+			
 			return this._assetMap[p_key];
 		}
 		
