@@ -1,11 +1,9 @@
 package com.pj.macross
 {
 	import com.pj.common.component.BasicContainer;
-	import com.pj.common.component.BasicObject;
 	import com.pj.common.component.JBackground;
 	import com.pj.common.component.Slider;
 	import flash.display.Bitmap;
-	import flash.display.Sprite;
 	
 	/**
 	 * ...
@@ -70,6 +68,19 @@ package com.pj.macross
 		{
 			this._bg.resize(p_width, p_height);
 			this._slider.resize(p_width, p_height);
+			
+			var posX:int = (p_width - this._map.width) * 0.5;
+			var posY:int = (p_height - this._map.height) * 0.5;
+			if (posX < 0)
+			{
+				posX = 0;
+			}
+			if (posY < 0)
+			{
+				posY = 0;
+			}
+			this._map.instance.x = posX;
+			this._map.instance.y = posY;
 		}
 		
 		private function onMapClick(p_result:Object):void

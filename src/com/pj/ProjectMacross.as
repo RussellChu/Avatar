@@ -23,16 +23,16 @@ package com.pj
 	 */
 	public class ProjectMacross extends BasicContainer
 	{
-		private var _bg:JBackground = null;
-		private var _command:CommandGroup = null;
-		private var _map:ButtonHexagonGroup = null;
-		private var _msg:TextField = null;
-		private var _model:GameModel = null;
-		private var _slider:Slider = null;
+	//	private var _bg:JBackground = null;
+	//	private var _command:CommandGroup = null;
+	//	private var _map:ButtonHexagonGroup = null;
+	//	private var _msg:TextField = null;
+	//	private var _slider:Slider = null;
 		
 		private var _assetReady:Boolean = false;
 		private var _width:int = 0;
 		private var _height:int = 0;
+		private var _model:GameModel = null;
 		private var _view:GameView = null;
 		
 		public function ProjectMacross(p_inst:Sprite = null)
@@ -42,14 +42,14 @@ package com.pj
 		
 		override public function dispose():void
 		{
-			Helper.dispose(this._bg);
-			Helper.dispose(this._map);
-			Helper.dispose(this._model);
-			Helper.dispose(this._slider);
-			this._bg = null;
-			this._map = null;
-			this._model = null;
-			this._slider = null;
+			//Helper.dispose(this._bg);
+			//Helper.dispose(this._map);
+			//Helper.dispose(this._model);
+			//Helper.dispose(this._slider);
+			//this._bg = null;
+			//this._map = null;
+			//this._model = null;
+			//this._slider = null;
 			super.dispose();
 		}
 		
@@ -166,7 +166,7 @@ package com.pj
 			//this.container.addChild(this._msg);
 			//this.setMsg("");
 		}
-		
+		/*
 		private function onCommand(p_result:Object):void
 		{
 			if (!p_result)
@@ -273,10 +273,10 @@ package com.pj
 				//this.updateMovable(command, side);
 			//}
 		}
-	
+	*/
 	}
 }
-
+/*
 import com.pj.common.Helper;
 import com.pj.common.JColor;
 import com.pj.common.JTimer;
@@ -1214,3 +1214,4 @@ class ButtonHexagonGroup extends BasicContainer
 	}
 
 }
+*/
