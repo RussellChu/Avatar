@@ -3,6 +3,7 @@ package
 	import com.pj.ProjectFlash3D;
 	import com.pj.ProjectMacross;
 	import com.pj.ProjectMP4;
+	import com.pj.ProjectTest;
 	import com.pj.ProjectWorld;
 	import com.pj.common.component.BasicContainer;
 	import flash.display.Sprite;
@@ -43,6 +44,7 @@ package
 		
 		private function init():void
 		{
+		//	this._project = new ProjectTest(this);
 			this._project = new ProjectMacross(this);
 			this.stage.addEventListener(Event.RESIZE, this.onResize);
 		}
@@ -56,9 +58,10 @@ package
 			
 			this._init = true;
 			this.init();
-			
 			this.stage.removeEventListener(Event.ACTIVATE, this.onLoad);
 			this.stage.removeEventListener(Event.ENTER_FRAME, this.onLoad);
+			
+			this._project.resize(this.stage.stageWidth, this.stage.stageHeight);
 		}
 		
 		private function onResize(p_evt:Event):void

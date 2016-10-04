@@ -1,15 +1,27 @@
 package com.pj.macross
 {
+	import com.pj.common.component.BasicContainer;
 	import com.pj.common.component.BasicObject;
+	import com.pj.common.component.JBackground;
+	import com.pj.common.component.Slider;
+	import flash.display.Bitmap;
 	import flash.display.Sprite;
 	
 	/**
 	 * ...
 	 * @author Russell
 	 */
-	public class GameView extends BasicObject
+	public class GameView extends BasicContainer
 	{
+		static public const EVENT_CMD_CLICK:String = "EVENT_CMD_CLICK";
+		static public const EVENT_MAP_CLICK:String = "EVENT_MAP_CLICK";
+		
+		private var _bg:JBackground = null;
 		private var _map:GameMap = null;
+		private var _slider:Slider = null;
+		
+		private var _cmdSide:int = 0;
+		private var _cmdCode:int = 0;
 		
 		public function GameView()
 		{
@@ -20,26 +32,84 @@ package com.pj.macross
 		{
 			super.init();
 			
+			this._bg = new JBackground((GameAsset.loader.getAsset(GameAsset.KEY_GALAXY) as Bitmap).bitmapData);
+			this.addChild(this._bg);
+			
 			var store:SkinStore = new SkinStore();
 			this._map = new GameMap(store);
-			this.container.addChild(this._map.instance);
+			
+			this._map.signal.add(this.onMapClick, GameMap.ACTION_CLICK);
 		}
 		
 		public function createMap(p_list:Array):void
 		{
 			this._map.create(p_list);
+			
+			this._slider = new Slider(this, 0, 0, this._map.width, this._map.height);
+			this._slider.addChild(this._map);
+			this.addChild(this._slider);
 		}
 		
-		private function get container():Sprite
+		public function flashMap(p_side:int, p_state:int, p_list:Array):void
 		{
-			return (this.instance as Sprite);
+			this._map.clearCellFlash();
+			for (var i:int = 0; i < p_list.length; i++)
+			{
+				var id:String = String(p_list[i]);
+				this._map.setCellFlash(id, p_side, p_state);
+			}
+		}
+		
+		public function updateMap(p_id:String, p_side:int, p_state:int):void
+		{
+			this._map.setCell(p_id, p_side, p_state);
+			this.signal.dispatch({side: this._cmdSide, command: this._cmdCode}, EVENT_CMD_CLICK);
+		}
+		
+		override public function resize(p_width:int, p_height:int):void
+		{
+			this._bg.resize(p_width, p_height);
+			this._slider.resize(p_width, p_height);
+		}
+		
+		private function onMapClick(p_result:Object):void
+		{
+			var data:Object = p_result.data;
+			var id:String = data.id;
+			var side:int = data.side;
+			var state:int = data.state;
+			if (state == GameData.STATE_BASE)
+			{
+				if (this._cmdSide != side)
+				{
+					this._cmdSide = side;
+					this._cmdCode = GameData.COMMAND_ROAD;
+				}
+				else if (this._cmdCode == GameData.COMMAND_ROAD)
+				{
+					this._cmdCode = GameData.COMMAND_ROAD_EX;
+				}
+				else if (this._cmdCode == GameData.COMMAND_ROAD_EX)
+				{
+					this._cmdCode = GameData.COMMAND_ATTACK;
+				}
+				else if (this._cmdCode == GameData.COMMAND_ATTACK)
+				{
+					this._cmdCode = GameData.COMMAND_ROAD;
+				}
+				this.signal.dispatch({side: this._cmdSide, command: this._cmdCode}, EVENT_CMD_CLICK);
+			}
+			else
+			{
+				this.signal.dispatch({id: id, side: this._cmdSide, command: this._cmdCode}, EVENT_MAP_CLICK);
+			}
 		}
 	
 	}
-
 }
 
 import com.pj.common.Helper;
+import com.pj.common.JTimer;
 import com.pj.common.component.BasicContainer;
 import com.pj.common.component.BasicImage;
 import com.pj.common.component.BasicObject;
@@ -231,18 +301,12 @@ class SkinStore
 			break;
 		case TYPE_HOSTAGE_0: 
 			item = GameAsset.loader.getAsset(GameAsset.getHostageKeyById(0, GameData.SIDE_A)) as BasicObject;
-			item.instance.scaleX = 0.5;
-			item.instance.scaleY = 0.5;
 			break;
 		case TYPE_HOSTAGE_1: 
 			item = GameAsset.loader.getAsset(GameAsset.getHostageKeyById(0, GameData.SIDE_B)) as BasicObject;
-			item.instance.scaleX = 0.5;
-			item.instance.scaleY = 0.5;
 			break;
 		case TYPE_HOSTAGE_2: 
 			item = GameAsset.loader.getAsset(GameAsset.getHostageKeyById(0, GameData.SIDE_C)) as BasicObject;
-			item.instance.scaleX = 0.5;
-			item.instance.scaleY = 0.5;
 			break;
 		case TYPE_HOSTAGE_BG_0: 
 		case TYPE_HOSTAGE_BG_1: 
@@ -262,12 +326,11 @@ class SkinStore
 			item = new BasicObject(sp);
 		}
 		
-		if (addFold) {
+		if (addFold)
+		{
 			var bg:BasicObject = item;
 			var container:BasicContainer = new BasicContainer();
 			var fold:BasicObject = GameAsset.loader.getAsset(GameAsset.KEY_FOLD_MC) as BasicObject;
-			fold.instance.scaleX = 0.5;
-			fold.instance.scaleY = 0.5;
 			container.addChild(bg);
 			container.addChild(fold);
 			item = container;
@@ -290,30 +353,6 @@ class SkinStore
 		list.push(p_item);
 	}
 
-}
-
-class ButtonGroupItem
-{
-	private var _btn:BasicObject = null;
-	private var _x:int = 0;
-	private var _y:int = 0;
-	private var _radius:int = 0;
-	
-	public function ButtonGroupItem(p_btn:BasicObject, p_x:int, p_y:int, p_radius:int)
-	{
-		this._btn = p_btn;
-		this._x = p_x;
-		this._y = p_y;
-		this._radius = p_radius;
-	}
-	
-	public function get btn():BasicObject  { return this._btn; }
-	
-	public function get x():int  { return this._x; }
-	
-	public function get y():int  { return this._y; }
-	
-	public function get radius():int  { return this._radius; }
 }
 
 class ButtonGroup extends BasicObject
@@ -348,17 +387,11 @@ class ButtonGroup extends BasicObject
 		return (this.instance as Sprite);
 	}
 	
-	public function add(p_btn:BasicObject, p_x:int, p_y:int, p_radius:int):void
+	public function add(p_btn:BasicObject, p_x:int, p_y:int):void
 	{
-		var item:ButtonGroupItem = new ButtonGroupItem(p_btn, p_x, p_y, p_radius);
 		p_btn.instance.x = p_x;
 		p_btn.instance.y = p_y;
 		this.container.addChild(p_btn.instance);
-	}
-	
-	public function generate():void
-	{
-		;
 	}
 	
 	protected function onMouseClick(p_evt:MouseEvent):void
@@ -391,12 +424,17 @@ class ButtonGroup extends BasicObject
 class GameMapItem extends BasicObject
 {
 	private var _key:String = "";
+	private var _flashValue:Number = 0;
+	private var _side:int = 0;
+	private var _state:int = 0;
 	
 	private var _bottom:SkinStoreItem = null;
 	private var _face:SkinStoreItem = null;
 	private var _flash:SkinStoreItem = null;
 	private var _front:SkinStoreItem = null;
 	private var _store:SkinStore = null;
+	
+	private var _timer:JTimer = null;
 	
 	public function GameMapItem(p_store:SkinStore, p_key:String):void
 	{
@@ -411,11 +449,13 @@ class GameMapItem extends BasicObject
 		Helper.dispose(this._face);
 		Helper.dispose(this._flash);
 		Helper.dispose(this._front);
+		Helper.dispose(this._timer);
 		this._bottom = null;
 		this._face = null;
 		this._flash = null;
 		this._front = null;
 		this._store = null;
+		this._timer = null;
 		super.dispose();
 	}
 	
@@ -436,6 +476,9 @@ class GameMapItem extends BasicObject
 		this.container.addChild(this._front.instance);
 		
 		this._bottom.setSkin(SkinStore.TYPE_BLANK);
+		this._flash.instance.visible = false;
+		
+		this._timer = new JTimer(this.onTime);
 	}
 	
 	public function setMouseClear():void
@@ -453,7 +496,7 @@ class GameMapItem extends BasicObject
 		this._front.setSkin(SkinStore.TYPE_OVER);
 	}
 	
-	public function setState(p_state:int, p_side:int):void
+	private function setSkin(p_skin:SkinStoreItem, p_state:int, p_side:int):void
 	{
 		switch (p_state)
 		{
@@ -461,75 +504,135 @@ class GameMapItem extends BasicObject
 			switch (p_side)
 			{
 			case GameData.SIDE_A: 
-				this._face.setSkin(SkinStore.TYPE_BASE_0);
+				p_skin.setSkin(SkinStore.TYPE_BASE_0);
 				break;
 			case GameData.SIDE_B: 
-				this._face.setSkin(SkinStore.TYPE_BASE_1);
+				p_skin.setSkin(SkinStore.TYPE_BASE_1);
 				break;
 			case GameData.SIDE_C: 
-				this._face.setSkin(SkinStore.TYPE_BASE_2);
+				p_skin.setSkin(SkinStore.TYPE_BASE_2);
 				break;
 			default: 
-				this._face.setSkin(SkinStore.TYPE_NONE);
+				p_skin.setSkin(SkinStore.TYPE_NONE);
 			}
 			break;
 		case GameData.STATE_ATTACK: 
-			this._face.setSkin(SkinStore.TYPE_ATTACK);
+			p_skin.setSkin(SkinStore.TYPE_ATTACK);
 			break;
 		case GameData.STATE_HOSTAGE: 
 			switch (p_side)
 			{
 			case GameData.SIDE_A: 
-				this._face.setSkin(SkinStore.TYPE_HOSTAGE_0);
+				p_skin.setSkin(SkinStore.TYPE_HOSTAGE_0);
 				break;
 			case GameData.SIDE_B: 
-				this._face.setSkin(SkinStore.TYPE_HOSTAGE_1);
+				p_skin.setSkin(SkinStore.TYPE_HOSTAGE_1);
 				break;
 			case GameData.SIDE_C: 
-				this._face.setSkin(SkinStore.TYPE_HOSTAGE_2);
+				p_skin.setSkin(SkinStore.TYPE_HOSTAGE_2);
 				break;
 			default: 
-				this._face.setSkin(SkinStore.TYPE_NONE);
+				p_skin.setSkin(SkinStore.TYPE_NONE);
 			}
 			break;
 		case GameData.STATE_OBSTACLE: 
-			this._face.setSkin(SkinStore.TYPE_OBSTACLE);
+			p_skin.setSkin(SkinStore.TYPE_OBSTACLE);
 			break;
 		case GameData.STATE_ROAD: 
 			switch (p_side)
 			{
 			case GameData.SIDE_A: 
-				this._face.setSkin(SkinStore.TYPE_ROAD_0);
+				p_skin.setSkin(SkinStore.TYPE_ROAD_0);
 				break;
 			case GameData.SIDE_B: 
-				this._face.setSkin(SkinStore.TYPE_ROAD_1);
+				p_skin.setSkin(SkinStore.TYPE_ROAD_1);
 				break;
 			case GameData.SIDE_C: 
-				this._face.setSkin(SkinStore.TYPE_ROAD_2);
+				p_skin.setSkin(SkinStore.TYPE_ROAD_2);
 				break;
 			default: 
-				this._face.setSkin(SkinStore.TYPE_NONE);
+				p_skin.setSkin(SkinStore.TYPE_NONE);
 			}
 			break;
 		case GameData.STATE_ROAD_EX: 
 			switch (p_side)
 			{
 			case GameData.SIDE_A: 
-				this._face.setSkin(SkinStore.TYPE_ROAD_EX_0);
+				p_skin.setSkin(SkinStore.TYPE_ROAD_EX_0);
 				break;
 			case GameData.SIDE_B: 
-				this._face.setSkin(SkinStore.TYPE_ROAD_EX_1);
+				p_skin.setSkin(SkinStore.TYPE_ROAD_EX_1);
 				break;
 			case GameData.SIDE_C: 
-				this._face.setSkin(SkinStore.TYPE_ROAD_EX_2);
+				p_skin.setSkin(SkinStore.TYPE_ROAD_EX_2);
 				break;
 			default: 
-				this._face.setSkin(SkinStore.TYPE_NONE);
+				p_skin.setSkin(SkinStore.TYPE_NONE);
 			}
 			break;
+		case GameData.STATE_NONE: 
 		default: 
-			this._face.setSkin(SkinStore.TYPE_NONE);
+			p_skin.setSkin(SkinStore.TYPE_NONE);
 		}
+	}
+	
+	public function setState(p_state:int, p_side:int):void
+	{
+		this._side = p_side;
+		this._state = p_state;
+		this.setSkin(this._face, p_state, p_side);
+	}
+	
+	public function setFlash(p_state:int, p_side:int):void
+	{
+		this.setSkin(this._flash, p_state, p_side);
+		if (this._flash.instance.visible)
+		{
+			if (p_state == GameData.STATE_NONE)
+			{
+				this._flash.instance.visible = false;
+				this._timer.stop();
+			}
+		}
+		else
+		{
+			if (p_state == GameData.STATE_NONE)
+			{
+				return;
+			}
+			
+			this._flashValue = 0;
+			this._flash.instance.alpha = 0;
+			this._flash.instance.visible = true;
+			this._timer.start();
+		}
+	}
+	
+	public function get state():int
+	{
+		return this._state;
+	}
+	
+	public function get side():int
+	{
+		return this._side;
+	}
+	
+	private function onTime(p_delta:Number):void
+	{
+		if (!this._flash)
+		{
+			return;
+		}
+		
+		this._flashValue += 0.001 * p_delta;
+		//	trace(_key + " >> " + this._flashValue);
+		if (this._flashValue > 1)
+		{
+			this._flashValue -= 2;
+		}
+		
+		this._flash.instance.alpha = Math.abs(this._flashValue);
 	}
 	
 	private function get container():Sprite
@@ -540,6 +643,8 @@ class GameMapItem extends BasicObject
 
 class GameMap extends ButtonGroup
 {
+	static public const ACTION_CLICK:String = "GameMap.ACTION_CLICK";
+	
 	private var _itemMap:Object = null;
 	private var _downKey:String = "";
 	private var _overKey:String = "";
@@ -576,7 +681,6 @@ class GameMap extends ButtonGroup
 			var item:GameMapItem = new GameMapItem(this._store, key);
 			item.instance.name = key;
 			item.setState(data.state, data.side);
-			//	item.setSkin(SkinStore.TYPE_BLANK);
 			var posX:int = data.posX * int(cellSkin.width * 0.75) + cellSkin.width;
 			var posY:int = data.posY * int(cellSkin.height * 0.5) + cellSkin.height;
 			if (posX > this._xMax)
@@ -587,13 +691,22 @@ class GameMap extends ButtonGroup
 			{
 				this._yMax = posY;
 			}
-			this.add(item, posX, posY, 0);
+			this.add(item, posX, posY);
 			
 			this._itemMap[key] = item;
 		}
 		this._xMax += cellSkin.width;
 		this._yMax += cellSkin.height;
-		this.generate();
+	}
+	
+	public function get width():int
+	{
+		return this._xMax;
+	}
+	
+	public function get height():int
+	{
+		return this._yMax;
 	}
 	
 	private function findItem(p_key:String):GameMapItem
@@ -606,9 +719,45 @@ class GameMap extends ButtonGroup
 		return this._itemMap[p_key] as GameMapItem;
 	}
 	
+	public function setCell(p_id:String, p_side:int, p_state:int):void
+	{
+		var item:GameMapItem = this.findItem(p_id);
+		if (!item)
+		{
+			return;
+		}
+		item.setState(p_state, p_side);
+	}
+	
+	public function clearCellFlash():void
+	{
+		for (var key:String in this._itemMap)
+		{
+			var item:GameMapItem = this._itemMap[key];
+			item.setFlash(GameData.STATE_NONE, 0);
+		}
+	}
+	
+	public function setCellFlash(p_id:String, p_side:int, p_state:int):void
+	{
+		var item:GameMapItem = this.findItem(p_id);
+		if (!item)
+		{
+			return;
+		}
+		item.setFlash(p_state, p_side);
+	}
+	
 	override protected function onMouseClick(p_evt:MouseEvent):void
 	{
-		//	this.signal.dispatch({action: ACTION_CLICK, data: this._data, target: this});
+		var target:DisplayObject = p_evt.target as DisplayObject;
+		var key:String = target.name;
+		var item:GameMapItem = this.findItem(key);
+		if (!item)
+		{
+			return;
+		}
+		this.signal.dispatch({action: ACTION_CLICK, data: {id: key, side: item.side, state: item.state}, target: this});
 	}
 	
 	override protected function onMouseDown(p_evt:MouseEvent):void

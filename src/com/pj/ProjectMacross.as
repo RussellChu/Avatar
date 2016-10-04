@@ -30,6 +30,11 @@ package com.pj
 		private var _model:GameModel = null;
 		private var _slider:Slider = null;
 		
+		private var _assetReady:Boolean = false;
+		private var _width:int = 0;
+		private var _height:int = 0;
+		private var _view:GameView = null;
+		
 		public function ProjectMacross(p_inst:Sprite = null)
 		{
 			super(null, p_inst);
@@ -62,31 +67,75 @@ package com.pj
 		
 		override public function resize(p_width:int, p_height:int):void
 		{
-			//this._bg.resize(p_width, p_height);
+			this._width = p_width;
+			this._height = p_height;
+			if (!this._assetReady)
+			{
+				return;
+			}
+			this._view.resize(this._width, this._height);
 			//this._slider.resize(p_width, p_height);
 			//var totalWidth:int = (GameConfig.MAP_RADIUS * 6 - 3) * GameConfig.CELL_RADIUS_MAP;
 			//var posX:int = (p_width - totalWidth) * 0.5;
 			//var posY:int = (p_height - totalWidth) * 0.5;
 			//if (posX < 0)
 			//{
-				//posX = 0;
+			//posX = 0;
 			//}
 			//if (posY < 0)
 			//{
-				//posY = 0;
+			//posY = 0;
 			//}
 			//this._map.instance.x = posX;
 			//this._map.instance.y = posY;
 		}
 		
+		private function onModelEvent_CellUpdate(p_result:Object):void {
+			var id:String = String(p_result.id);
+			var side:int = p_result.side;
+			var state:int = p_result.state;
+			this._view.updateMap(id, side, state);
+		}
+		
+		private function onViewEvent_CmdClick(p_result:Object):void {
+			var side:int = p_result.side;
+			var command:int = p_result.command;
+			var list:Array = this._model.getMovableList(command, side);
+			var state:int = 0;
+			if (command == GameData.COMMAND_ROAD_EX)
+			{
+				state = GameData.STATE_ROAD_EX;
+			}
+			else
+			{
+				state = GameData.STATE_ROAD;
+			}
+			this._view.flashMap(side, state, list);
+		}
+		
+		private function onViewEvent_MapClick(p_result:Object):void {
+			var id:int = p_result.id;
+			var side:int = p_result.side;
+			var command:int = p_result.command;
+			this._model.command(id, side, command);
+		}
+		
 		private function onAssetLoaded(p_result:Object):void
 		{
 			this._model = new GameModel();
-			var a:GameView = new GameView();
-			this.container.addChild(a.instance);
+			this._view = new GameView();
+			this.container.addChild(this._view.instance);
 			
-			a.createMap(this._model.getCellList());
+			this._view.createMap(this._model.getCellList());
 			
+			this._assetReady = true;
+			this.resize(this._width, this._height);
+			
+			this._model.signal.add(this.onModelEvent_CellUpdate, GameModel.EVENT_CELL_UPDATE);
+			
+			this._view.signal.add(this.onViewEvent_CmdClick, GameView.EVENT_CMD_CLICK);
+			this._view.signal.add(this.onViewEvent_MapClick, GameView.EVENT_MAP_CLICK);
+		
 			//this._model = new GameModel();
 			//
 			//this._bg = new JBackground((GameAsset.loader.getAsset("galaxy") as Bitmap).bitmapData);
@@ -216,13 +265,13 @@ package com.pj
 			default: 
 				;
 			}
-			var dataState:Object = this._model.command(dataCell.id, side, command);
-			if (dataState)
-			{
-				this._map.setState(dataState.id, dataState.side, dataState.state);
-				this._command.setScore(dataState.scoreSide, dataState.score);
-				this.updateMovable(command, side);
-			}
+			//var dataState:Object = this._model.command(dataCell.id, side, command);
+			//if (dataState)
+			//{
+				//this._map.setState(dataState.id, dataState.side, dataState.state);
+				//this._command.setScore(dataState.scoreSide, dataState.score);
+				//this.updateMovable(command, side);
+			//}
 		}
 	
 	}

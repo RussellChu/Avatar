@@ -1,6 +1,8 @@
 package com.pj.macross
 {
 	import com.pj.common.Helper;
+	import com.pj.common.IHasSignal;
+	import com.pj.common.JSignal;
 	import com.pj.macross.GameConfig;
 	import com.pj.macross.GameData;
 	import com.pj.macross.structure.MapCell;
@@ -13,8 +15,10 @@ package com.pj.macross
 	 * ...
 	 * @author Russell
 	 */
-	public class GameModel
+	public class GameModel implements IHasSignal
 	{
+		static public const EVENT_CELL_UPDATE:String = "GameModel.EVENT_CELL_UPDATE";
+		
 		static private const CHECK_BASE_LIST:Array = [//
 		{x: -1, y: 0, z: 1}//
 		, {x: -1, y: 1, z: 0}//
@@ -50,6 +54,7 @@ package com.pj.macross
 		private var _save:Object = null;
 		private var _so:SharedObject = null;
 		private var _score:Object = null;
+		private var _signal:JSignal = null;
 		
 		public function GameModel()
 		{
@@ -419,20 +424,20 @@ package com.pj.macross
 			return false;
 		}
 		
-		public function command(p_id:int, p_side:int, p_command:int):Object
+		public function command(p_id:int, p_side:int, p_command:int):void
 		{
 			var cell:MapCell = this._map.getCellById(p_id);
 			if (!cell)
 			{
-				return null;
+				return;
 			}
 			if (p_side == 0)
 			{
-				return null;
+				return;
 			}
 			if (!this.checkBase(p_id, p_side, p_command == GameData.COMMAND_ROAD_EX))
 			{
-				return null;
+				return;
 			}
 			
 			var preState:int = cell.state;
@@ -445,23 +450,24 @@ package com.pj.macross
 			case GameData.COMMAND_ATTACK: 
 				if (cell.side == 0 || cell.side == p_side)
 				{
-					return null;
+					return;
 				}
 				if (cell.state != GameData.STATE_ROAD && cell.state != GameData.STATE_ROAD_EX)
 				{
-					return null;
+					return;
 				}
 				this.addRoad(p_side, cell.keyX, cell.keyY, cell.keyZ);
 				this.addRecord(cell.state, cell.side, cell.keyX, cell.keyY, cell.keyZ, preState, preSide, score, preScore);
-				return {id: cell.id, side: cell.side, state: cell.state, scoreSide: cell.side, score: score};
+				this.signal.dispatch({id: cell.id, side: cell.side, state: cell.state, scoreSide: cell.side, score: score}, EVENT_CELL_UPDATE);
+				return;
 			case GameData.COMMAND_ROAD: 
 				if (cell.state != GameData.STATE_NONE && cell.state != GameData.STATE_HOSTAGE)
 				{
-					return null;
+					return;
 				}
 				if (cell.state == GameData.STATE_HOSTAGE && cell.side != p_side)
 				{
-					return null;
+					return;
 				}
 				if (cell.state == GameData.STATE_HOSTAGE)
 				{
@@ -470,15 +476,16 @@ package com.pj.macross
 				}
 				this.addRoad(p_side, cell.keyX, cell.keyY, cell.keyZ);
 				this.addRecord(cell.state, cell.side, cell.keyX, cell.keyY, cell.keyZ, preState, preSide, score, preScore);
-				return {id: cell.id, side: cell.side, state: cell.state, scoreSide: cell.side, score: score};
+				this.signal.dispatch({id: cell.id, side: cell.side, state: cell.state, scoreSide: cell.side, score: score}, EVENT_CELL_UPDATE);
+				return;
 			case GameData.COMMAND_ROAD_EX: 
 				if (cell.state != GameData.STATE_NONE && cell.state != GameData.STATE_HOSTAGE)
 				{
-					return null;
+					return;
 				}
 				if (cell.state == GameData.STATE_HOSTAGE && cell.side != p_side)
 				{
-					return null;
+					return;
 				}
 				if (cell.state == GameData.STATE_HOSTAGE)
 				{
@@ -487,9 +494,10 @@ package com.pj.macross
 				}
 				this.addRoadEx(p_side, cell.keyX, cell.keyY, cell.keyZ);
 				this.addRecord(cell.state, cell.side, cell.keyX, cell.keyY, cell.keyZ, preState, preSide, score, preScore);
-				return {id: cell.id, side: cell.side, state: cell.state, scoreSide: cell.side, score: score};
+				this.signal.dispatch({id: cell.id, side: cell.side, state: cell.state, scoreSide: cell.side, score: score}, EVENT_CELL_UPDATE);
+				return;
 			default: 
-				return null;
+				return;
 				;
 			}
 		}
@@ -543,6 +551,12 @@ package com.pj.macross
 					{
 						continue;
 					}
+					if (cell.state == GameData.STATE_HOSTAGE) {
+						if (cell.side != p_side)
+						{
+							continue;
+						}
+					}
 					if (this.checkBase(cell.id, p_side, false))
 					{
 						result.push(cell.id);
@@ -556,6 +570,12 @@ package com.pj.macross
 					if (cell.state != GameData.STATE_NONE && cell.state != GameData.STATE_HOSTAGE)
 					{
 						continue;
+					}
+					if (cell.state == GameData.STATE_HOSTAGE) {
+						if (cell.side != p_side)
+						{
+							continue;
+						}
 					}
 					if (this.checkBase(cell.id, p_side, true))
 					{
@@ -605,6 +625,14 @@ package com.pj.macross
 			}
 			var cell:MapCell = this._map.getCellByKey(x, y, z);
 			return {id: cell.id, side: cell.side, state: cell.state, scoreSide: side, score: preScore};
+		}
+		
+		public function get signal():JSignal
+		{
+			if (!this._signal) {
+				this._signal = new JSignal();
+			}
+			return this._signal;
 		}
 	
 	}

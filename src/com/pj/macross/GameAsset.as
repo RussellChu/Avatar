@@ -149,6 +149,7 @@ import com.pj.common.component.JBmp;
 import com.pj.common.component.Quad;
 import com.pj.common.math.JMath;
 import com.pj.macross.GameAsset;
+import com.pj.macross.GameConfig;
 import com.pj.macross.GameData;
 import flash.display.Bitmap;
 import flash.display.BitmapData;
@@ -192,12 +193,9 @@ class CreatableBitmap extends Bitmap implements ICreatable
 
 class Fold extends CreatableBitmap
 {
-	static private const FULL_WIDTH:int = 64;
-	static private const FULL_HEIGHT:int = 64;
-	
 	public function Fold()
 	{
-		super(FULL_WIDTH, FULL_HEIGHT, true, 0);
+		super(GameConfig.CELL_RADIUS_MAP * 2, GameConfig.CELL_RADIUS_MAP * 2, true, 0);
 	}
 	
 	private function getLine(p_angle:Number, p_side:int, p_out:Number, p_in:Number, p_add:Number):Number
@@ -313,15 +311,12 @@ class FoldMc extends BasicObject
 
 class HostageTriangle extends CreatableBitmap
 {
-	static private const FULL_WIDTH:int = 64;
-	static private const FULL_HEIGHT:int = 64;
-	
 	private var _color:JColor = null;
 	
 	public function HostageTriangle(p_color:JColor)
 	{
 		this._color = p_color;
-		super(FULL_WIDTH, FULL_HEIGHT, true, 0);
+		super(GameConfig.CELL_RADIUS_MAP * 2, GameConfig.CELL_RADIUS_MAP * 2, true, 0);
 	}
 	
 	private function getLine(p_angle:Number, p_side:int, p_out:Number, p_in:Number, p_add:Number):Number
@@ -344,17 +339,17 @@ class HostageTriangle extends CreatableBitmap
 		
 		if (angle < Math.PI * 1 / 3 && angle >= -Math.PI * 1 / 3)
 		{
-			b0 = 0.5 / Math.cos(angle + Math.PI * 2 * 0 / 3);
+			b0 = 0.4 / Math.cos(angle + Math.PI * 2 * 0 / 3);
 			b1 = 0.1 / Math.cos(angle + Math.PI * 2 * 0 / 3);
 		}
 		else if (angle >= Math.PI * 1 / 3)
 		{
-			b0 = 0.5 / Math.cos(angle - Math.PI * 2 * 1 / 3);
+			b0 = 0.4 / Math.cos(angle - Math.PI * 2 * 1 / 3);
 			b1 = 0.1 / Math.cos(angle - Math.PI * 2 * 1 / 3);
 		}
 		else
 		{
-			b0 = 0.5 / Math.cos(angle + Math.PI * 2 * 1 / 3);
+			b0 = 0.4 / Math.cos(angle + Math.PI * 2 * 1 / 3);
 			b1 = 0.1 / Math.cos(angle + Math.PI * 2 * 1 / 3);
 		}
 		
@@ -437,17 +432,25 @@ class Hostage extends BasicObject
 		this._sp.addChild(imgTri);
 		imgTri.x = -imgTri.width * 0.5;
 		imgTri.y = -imgTri.height * 0.5;
-		this._sp.y = imgTri.height * 0.2;
+		
+		var sp:Sprite  = new Sprite();
+		sp.y = imgTri.height * 0.2;
+		sp.addChild(this._sp);
+		sp.scaleY = 0.5;
 		
 		var imgManA:Bitmap = new Bitmap(bmpMan);
+		imgManA.scaleX = GameConfig.CELL_RADIUS_MAP * 2 / bmpMan.width;
+		imgManA.scaleY = imgManA.scaleX;
 		imgManA.x = -imgManA.width * 0.5;
 		imgManA.y = -imgManA.height * 0.5;
 		var imgManB:Bitmap = new Bitmap(bmpMan);
+		imgManB.scaleX = GameConfig.CELL_RADIUS_MAP * 2 / bmpMan.width;
+		imgManB.scaleY = imgManB.scaleX;
 		imgManB.x = -imgManB.width * 0.5;
 		imgManB.y = -imgManB.height * 0.5;
 		
 		this.container.addChild(imgManA);
-		this.container.addChild(this._sp);
+		this.container.addChild(sp);
 		this.container.addChild(imgManB);
 		
 		var mask:Quad = new Quad(imgManA.width, imgManA.height * 0.3);
