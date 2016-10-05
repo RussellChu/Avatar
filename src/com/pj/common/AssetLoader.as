@@ -121,6 +121,15 @@ package com.pj.common
 		
 		public function load():void
 		{
+			//loader = new Loader();
+			//loader.contentLoaderInfo.addEventListener(Event.COMPLETE, function(e:Event):void
+			//{
+			//loader.contentLoaderInfo.removeEventListener(Event.COMPLETE, this);
+			//var mc:MovieClip = loader.content as MovieClip;
+			//addChild(mc);
+			//});
+			//loader.load(new URLRequest("basket_x000a_p78.swf"));
+			
 			var isLoad:Boolean = false;
 			while (!isLoad)
 			{

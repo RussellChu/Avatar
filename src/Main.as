@@ -1,10 +1,6 @@
 package
 {
-	import com.pj.ProjectFlash3D;
 	import com.pj.ProjectMacross;
-	import com.pj.ProjectMP4;
-	import com.pj.ProjectTest;
-	import com.pj.ProjectWorld;
 	import com.pj.common.component.BasicContainer;
 	import flash.display.Sprite;
 	import flash.display.StageAlign;
@@ -13,7 +9,7 @@ package
 	
 	//	[SWF(width = 1280, height = 800, frameRate = "60", backgroundColor = "#ffffff")]
 	//	[SWF(width = 800, height = 200, frameRate = "60", backgroundColor = "#ffffff")]
-		[SWF(frameRate = "60", backgroundColor = "#ffffff")]
+	[SWF(frameRate = "60", backgroundColor = "#ffffff")]
 	public class Main extends Sprite
 	{
 		private var _init:Boolean = false;
@@ -23,18 +19,6 @@ package
 		{
 			this.stage.align = StageAlign.TOP_LEFT;
 			this.stage.scaleMode = StageScaleMode.NO_SCALE;
-			//new ProjectWorld(this);
-			//new ProjectFlash3D(this);
-			// new ProjectMacross(this);
-			//new ProjectMP4(this);
-			//loader = new Loader();
-			//loader.contentLoaderInfo.addEventListener(Event.COMPLETE, function(e:Event):void
-			//{
-			//loader.contentLoaderInfo.removeEventListener(Event.COMPLETE, this);
-			//var mc:MovieClip = loader.content as MovieClip;
-			//addChild(mc);
-			//});
-			//loader.load(new URLRequest("basket_x000a_p78.swf"));
 			
 			// for exe
 			this.stage.addEventListener(Event.ACTIVATE, this.onLoad);
@@ -44,7 +28,7 @@ package
 		
 		private function init():void
 		{
-		//	this._project = new ProjectTest(this);
+			//	this._project = new ProjectTest(this);
 			this._project = new ProjectMacross(this);
 			this.stage.addEventListener(Event.RESIZE, this.onResize);
 		}

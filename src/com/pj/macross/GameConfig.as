@@ -9,13 +9,13 @@ package com.pj.macross
 	{
 		static public const SAVE_VERSION:int = 1;
 		
-		static public const CELL_RADIUS_MAP:int = 16;
-		static public const CELL_SIDE_MAP:int = 1;
-		static public const FONT_SIZE_MAP:int = 8;
+		//static public const CELL_RADIUS_MAP:int = 16;
+		//static public const CELL_SIDE_MAP:int = 1;
+		//static public const FONT_SIZE_MAP:int = 8;
 		
-		//static public const CELL_RADIUS_MAP:int = 32;
-		//static public const CELL_SIDE_MAP:int = 2;
-		//static public const FONT_SIZE_MAP:int = 12;
+		static public const CELL_RADIUS_MAP:int = 32;
+		static public const CELL_SIDE_MAP:int = 2;
+		static public const FONT_SIZE_MAP:int = 12;
 		
 		//static public const CELL_RADIUS_MAP:int = 135;
 		//static public const CELL_SIDE_MAP:int = 6;

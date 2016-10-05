@@ -59,7 +59,7 @@ package com.pj.macross
 			
 			if (!this._slider)
 			{
-				this._slider = new Slider(this, 0, 0, this._map.width, this._map.height);
+				this._slider = new Slider(this, 0, 0, this._map.width, this._map.height, false);
 				this._slider.addChild(this._map);
 				this.addChild(this._slider);
 				this.addChild(this._mark);
