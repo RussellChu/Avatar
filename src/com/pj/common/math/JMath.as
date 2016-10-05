@@ -36,6 +36,10 @@ package com.pj.common.math
 			return (p_value - p_from) / (p_to - p_from);
 		}
 		
+		static public function randInt(p_from:int, p_to:int):int {
+			return int(p_from + Math.random() * (p_to - p_from + 1));
+		}
+		
 		static public function randCirleArea():Object
 		{
 			var v0:Number = Math.random();

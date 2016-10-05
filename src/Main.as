@@ -12,8 +12,8 @@ package
 	import flash.events.Event;
 	
 	//	[SWF(width = 1280, height = 800, frameRate = "60", backgroundColor = "#ffffff")]
-	[SWF(width = 800, height = 200, frameRate = "60", backgroundColor = "#ffffff")]
-	//	[SWF(frameRate = "60", backgroundColor = "#ffffff")]
+	//	[SWF(width = 800, height = 200, frameRate = "60", backgroundColor = "#ffffff")]
+		[SWF(frameRate = "60", backgroundColor = "#ffffff")]
 	public class Main extends Sprite
 	{
 		private var _init:Boolean = false;

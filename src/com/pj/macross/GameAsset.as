@@ -2,7 +2,6 @@ package com.pj.macross
 {
 	import com.pj.common.AssetLoader;
 	import com.pj.common.JColor;
-	import com.pj.macross.asset.CellSkin;
 	
 	/**
 	 * ...
@@ -35,12 +34,6 @@ package com.pj.macross
 		static public const KEY_CELL_ROAD_B:String = "KEY_CELL_ROAD_B";
 		static public const KEY_CELL_ROAD_C:String = "KEY_CELL_ROAD_C";
 		static public const KEY_CELL_ATTACK:String = "KEY_CELL_ATTACK";
-		//static public const KEY_CELL_HOSTAGE_01_A:String = "KEY_CELL_HOSTAGE_01_A";
-		//static public const KEY_CELL_HOSTAGE_01_B:String = "KEY_CELL_HOSTAGE_01_B";
-		//static public const KEY_CELL_HOSTAGE_01_C:String = "KEY_CELL_HOSTAGE_01_C";
-		//static public const KEY_CELL_HOSTAGE_02_A:String = "KEY_CELL_HOSTAGE_02_A";
-		//static public const KEY_CELL_HOSTAGE_02_B:String = "KEY_CELL_HOSTAGE_02_B";
-		//static public const KEY_CELL_HOSTAGE_02_C:String = "KEY_CELL_HOSTAGE_02_C";
 		
 		[Embed(source = "/../bin/assets/s01.png")]
 		static private var BMP_S01:Class;
@@ -58,10 +51,6 @@ package com.pj.macross
 		static private var BMP_S07:Class;
 		[Embed(source = "/../bin/assets/s08.png")]
 		static private var BMP_S08:Class;
-		//[Embed(source = "/../bin/assets/fold.png")]
-		//static private var BMP_FOLD:Class;
-		//[Embed(source = "/../bin/assets/moas03.png")]
-		//static private var BMP_GALAXY_03:Class;
 		
 		static private var __loader:AssetLoader = null;
 		
@@ -121,9 +110,6 @@ package com.pj.macross
 				__loader.addCreate(KEY_CELL_ROAD_B, new CellImage(CellImage.TYPE_ROAD_A, width, height, GameConfig.CELL_SIDE_MAP, new JColor(0, 0.509, 0, 1).value));
 				__loader.addCreate(KEY_CELL_ROAD_C, new CellImage(CellImage.TYPE_ROAD_A, width, height, GameConfig.CELL_SIDE_MAP, new JColor(0.209, 0.209, 1, 1).value));
 				__loader.addCreate(KEY_CELL_ATTACK, new CellImage(CellImage.TYPE_ROAD_B, width, height, GameConfig.CELL_SIDE_MAP, new JColor(0.967, 0.673, 0.9055, 0.5).value));
-				
-				__loader.addCreate(GameConfig.ASSET_KEY_MAP_CELL, new CellSkin(GameConfig.CELL_RADIUS_MAP * 2 + 0.5, GameConfig.CELL_RADIUS_MAP * 1.732 + 0.5, GameConfig.CELL_SIDE_MAP));
-				__loader.addCreate(GameConfig.ASSET_KEY_CMD_CELL, new CellSkin(GameConfig.CELL_RADIUS_CMD * 2 + 0.5, GameConfig.CELL_RADIUS_CMD * 1.732 + 0.5, GameConfig.CELL_SIDE_CMD));
 			}
 			return __loader;
 		}
@@ -136,8 +122,6 @@ package com.pj.macross
 	}
 }
 
-import com.adobe.images.PNGEncoder;
-import com.adobe.utils.NumberFormatter;
 import com.pj.common.Creater;
 import com.pj.common.Helper;
 import com.pj.common.ICreatable;
@@ -160,8 +144,6 @@ import flash.geom.ColorTransform;
 import flash.geom.Matrix;
 import flash.geom.Point;
 import flash.geom.Rectangle;
-import flash.net.FileReference;
-import flash.utils.ByteArray;
 
 class CreatableBitmap extends Bitmap implements ICreatable
 {
@@ -433,7 +415,7 @@ class Hostage extends BasicObject
 		imgTri.x = -imgTri.width * 0.5;
 		imgTri.y = -imgTri.height * 0.5;
 		
-		var sp:Sprite  = new Sprite();
+		var sp:Sprite = new Sprite();
 		sp.y = imgTri.height * 0.2;
 		sp.addChild(this._sp);
 		sp.scaleY = 0.5;

@@ -17,7 +17,9 @@ package com.pj.macross
 	 */
 	public class GameModel implements IHasSignal
 	{
+		static public const EVENT_LOAD_COMPLETE:String = "GameModel.EVENT_LOAD_COMPLETE";
 		static public const EVENT_CELL_UPDATE:String = "GameModel.EVENT_CELL_UPDATE";
+		static public const EVENT_SCORE_UPDATE:String = "GameModel.EVENT_SCORE_UPDATE";
 		
 		static private const CHECK_BASE_LIST:Array = [//
 		{x: -1, y: 0, z: 1}//
@@ -178,7 +180,7 @@ package com.pj.macross
 			this.loadSave();
 		}
 		
-		public function getScore(p_side:int):int
+		private function getScore(p_side:int):int
 		{
 			if (!this._score)
 			{
@@ -458,7 +460,8 @@ package com.pj.macross
 				}
 				this.addRoad(p_side, cell.keyX, cell.keyY, cell.keyZ);
 				this.addRecord(cell.state, cell.side, cell.keyX, cell.keyY, cell.keyZ, preState, preSide, score, preScore);
-				this.signal.dispatch({id: cell.id, side: cell.side, state: cell.state, scoreSide: cell.side, score: score}, EVENT_CELL_UPDATE);
+				this.signal.dispatch({id: cell.id, side: cell.side, state: cell.state}, EVENT_CELL_UPDATE);
+				this.signal.dispatch({side: cell.side, score: score}, EVENT_SCORE_UPDATE);
 				return;
 			case GameData.COMMAND_ROAD: 
 				if (cell.state != GameData.STATE_NONE && cell.state != GameData.STATE_HOSTAGE)
@@ -476,7 +479,8 @@ package com.pj.macross
 				}
 				this.addRoad(p_side, cell.keyX, cell.keyY, cell.keyZ);
 				this.addRecord(cell.state, cell.side, cell.keyX, cell.keyY, cell.keyZ, preState, preSide, score, preScore);
-				this.signal.dispatch({id: cell.id, side: cell.side, state: cell.state, scoreSide: cell.side, score: score}, EVENT_CELL_UPDATE);
+				this.signal.dispatch({id: cell.id, side: cell.side, state: cell.state}, EVENT_CELL_UPDATE);
+				this.signal.dispatch({side: cell.side, score: score}, EVENT_SCORE_UPDATE);
 				return;
 			case GameData.COMMAND_ROAD_EX: 
 				if (cell.state != GameData.STATE_NONE && cell.state != GameData.STATE_HOSTAGE)
@@ -494,7 +498,8 @@ package com.pj.macross
 				}
 				this.addRoadEx(p_side, cell.keyX, cell.keyY, cell.keyZ);
 				this.addRecord(cell.state, cell.side, cell.keyX, cell.keyY, cell.keyZ, preState, preSide, score, preScore);
-				this.signal.dispatch({id: cell.id, side: cell.side, state: cell.state, scoreSide: cell.side, score: score}, EVENT_CELL_UPDATE);
+				this.signal.dispatch({id: cell.id, side: cell.side, state: cell.state}, EVENT_CELL_UPDATE);
+				this.signal.dispatch({side: cell.side, score: score}, EVENT_SCORE_UPDATE);
 				return;
 			default: 
 				return;
@@ -502,14 +507,16 @@ package com.pj.macross
 			}
 		}
 		
+		public function start():void {
+			this.signal.dispatch({list:this._map.getList()}, EVENT_LOAD_COMPLETE);
+			this.signal.dispatch({side: GameData.SIDE_A, score: this.getScore(GameData.SIDE_A)}, EVENT_SCORE_UPDATE);
+			this.signal.dispatch({side: GameData.SIDE_B, score: this.getScore(GameData.SIDE_B)}, EVENT_SCORE_UPDATE);
+			this.signal.dispatch({side: GameData.SIDE_C, score: this.getScore(GameData.SIDE_C)}, EVENT_SCORE_UPDATE);
+		}
+		
 		public function getCellByKey(p_keyX:int, p_keyY:int, p_keyZ:int):MapCell
 		{
 			return this._map.getCellByKey(p_keyX, p_keyY, p_keyZ);
-		}
-		
-		public function getCellList():Array
-		{
-			return this._map.getList();
 		}
 		
 		public function getMovableList(p_command:int, p_side:int):Array

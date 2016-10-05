@@ -9,9 +9,6 @@ package com.pj.macross
 	{
 		static public const SAVE_VERSION:int = 1;
 		
-		static public const ASSET_KEY_MAP_CELL:String = "cellSkin";
-		static public const ASSET_KEY_CMD_CELL:String = "cellSkin2";
-		
 		static public const CELL_RADIUS_MAP:int = 16;
 		static public const CELL_SIDE_MAP:int = 1;
 		static public const FONT_SIZE_MAP:int = 8;
@@ -24,9 +21,7 @@ package com.pj.macross
 		//static public const CELL_SIDE_MAP:int = 6;
 		//static public const FONT_SIZE_MAP:int = 72;
 		
-		static public const CELL_RADIUS_CMD:int = 32;
-		static public const CELL_SIDE_CMD:int = 2;
-		static public const FONT_SIZE_CMD:int = 16;
+		static public const FONT_COLOR_MAP:uint = 0xff00ff;
 		
 		static public const CELL_BASE_A:Array = [0, 2, 3, 598, 625, 626];
 		static public const CELL_BASE_B:Array = [247, 274, 275, 585, 612, 613];

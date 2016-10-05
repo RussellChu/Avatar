@@ -1,5 +1,6 @@
 package com.pj.macross
 {
+	import com.pj.common.Helper;
 	import com.pj.common.component.BasicContainer;
 	import com.pj.common.component.JBackground;
 	import com.pj.common.component.Slider;
@@ -16,6 +17,7 @@ package com.pj.macross
 		
 		private var _bg:JBackground = null;
 		private var _map:GameMap = null;
+		private var _mark:MarkBoard = null;
 		private var _slider:Slider = null;
 		
 		private var _cmdSide:int = 0;
@@ -26,6 +28,19 @@ package com.pj.macross
 			super();
 		}
 		
+		override public function dispose():void
+		{
+			Helper.dispose(this._bg);
+			Helper.dispose(this._map);
+			Helper.dispose(this._mark);
+			Helper.dispose(this._slider);
+			this._bg = null;
+			this._map = null;
+			this._mark = null;
+			this._slider = null;
+			super.dispose();
+		}
+		
 		override protected function init():void
 		{
 			super.init();
@@ -33,19 +48,22 @@ package com.pj.macross
 			this._bg = new JBackground((GameAsset.loader.getAsset(GameAsset.KEY_GALAXY) as Bitmap).bitmapData);
 			this.addChild(this._bg);
 			
-			var store:SkinStore = new SkinStore();
-			this._map = new GameMap(store);
-			
+			this._map = new GameMap();
 			this._map.signal.add(this.onMapClick, GameMap.ACTION_CLICK);
+			this._mark = new MarkBoard();
 		}
 		
 		public function createMap(p_list:Array):void
 		{
 			this._map.create(p_list);
 			
-			this._slider = new Slider(this, 0, 0, this._map.width, this._map.height);
-			this._slider.addChild(this._map);
-			this.addChild(this._slider);
+			if (!this._slider)
+			{
+				this._slider = new Slider(this, 0, 0, this._map.width, this._map.height);
+				this._slider.addChild(this._map);
+				this.addChild(this._slider);
+				this.addChild(this._mark);
+			}
 		}
 		
 		public function flashMap(p_side:int, p_state:int, p_list:Array):void
@@ -62,6 +80,10 @@ package com.pj.macross
 		{
 			this._map.setCell(p_id, p_side, p_state);
 			this.signal.dispatch({side: this._cmdSide, command: this._cmdCode}, EVENT_CMD_CLICK);
+		}
+		
+		public function updateScore(p_side:int, p_score:int):void {
+			this._mark.setScore(p_side, p_score);
 		}
 		
 		override public function resize(p_width:int, p_height:int):void
@@ -124,16 +146,20 @@ import com.pj.common.JTimer;
 import com.pj.common.component.BasicContainer;
 import com.pj.common.component.BasicImage;
 import com.pj.common.component.BasicObject;
+import com.pj.common.component.JText;
+import com.pj.common.math.JMath;
 import com.pj.macross.GameAsset;
 import com.pj.macross.GameConfig;
 import com.pj.macross.GameData;
-import com.pj.macross.asset.CellSkin;
 import com.pj.macross.structure.MapCell;
 import flash.display.Bitmap;
 import flash.display.BitmapData;
 import flash.display.DisplayObject;
 import flash.display.Sprite;
 import flash.events.MouseEvent;
+import flash.filters.DropShadowFilter;
+import flash.filters.GlowFilter;
+import flash.text.TextField;
 
 class SkinStoreItem extends BasicObject
 {
@@ -141,16 +167,15 @@ class SkinStoreItem extends BasicObject
 	private var _store:SkinStore = null;
 	private var _type:int = 0;
 	
-	public function SkinStoreItem(p_store:SkinStore)
+	public function SkinStoreItem()
 	{
-		this._skin = null;
-		this._store = p_store;
 		this._type = SkinStore.TYPE_NONE;
 		super();
 	}
 	
 	override public function dispose():void
 	{
+		this.setSkin(SkinStore.TYPE_NONE);
 		this._skin = null;
 		this._store = null;
 		this._skin = null;
@@ -160,6 +185,13 @@ class SkinStoreItem extends BasicObject
 	override protected function init():void
 	{
 		super.init();
+		this._store = new SkinStore();
+	}
+	
+	override public function reset():void
+	{
+		super.reset();
+		this.setSkin(SkinStore.TYPE_NONE);
 	}
 	
 	public function setSkin(p_type:int):void
@@ -181,6 +213,12 @@ class SkinStoreItem extends BasicObject
 		
 		this._type = p_type;
 		this._skin = this._store.borrow(this._type);
+		if (!this._skin)
+		{
+			this._type = SkinStore.TYPE_NONE;
+			return;
+		}
+		
 		this.container.addChild(this._skin.instance);
 	}
 	
@@ -215,42 +253,45 @@ class SkinStore
 	static public const TYPE_OVER:int = 18;
 	static public const TYPE_DOWN:int = 19;
 	
-	private var _map:Object = null;
+	static private var __map:Object = null;
 	
 	public function SkinStore()
 	{
-		this._map = {};
-		this._map[String(TYPE_BLANK)] = [];
-		this._map[String(TYPE_BASE_0)] = [];
-		this._map[String(TYPE_BASE_1)] = [];
-		this._map[String(TYPE_BASE_2)] = [];
-		this._map[String(TYPE_ROAD_0)] = [];
-		this._map[String(TYPE_ROAD_1)] = [];
-		this._map[String(TYPE_ROAD_2)] = [];
-		this._map[String(TYPE_ROAD_EX_0)] = [];
-		this._map[String(TYPE_ROAD_EX_1)] = [];
-		this._map[String(TYPE_ROAD_EX_2)] = [];
-		this._map[String(TYPE_ATTACK)] = [];
-		this._map[String(TYPE_HOSTAGE_0)] = [];
-		this._map[String(TYPE_HOSTAGE_1)] = [];
-		this._map[String(TYPE_HOSTAGE_2)] = [];
-		this._map[String(TYPE_OBSTACLE)] = [];
-		this._map[String(TYPE_HOSTAGE_BG_0)] = [];
-		this._map[String(TYPE_HOSTAGE_BG_1)] = [];
-		this._map[String(TYPE_HOSTAGE_BG_2)] = [];
-		this._map[String(TYPE_OVER)] = [];
-		this._map[String(TYPE_DOWN)] = [];
+		if (!__map)
+		{
+			__map = {};
+			__map[String(TYPE_BLANK)] = [];
+			__map[String(TYPE_BASE_0)] = [];
+			__map[String(TYPE_BASE_1)] = [];
+			__map[String(TYPE_BASE_2)] = [];
+			__map[String(TYPE_ROAD_0)] = [];
+			__map[String(TYPE_ROAD_1)] = [];
+			__map[String(TYPE_ROAD_2)] = [];
+			__map[String(TYPE_ROAD_EX_0)] = [];
+			__map[String(TYPE_ROAD_EX_1)] = [];
+			__map[String(TYPE_ROAD_EX_2)] = [];
+			__map[String(TYPE_ATTACK)] = [];
+			__map[String(TYPE_HOSTAGE_0)] = [];
+			__map[String(TYPE_HOSTAGE_1)] = [];
+			__map[String(TYPE_HOSTAGE_2)] = [];
+			__map[String(TYPE_OBSTACLE)] = [];
+			__map[String(TYPE_HOSTAGE_BG_0)] = [];
+			__map[String(TYPE_HOSTAGE_BG_1)] = [];
+			__map[String(TYPE_HOSTAGE_BG_2)] = [];
+			__map[String(TYPE_OVER)] = [];
+			__map[String(TYPE_DOWN)] = [];
+		}
 	}
 	
 	public function borrow(p_type:int):BasicObject
 	{
-		if (!Helper.hasValue(this._map, String(p_type)))
+		if (!Helper.hasValue(__map, String(p_type)))
 		{
 			return null;
 		}
 		
 		var item:BasicObject = null;
-		var list:Array = this._map[String(p_type)] as Array;
+		var list:Array = __map[String(p_type)] as Array;
 		if (list.length > 0)
 		{
 			item = list.pop();
@@ -311,13 +352,13 @@ class SkinStore
 			assetKey = GameAsset.KEY_CELL_ROAD_C;
 			break;
 		case TYPE_HOSTAGE_0: 
-			item = GameAsset.loader.getAsset(GameAsset.getHostageKeyById(0, GameData.SIDE_A)) as BasicObject;
+			item = GameAsset.loader.getAsset(GameAsset.getHostageKeyById(JMath.randInt(0, 7), GameData.SIDE_A)) as BasicObject;
 			break;
 		case TYPE_HOSTAGE_1: 
-			item = GameAsset.loader.getAsset(GameAsset.getHostageKeyById(0, GameData.SIDE_B)) as BasicObject;
+			item = GameAsset.loader.getAsset(GameAsset.getHostageKeyById(JMath.randInt(0, 7), GameData.SIDE_B)) as BasicObject;
 			break;
 		case TYPE_HOSTAGE_2: 
-			item = GameAsset.loader.getAsset(GameAsset.getHostageKeyById(0, GameData.SIDE_C)) as BasicObject;
+			item = GameAsset.loader.getAsset(GameAsset.getHostageKeyById(JMath.randInt(0, 7), GameData.SIDE_C)) as BasicObject;
 			break;
 		case TYPE_HOSTAGE_BG_0: 
 		case TYPE_HOSTAGE_BG_1: 
@@ -356,12 +397,95 @@ class SkinStore
 		{
 			return;
 		}
-		if (!Helper.hasValue(this._map, String(p_type)))
+		if (!Helper.hasValue(__map, String(p_type)))
 		{
 			return;
 		}
-		var list:Array = this._map[String(p_type)] as Array;
+		var list:Array = __map[String(p_type)] as Array;
 		list.push(p_item);
+	}
+
+}
+
+class MarkBoard extends BasicObject
+{
+	private var _tf0:JText = null;
+	private var _tf1:JText = null;
+	private var _tf2:JText = null;
+	
+	public function MarkBoard()
+	{
+		super();
+	}
+	
+	override public function dispose():void
+	{
+		super.dispose();
+	}
+	
+	override protected function init():void
+	{
+		super.init();
+		
+		var store:SkinStore = new SkinStore();
+		var logo0:BasicObject = store.borrow(SkinStore.TYPE_HOSTAGE_0);
+		var logo1:BasicObject = store.borrow(SkinStore.TYPE_HOSTAGE_1);
+		var logo2:BasicObject = store.borrow(SkinStore.TYPE_HOSTAGE_2);
+		
+		logo0.instance.x = logo0.instance.width * 0.5;
+		logo1.instance.x = logo1.instance.width * 0.5;
+		logo2.instance.x = logo2.instance.width * 0.5;
+		
+		logo0.instance.y = logo0.instance.height * 0.5;
+		logo1.instance.y = logo0.instance.y + logo0.instance.height;
+		logo2.instance.y = logo1.instance.y + logo1.instance.height;
+		
+		var container:Sprite = this.instance as Sprite;
+		container.addChild(logo0.instance);
+		container.addChild(logo1.instance);
+		container.addChild(logo2.instance);
+		
+		this._tf0 = new JText(GameConfig.FONT_SIZE_MAP * 2, 0xffff00, JText.ALIGN_CENTER, 0, 0, logo0.instance.height);
+		this._tf1 = new JText(GameConfig.FONT_SIZE_MAP * 2, 0xffff00, JText.ALIGN_CENTER, 0, 0, logo1.instance.height);
+		this._tf2 = new JText(GameConfig.FONT_SIZE_MAP * 2, 0xffff00, JText.ALIGN_CENTER, 0, 0, logo2.instance.height);
+		
+		this._tf0.instance.x = logo0.instance.x + logo0.instance.width * 0.5;
+		this._tf1.instance.x = logo1.instance.x + logo1.instance.width * 0.5;
+		this._tf2.instance.x = logo2.instance.x + logo2.instance.width * 0.5;
+		this._tf0.instance.y = logo0.instance.y - logo0.instance.height * 0.5;
+		this._tf1.instance.y = logo1.instance.y - logo0.instance.height * 0.5;
+		this._tf2.instance.y = logo2.instance.y - logo0.instance.height * 0.5;
+		
+		container.addChild(this._tf0.instance);
+		container.addChild(this._tf1.instance);
+		container.addChild(this._tf2.instance);
+		
+		this.setScore(GameData.SIDE_A, 0);
+		this.setScore(GameData.SIDE_B, 0);
+		this.setScore(GameData.SIDE_C, 0);
+	}
+	
+	override public function reset():void
+	{
+		super.reset();
+	}
+	
+	public function setScore(p_side:int, p_score:int):void
+	{
+		switch (p_side)
+		{
+		case GameData.SIDE_A: 
+			this._tf0.text = " x " + p_score;
+			break;
+		case GameData.SIDE_B: 
+			this._tf1.text = " x " + p_score;
+			break;
+		case GameData.SIDE_C: 
+			this._tf2.text = " x " + p_score;
+			break;
+		default: 
+			;
+		}
 	}
 
 }
@@ -391,6 +515,12 @@ class ButtonGroup extends BasicObject
 		this.container.addEventListener(MouseEvent.MOUSE_OVER, this.onMouseOver);
 		this.container.addEventListener(MouseEvent.MOUSE_UP, this.onMouseUp);
 		this.container.addEventListener(MouseEvent.ROLL_OUT, this.onMouseRollOut);
+	}
+	
+	override public function reset():void
+	{
+		super.reset();
+		this.container.removeChildren();
 	}
 	
 	private function get container():Sprite
@@ -443,14 +573,13 @@ class GameMapItem extends BasicObject
 	private var _face:SkinStoreItem = null;
 	private var _flash:SkinStoreItem = null;
 	private var _front:SkinStoreItem = null;
-	private var _store:SkinStore = null;
+	private var _txt:JText = null;
 	
 	private var _timer:JTimer = null;
 	
-	public function GameMapItem(p_store:SkinStore, p_key:String):void
+	public function GameMapItem(p_key:String):void
 	{
 		this._key = p_key;
-		this._store = p_store;
 		super();
 	}
 	
@@ -461,12 +590,13 @@ class GameMapItem extends BasicObject
 		Helper.dispose(this._flash);
 		Helper.dispose(this._front);
 		Helper.dispose(this._timer);
+		Helper.dispose(this._txt);
 		this._bottom = null;
 		this._face = null;
 		this._flash = null;
 		this._front = null;
-		this._store = null;
 		this._timer = null;
+		this._txt = null;
 		super.dispose();
 	}
 	
@@ -477,14 +607,27 @@ class GameMapItem extends BasicObject
 		this.container.mouseChildren = false;
 		//	this.container.mouseEnabled = false;
 		
-		this._bottom = new SkinStoreItem(this._store);
-		this._face = new SkinStoreItem(this._store);
-		this._flash = new SkinStoreItem(this._store);
-		this._front = new SkinStoreItem(this._store);
+		this._bottom = new SkinStoreItem();
+		this._face = new SkinStoreItem();
+		this._flash = new SkinStoreItem();
+		this._front = new SkinStoreItem();
 		this.container.addChild(this._bottom.instance);
 		this.container.addChild(this._face.instance);
 		this.container.addChild(this._flash.instance);
 		this.container.addChild(this._front.instance);
+		
+		this._txt = new JText(GameConfig.FONT_SIZE_MAP, GameConfig.FONT_COLOR_MAP, JText.ALIGN_BOTTON, 0, GameConfig.CELL_RADIUS_MAP * 2, GameConfig.CELL_RADIUS_MAP * 1.732);
+		var tf:TextField = this._txt.textField;
+		
+		//tf.background = true;
+		//tf.backgroundColor = 0x88ffff88;
+		tf.filters = [new GlowFilter(0xffffff, 1, GameConfig.FONT_SIZE_MAP * 0.3, GameConfig.FONT_SIZE_MAP * 0.3)//
+		, new DropShadowFilter(GameConfig.FONT_SIZE_MAP * 0.1, 131, 0, 1, GameConfig.FONT_SIZE_MAP * 0.3, GameConfig.FONT_SIZE_MAP * 0.3)];
+		
+		this._txt.text = this._key;
+		this._txt.instance.x = -GameConfig.CELL_RADIUS_MAP;
+		this._txt.instance.y = -GameConfig.CELL_RADIUS_MAP;
+		this.container.addChild(this._txt.instance);
 		
 		this._bottom.setSkin(SkinStore.TYPE_BLANK);
 		this._flash.instance.visible = false;
@@ -637,7 +780,6 @@ class GameMapItem extends BasicObject
 		}
 		
 		this._flashValue += 0.001 * p_delta;
-		//	trace(_key + " >> " + this._flashValue);
 		if (this._flashValue > 1)
 		{
 			this._flashValue -= 2;
@@ -661,18 +803,15 @@ class GameMap extends ButtonGroup
 	private var _overKey:String = "";
 	private var _xMax:int = 0;
 	private var _yMax:int = 0;
-	private var _store:SkinStore = null;
 	
-	public function GameMap(p_store:SkinStore)
+	public function GameMap()
 	{
-		this._store = p_store;
 		super();
 	}
 	
 	override public function dispose():void
 	{
 		this._itemMap = null;
-		this._store = null;
 		super.dispose();
 	}
 	
@@ -682,18 +821,31 @@ class GameMap extends ButtonGroup
 		this._itemMap = {};
 	}
 	
+	override public function reset():void
+	{
+		super.reset();
+		this._itemMap = {};
+		this._downKey = "";
+		this._overKey = "";
+		this._xMax = 0;
+		this._yMax = 0;
+	}
+	
 	public function create(p_list:Array):void
 	{
-		var cellSkin:CellSkin = GameAsset.loader.getAsset(GameConfig.ASSET_KEY_MAP_CELL) as CellSkin;
+		this.reset();
+		
+		var cellWidth:int = GameConfig.CELL_RADIUS_MAP * 2 + 0.5;
+		var cellHeight:int = GameConfig.CELL_RADIUS_MAP * 1.732 + 0.5;
 		for (var i:int = 0; i < p_list.length; i++)
 		{
 			var data:MapCell = p_list[i] as MapCell;
 			var key:String = String(data.id);
-			var item:GameMapItem = new GameMapItem(this._store, key);
+			var item:GameMapItem = new GameMapItem(key);
 			item.instance.name = key;
 			item.setState(data.state, data.side);
-			var posX:int = data.posX * int(cellSkin.width * 0.75) + cellSkin.width;
-			var posY:int = data.posY * int(cellSkin.height * 0.5) + cellSkin.height;
+			var posX:int = data.posX * int(cellWidth * 0.75) + cellWidth;
+			var posY:int = data.posY * int(cellHeight * 0.5) + cellHeight;
 			if (posX > this._xMax)
 			{
 				this._xMax = posX;
@@ -706,8 +858,8 @@ class GameMap extends ButtonGroup
 			
 			this._itemMap[key] = item;
 		}
-		this._xMax += cellSkin.width;
-		this._yMax += cellSkin.height;
+		this._xMax += cellWidth;
+		this._yMax += cellHeight;
 	}
 	
 	public function get width():int
