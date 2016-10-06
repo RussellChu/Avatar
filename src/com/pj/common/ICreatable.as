@@ -8,6 +8,6 @@ package com.pj.common
 	public interface ICreatable extends IHasSignal
 	{
 		function get creater():Creater;
-		function onCreate():void;
+		function onCreate():Boolean;
 	}
 }

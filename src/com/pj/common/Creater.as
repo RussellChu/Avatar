@@ -19,10 +19,17 @@ package com.pj.common
 		{
 			setTimeout(function():void
 			{
-				_inst.onCreate();
-				_inst.signal.dispatch(null, JSignal.EVENT_ON_CREATE);
+				if (_inst.onCreate())
+				{
+					createReady();
+				}
 			}, 1);
 		}
 		
+		public function createReady():void
+		{
+			this._inst.signal.dispatch(null, JSignal.EVENT_ON_CREATE);
+		}
+	
 	}
 }

@@ -16,6 +16,9 @@ package com.pj.common
 	
 	public class AssetLoader implements IDisposable
 	{
+		static public const EVENT_COMPLETE:String = "EVENT_COMPLETE";
+		static public const EVENT_LOADING:String = "EVENT_LOADING";
+		
 		static private const TYPE_URL:int = 0;
 		static private const TYPE_CREATE:int = 1;
 		static private const TYPE_OBJECT:int = 2;
@@ -26,6 +29,7 @@ package com.pj.common
 		private var _currPath:String = "";
 		private var _failList:Array = null;
 		private var _loader:Loader = null;
+		private var _listMax:int = 0;
 		private var _registerList:Array = null;
 		private var _registerMap:Object = null;
 		private var _sharedMap:Object = null;
@@ -97,20 +101,22 @@ package com.pj.common
 			return true;
 		}
 		
-		public function addShared(p_key:String, p_cls:Class, p_data:Object =  null):Boolean {
+		public function addShared(p_key:String, p_cls:Class, p_data:Object = null):Boolean
+		{
 			if (this._registerMap[p_key])
 			{
 				return false;
 			}
 			
 			this._registerMap[p_key] = true;
-			this._sharedMap[p_key] = {cls:p_cls, data:p_data};
+			this._sharedMap[p_key] = {cls: p_cls, data: p_data};
 			return true;
 		}
 		
 		public function getAsset(p_key:String):Object
 		{
-			if (this._sharedMap[p_key]) {
+			if (this._sharedMap[p_key])
+			{
 				var cls:Class = this._sharedMap[p_key].cls as Class;
 				var data:Object = this._sharedMap[p_key].data;
 				return new cls(data);
@@ -119,7 +125,7 @@ package com.pj.common
 			return this._assetMap[p_key];
 		}
 		
-		public function load():void
+		public function load(p_start:Boolean = true):void
 		{
 			//loader = new Loader();
 			//loader.contentLoaderInfo.addEventListener(Event.COMPLETE, function(e:Event):void
@@ -130,16 +136,23 @@ package com.pj.common
 			//});
 			//loader.load(new URLRequest("basket_x000a_p78.swf"));
 			
+			if (p_start)
+			{
+				this._listMax = this._registerList.length;
+			}
+			
 			var isLoad:Boolean = false;
 			while (!isLoad)
 			{
 				if (this._registerList.length == 0)
 				{
-					this._signal.dispatch({failList: this._failList});
+					this._signal.dispatch({failList: this._failList}, EVENT_COMPLETE);
 					return;
 				}
 				
 				var item:Object = this._registerList.shift();
+				this._signal.dispatch({index: this._registerList.length, total: this._listMax}, EVENT_LOADING);
+				
 				var type:int = item.type;
 				this._currKey = item.key;
 				switch (type)
@@ -172,7 +185,7 @@ package com.pj.common
 			this._assetMap[this._currKey] = assets;
 			this._currKey = "";
 			this._loader = null;
-			this.load();
+			this.load(false);
 		}
 		
 		private function onError(p_evt:Event):void
@@ -180,7 +193,7 @@ package com.pj.common
 			this._loader.contentLoaderInfo.removeEventListener(Event.COMPLETE, this.onLoad);
 			this._loader.contentLoaderInfo.removeEventListener(IOErrorEvent.IO_ERROR, this.onError);
 			this._failList.push({key: this._currKey, path: this._currPath});
-			this.load();
+			this.load(false);
 		}
 		
 		private function onLoadCreate(p_result:Object):void
@@ -189,7 +202,7 @@ package com.pj.common
 			this._assetMap[this._currKey] = this._currCreate;
 			this._currKey = "";
 			this._currCreate = null;
-			this.load();
+			this.load(false);
 		}
 		
 		public function get signal():JSignal

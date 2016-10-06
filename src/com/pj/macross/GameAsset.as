@@ -81,9 +81,7 @@ package com.pj.macross
 				__loader.addObject(KEY_S07, new BMP_S07());
 				__loader.addObject(KEY_S08, new BMP_S08());
 				__loader.addCreate(KEY_GALAXY, new Galaxy());
-				__loader.addCreate(KEY_FOLD, new Fold());
-				__loader.addCreate(KEY_FOLD_ANI_SRC, new FoldAniSrc());
-				__loader.addShared(KEY_FOLD_ANI, FoldAni);
+				__loader.addCreate(KEY_FOLD_ANI, new FoldAni());
 				__loader.addShared(KEY_FOLD_MC, FoldMc);
 				__loader.addCreate(KEY_TRI_A, new HostageTriangle(new JColor(1, 0.411, 0.411, 1)));
 				__loader.addCreate(KEY_TRI_B, new HostageTriangle(new JColor(0, 1, 0, 1)));
@@ -165,9 +163,9 @@ class CreatableBitmap extends Bitmap implements ICreatable
 		return this._creater;
 	}
 	
-	public function onCreate():void
+	public function onCreate():Boolean
 	{
-		;
+		return true;
 	}
 	
 	public function get signal():JSignal
@@ -177,74 +175,14 @@ class CreatableBitmap extends Bitmap implements ICreatable
 
 }
 
-class Fold extends CreatableBitmap
-{
-	public function Fold()
-	{
-		super(GameConfig.CELL_RADIUS_MAP * 2, GameConfig.CELL_RADIUS_MAP * 2, true, 0);
-	}
-	
-	private function getLine(p_angle:Number, p_side:Number, p_out:Number, p_in:Number, p_add:Number):Number
-	{
-		return (Math.cos((p_angle + p_add) * p_side) + 1) * 0.5 * (p_out - p_in) + p_in;
-	}
-	
-	private function getColor(p_x:Number, p_y:Number):JColor
-	{
-		var angle:Number = Math.atan2(p_y, p_x);
-		var dist:Number = Math.sqrt(p_x * p_x + p_y * p_y);
-		
-		var cR:Number = 0;
-		var cG:Number = 0;
-		var cB:Number = 0;
-		var cA:Number = 0;
-		
-		var radius:Number = 1;
-		for (var i:int = 0; i <= 5; i++)
-		{
-			var b0:Number = this.getLine(angle, 11, 1 * radius, 0.96 * radius, Math.PI / 11);
-			var b1:Number = this.getLine(angle, 11, 0.8 * radius, 0.65 * radius, 0);
-			var ratio:Number = JMath.ratio(dist, b0, b1);
-			var lv:Number = 1 - Math.abs(2 * ratio - 1);
-			if (ratio >= 0 && ratio <= 1)
-			{
-				cR += lv * lv;
-				cG += lv * lv * 0.5;
-				cB += lv;
-				cA += lv;
-			}
-			radius *= 0.7;
-		}
-		
-		return new JColor(cR, cG, cB, cA);
-	}
-	
-	override public function onCreate():void
-	{
-		var bmp:BitmapData = this.bitmapData;
-		bmp.lock();
-		
-		for (var x:int = 0; x < this.width; x++)
-		{
-			for (var y:int = 0; y < this.height; y++)
-			{
-				var color:JColor = this.getColor(x * 2 / this.width - 1, y * 2 / this.height - 1);
-				bmp.setPixel32(x, y, color.value);
-			}
-		}
-		bmp.unlock();
-	}
-
-}
-
-class FoldAniSrc implements ICreatable
+class FoldAni implements ICreatable
 {
 	private var _creater:Creater = null;
 	private var _signal:JSignal = null;
 	
 	private var _list:Array = null;
 	
-	public function FoldAniSrc()
+	public function FoldAni()
 	{
 		super();
 		this._creater = new Creater(this);
@@ -266,83 +204,151 @@ class FoldAniSrc implements ICreatable
 		var angle:Number = Math.atan2(p_y, p_x);
 		var dist:Number = Math.sqrt(p_x * p_x + p_y * p_y);
 		
-		var cR:Number = 0;
-		var cG:Number = 0;
-		var cB:Number = 0;
-		var cA:Number = 0;
+		var color:JColor = new JColor(0, 0, 0, 0);
 		
-		for (var i:int = 0; i <= 1; i++) {
+		for (var i:int = 0; i <= 2; i++)
+		{
 			var maxA:Number = 1;
-			var b0:Number = this.getLine(angle + Math.PI * 2 * i, p_side, 0.7, 0.2, 0);
-			var b1:Number = this.getLine(angle + Math.PI * 2 * i, p_side, 0.55, 0.05, 0);
+			var b0:Number = this.getLine(angle + Math.PI * 2 * i, p_side, 0.55 * p_alpha, 0.2 * p_alpha, 0);
+			var b1:Number = this.getLine(angle + Math.PI * 2 * i, p_side, 0.40 * p_alpha, 0.05 * p_alpha, 0);
 			var ratio:Number = JMath.ratio(dist, b0, b1);
 			var lv:Number = 1 - Math.abs(2 * ratio - 1);
-			if (i == 0 && angle < 0) {
+			lv = lv * (2 - lv);
+			if (i == 0 && angle < 0)
+			{
 				maxA = angle / Math.PI + 1;
 			}
-			if (i == 1 && angle > 0) {
+			if (i == 2 && angle > 0)
+			{
 				maxA = 1 - angle / Math.PI;
 			}
 			var addA:Number = lv;
-			if (addA > maxA) {
+			if (addA > maxA)
+			{
 				addA = maxA;
 			}
 			if (ratio >= 0 && ratio <= 1)
 			{
-				cR += 1;
-				cG += 1;
-				cB += lv;
-				cA += addA;
+				color.addLight(1, lv * 2, 1 - lv * 4 + lv * lv * 4, addA);
 			}
 		}
 		
-		if (cA > p_alpha) {
-			cA = p_alpha;
+		if (color.a > p_alpha)
+		{
+			color.a = p_alpha;
 		}
 		
-		return new JColor(cR, cG, cB, cA);
+		return color;
 	}
 	
-	public function onCreate():void
+	private function getColorAdd(p_x:Number, p_y:Number, p_radius:Number, p_angle:Number, p_color:JColor):JColor
+	{
+		var angle:Number = Math.atan2(p_y, p_x) + p_angle;
+		var dist:Number = Math.sqrt(p_x * p_x + p_y * p_y);
+		
+		var color:JColor = new JColor(0, 0, 0, 0);
+		
+		var radius:Number = p_radius;
+		for (var i:int = 0; i <= 2; i++)
+		{
+			var b0:Number = this.getLine(angle, 11, 1 * radius, 0.95 * radius, Math.PI / 11);
+			var b1:Number = this.getLine(angle, 11, 0.55 * radius, 0.5 * radius, 0);
+			var ratio:Number = JMath.ratio(dist, b0, b1);
+			var lvMax:Number = (b0 - b1) / (0.4 * radius);
+			var lv:Number = (1 - Math.abs(2 * ratio - 1)) * lvMax;
+			if (ratio >= 0 && ratio <= 1)
+			{
+				color.addLight(lv * lv, lv * lv * 0.5, lv, lv * 0.9);
+			}
+			radius *= 0.65;
+		}
+		
+		//var dist:Number = Math.sqrt(p_x * p_x + p_y * p_y);
+		//if (dist < 1) {
+		//var addLight:Number = 1 - dist;
+		//addLight *= addLight;
+		//addLight *= addLight;
+		//}
+		
+		return p_color.addLight(color.r, color.g, color.b, color.a);
+	}
+	
+	private function addBitmap(p_side:Number, p_startSide:Number, p_endSide:Number):void
 	{
 		var width:int = GameConfig.CELL_RADIUS_MAP * 2;
 		var height:int = GameConfig.CELL_RADIUS_MAP * 2;
-		this._list = [];
-		for (var i:int = 0; i < 40; i++)
+		
+		var bmp:BitmapData = new BitmapData(width, height, true, 0);
+		bmp.lock();
+		
+		for (var x:int = 0; x < width; x++)
 		{
-			var side:Number = 3 + i * 0.1;
-			var bmp:BitmapData = new BitmapData(width, height, true, 0);
-			bmp.lock();
-			
-			for (var x:int = 0; x < width; x++)
+			for (var y:int = 0; y < height; y++)
 			{
-				for (var y:int = 0; y < height; y++)
+				var alpha:Number = 1;
+				if (p_side < p_startSide + 1)
 				{
-					var alpha:Number = 1;
-					if (side >= 6) {
-						alpha = 7 - side;
-					}
-					var color:JColor = this.getColor(x * 2 / width - 1, y * 2 / height - 1, side, alpha);
-					bmp.setPixel32(x, y, color.value);
+					alpha = p_side - p_startSide;
 				}
+				if (p_side >= p_endSide - 1)
+				{
+					alpha = p_endSide - p_side;
+				}
+				var color:JColor = this.getColor(x * 2 / width - 1, y * 2 / height - 1, p_side, alpha);
+				color = this.getColorAdd(x * 2 / width - 1, y * 2 / height - 1, alpha, -p_side, color);
+				bmp.setPixel32(x, y, color.value);
 			}
-			bmp.unlock();
-			this._list.push(bmp);
 		}
+		bmp.unlock();
+		this._list.push(bmp);
 	}
 	
-	public function getFrame(p_id:int):BitmapData {
-		if (this._list.length == 0) {
+	public function onCreate():Boolean
+	{
+		this._list = [];
+		
+		var startSide:Number = 2;
+		var endSide:Number = 7;
+		var step:Number = 0.05;
+		
+		Helper.loopTime(0, (endSide - startSide) / step - 1, function(p_index:int):Boolean
+		{
+			addBitmap(startSide + p_index * step, startSide, endSide);
+			return true;
+		}, function():void
+		{
+			_creater.createReady();
+		});
+		
+		return false;
+	}
+	
+	public function getFrameId(p_count:Number, p_delta:Number):Number
+	{
+		var count:Number = p_count + 0.01 * p_delta;
+		if (int(count) > this._list.length)
+		{
+			count -= this._list.length;
+		}
+		return count;
+	}
+	
+	public function getFrame(p_id:int):BitmapData
+	{
+		if (this._list.length == 0)
+		{
 			return null;
 		}
 		
 		return this._list[p_id % this._list.length] as BitmapData;
 		
 		var realId:int = p_id / 2;
-		if (realId >= this._list.length) {
+		if (realId >= this._list.length)
+		{
 			return this._list[this._list.length - 1] as BitmapData;
 		}
-		if (realId < 0) {
+		if (realId < 0)
+		{
 			return this._list[0] as BitmapData;
 		}
 		return this._list[realId] as BitmapData;
@@ -355,76 +361,9 @@ class FoldAniSrc implements ICreatable
 
 }
 
-class FoldAni extends BasicObject {
-	private var _count:int = 0;
-	private var _angle:Number = 0;
-	private var _spIn:Sprite = null;
-	private var _spRot:Sprite = null;
-	private var _timer:JTimer = null;
-	
-	public function FoldAni()
-	{
-		super();
-	}
-	
-	override public function dispose():void
-	{
-		Helper.dispose(this._timer);
-		this._spIn = null;
-		this._spRot = null;
-		this._timer = null;
-		
-		super.dispose();
-	}
-	
-	override protected function init():void
-	{
-		super.init();
-		
-		this._spRot = new Sprite();
-		this.container.addChild(this._spRot);
-		this._spIn = new Sprite();
-		this._spRot.addChild(this._spIn);
-		
-		this._timer = new JTimer(this.onTime);
-		this._timer.start();
-	}
-	
-	private function onTime(p_delta:Number):void
-	{
-		if (!this._spRot)
-		{
-			return;
-		}
-		
-		this._angle += 0.0001 * p_delta;
-		if (this._angle > 1)
-		{
-			this._angle -= 1;
-		}
-		
-		this._spRot.rotation = -360 * this._angle;
-		
-		var src:FoldAniSrc = GameAsset.loader.getAsset(GameAsset.KEY_FOLD_ANI_SRC) as FoldAniSrc;
-		var bmp:BitmapData = src.getFrame(this._count);
-		this._count++;
-		var img:Bitmap = new Bitmap(bmp);
-		img.x = -img.width * 0.5;
-		img.y = -img.height * 0.5;
-		
-		this._spIn.removeChildren();
-		this._spIn.addChild(img);
-	}
-	
-	private function get container():Sprite
-	{
-		return (this.instance as Sprite);
-	}
-}
-
 class FoldMc extends BasicObject
 {
-	private var _angle:Number = 0;
+	private var _count:Number = 0;
 	private var _sp:Sprite = null;
 	private var _timer:JTimer = null;
 	
@@ -436,6 +375,7 @@ class FoldMc extends BasicObject
 	override public function dispose():void
 	{
 		Helper.dispose(this._timer);
+		this._sp = null;
 		this._timer = null;
 		
 		super.dispose();
@@ -445,17 +385,8 @@ class FoldMc extends BasicObject
 	{
 		super.init();
 		
-		var bmp:BitmapData = (GameAsset.loader.getAsset(GameAsset.KEY_FOLD) as Bitmap).bitmapData;
-		var img:Bitmap = new Bitmap(bmp);
-		img.x = -img.width * 0.5;
-		img.y = -img.height * 0.5;
-		
 		this._sp = new Sprite();
-		this._sp.addChild(img);
 		this.container.addChild(this._sp);
-		
-		var ani:FoldAni = new FoldAni();
-		this.container.addChild(ani.instance);
 		
 		this._timer = new JTimer(this.onTime);
 		this._timer.start();
@@ -468,20 +399,21 @@ class FoldMc extends BasicObject
 			return;
 		}
 		
-		this._angle += 0.0001 * p_delta;
-		if (this._angle > 1)
-		{
-			this._angle -= 1;
-		}
+		var src:FoldAni = GameAsset.loader.getAsset(GameAsset.KEY_FOLD_ANI) as FoldAni;
+		var bmp:BitmapData = src.getFrame(int(this._count));
+		this._count = src.getFrameId(this._count, p_delta);
+		var img:Bitmap = new Bitmap(bmp);
+		img.x = -img.width * 0.5;
+		img.y = -img.height * 0.5;
 		
-		this._sp.rotation = 360 * this._angle;
+		this._sp.removeChildren();
+		this._sp.addChild(img);
 	}
 	
 	private function get container():Sprite
 	{
 		return (this.instance as Sprite);
 	}
-
 }
 
 class HostageTriangle extends CreatableBitmap
@@ -541,7 +473,7 @@ class HostageTriangle extends CreatableBitmap
 		return new JColor(cR, cG, cB, cA);
 	}
 	
-	override public function onCreate():void
+	override public function onCreate():Boolean
 	{
 		var bmp:BitmapData = this.bitmapData;
 		bmp.lock();
@@ -555,6 +487,8 @@ class HostageTriangle extends CreatableBitmap
 			}
 		}
 		bmp.unlock();
+		
+		return true;
 	}
 
 }
@@ -690,7 +624,7 @@ class CellImage extends CreatableBitmap
 		super(p_width, p_height, true, 0);
 	}
 	
-	override public function onCreate():void
+	override public function onCreate():Boolean
 	{
 		var bmp:BitmapData = this.bitmapData;
 		bmp.lock();
@@ -769,6 +703,8 @@ class CellImage extends CreatableBitmap
 			}
 		}
 		bmp.unlock();
+		
+		return true;
 	}
 
 }
@@ -783,7 +719,7 @@ class Galaxy extends CreatableBitmap
 		super(FULL_WIDTH, FULL_HEIGHT, true, new JColor(0, 0, 0.2, 1).value);
 	}
 	
-	override public function onCreate():void
+	override public function onCreate():Boolean
 	{
 		var blur:int = 5;
 		var radius:int = 2;
@@ -878,6 +814,8 @@ class Galaxy extends CreatableBitmap
 		}
 		
 		this.bitmapData = bmp;
+		
+		return true;
 	}
 
 }

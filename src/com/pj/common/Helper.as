@@ -1,5 +1,6 @@
 package com.pj.common
 {
+	import flash.utils.setTimeout;
 	
 	/**
 	 * ...
@@ -7,8 +8,10 @@ package com.pj.common
 	 */
 	public class Helper
 	{
-		static public function cloneJSON(p_data:Object):Object {
-			if (p_data == null) {
+		static public function cloneJSON(p_data:Object):Object
+		{
+			if (p_data == null)
+			{
 				return null;
 			}
 			
@@ -91,78 +94,210 @@ package com.pj.common
 			}
 		}
 		
-		static public function hasValue(p_obj:Object, p_key:String):Boolean {
-			if (!p_obj) {return false;}
-			if (!p_obj.hasOwnProperty(p_key)) {return false;}
+		static public function loopTime(p_from:int, p_to:int, p_func:Function, p_onComplete:Function):void
+		{
+			var i:int = p_from;
+			if (p_from > p_to)
+			{
+				p_onComplete();
+				return;
+			}
+			
+			var funcA:Function;
+			var func:Function = function():void
+			{
+				setTimeout(function():void
+				{
+					var isLoop:Boolean = p_func(i) as Boolean;
+					i++;
+					if (i >= p_to || !isLoop)
+					{
+						p_onComplete();
+						return;
+					}
+					funcA();
+				}, 1);
+			};
+			funcA = func;
+			funcA();
+		}
+		
+		static public function hasValue(p_obj:Object, p_key:String):Boolean
+		{
+			if (!p_obj)
+			{
+				return false;
+			}
+			if (!p_obj.hasOwnProperty(p_key))
+			{
+				return false;
+			}
 			return true;
 		}
 		
-		static public function hasValueBoolean(p_obj:Object, p_key:String):Boolean {
-			if (!p_obj) {return false;}
-			if (!p_obj.hasOwnProperty(p_key)) {return false;}
-			if (p_obj[p_key] is Boolean) {return true;}
+		static public function hasValueBoolean(p_obj:Object, p_key:String):Boolean
+		{
+			if (!p_obj)
+			{
+				return false;
+			}
+			if (!p_obj.hasOwnProperty(p_key))
+			{
+				return false;
+			}
+			if (p_obj[p_key] is Boolean)
+			{
+				return true;
+			}
 			return false;
 		}
 		
-		static public function hasValueInteger(p_obj:Object, p_key:String):Boolean {
-			if (!p_obj) {return false;}
-			if (!p_obj.hasOwnProperty(p_key)) {return false;}
-			if (p_obj[p_key] is int) {return true;}
+		static public function hasValueInteger(p_obj:Object, p_key:String):Boolean
+		{
+			if (!p_obj)
+			{
+				return false;
+			}
+			if (!p_obj.hasOwnProperty(p_key))
+			{
+				return false;
+			}
+			if (p_obj[p_key] is int)
+			{
+				return true;
+			}
 			return false;
 		}
 		
-		static public function hasValueNumber(p_obj:Object, p_key:String):Boolean {
-			if (!p_obj) {return false;}
-			if (!p_obj.hasOwnProperty(p_key)) {return false;}
-			if (p_obj[p_key] is int) {return true;}
-			if (p_obj[p_key] is Number) {return true;}
+		static public function hasValueNumber(p_obj:Object, p_key:String):Boolean
+		{
+			if (!p_obj)
+			{
+				return false;
+			}
+			if (!p_obj.hasOwnProperty(p_key))
+			{
+				return false;
+			}
+			if (p_obj[p_key] is int)
+			{
+				return true;
+			}
+			if (p_obj[p_key] is Number)
+			{
+				return true;
+			}
 			return false;
 		}
 		
-		static public function hasValueString(p_obj:Object, p_key:String):Boolean {
-			if (!p_obj) {return false;}
-			if (!p_obj.hasOwnProperty(p_key)) {return false;}
-			if (p_obj[p_key] is String) {return true;}
+		static public function hasValueString(p_obj:Object, p_key:String):Boolean
+		{
+			if (!p_obj)
+			{
+				return false;
+			}
+			if (!p_obj.hasOwnProperty(p_key))
+			{
+				return false;
+			}
+			if (p_obj[p_key] is String)
+			{
+				return true;
+			}
 			return false;
 		}
 		
-		static public function hasValueObject(p_obj:Object, p_key:String):Boolean {
-			if (!p_obj) {return false;}
-			if (!p_obj.hasOwnProperty(p_key)) {return false;}
-			if (p_obj[p_key] is Object) {return true;}
+		static public function hasValueObject(p_obj:Object, p_key:String):Boolean
+		{
+			if (!p_obj)
+			{
+				return false;
+			}
+			if (!p_obj.hasOwnProperty(p_key))
+			{
+				return false;
+			}
+			if (p_obj[p_key] is Object)
+			{
+				return true;
+			}
 			return false;
 		}
 		
-		static public function hasValueArray(p_obj:Object, p_key:String):Boolean {
-			if (!p_obj) {return false;}
-			if (!p_obj.hasOwnProperty(p_key)) {return false;}
-			if (p_obj[p_key] is Array) {return true;}
+		static public function hasValueArray(p_obj:Object, p_key:String):Boolean
+		{
+			if (!p_obj)
+			{
+				return false;
+			}
+			if (!p_obj.hasOwnProperty(p_key))
+			{
+				return false;
+			}
+			if (p_obj[p_key] is Array)
+			{
+				return true;
+			}
 			return false;
 		}
 		
-		static public function getValueBoolean(p_obj:Object, p_key:String, p_default:Boolean = false):Boolean {
-			if (!p_obj) {return p_default;}
-			if (!p_obj.hasOwnProperty(p_key)) {return p_default;}
-			if (p_obj[p_key] is Boolean) {return p_obj[p_key];}
+		static public function getValueBoolean(p_obj:Object, p_key:String, p_default:Boolean = false):Boolean
+		{
+			if (!p_obj)
+			{
+				return p_default;
+			}
+			if (!p_obj.hasOwnProperty(p_key))
+			{
+				return p_default;
+			}
+			if (p_obj[p_key] is Boolean)
+			{
+				return p_obj[p_key];
+			}
 			return p_default;
 		}
 		
-		static public function getValueInteger(p_obj:Object, p_key:String, p_default:int = 0):int {
-			if (!p_obj) {return p_default;}
-			if (!p_obj.hasOwnProperty(p_key)) {return p_default;}
-			if (p_obj[p_key] is int) {return p_obj[p_key];}
+		static public function getValueInteger(p_obj:Object, p_key:String, p_default:int = 0):int
+		{
+			if (!p_obj)
+			{
+				return p_default;
+			}
+			if (!p_obj.hasOwnProperty(p_key))
+			{
+				return p_default;
+			}
+			if (p_obj[p_key] is int)
+			{
+				return p_obj[p_key];
+			}
 			return p_default;
 		}
 		
-		static public function getValueNumber(p_obj:Object, p_key:String, p_default:Number = 0):Number {
-			if (!p_obj) {return p_default;}
-			if (!p_obj.hasOwnProperty(p_key)) {return p_default;}
-			if (p_obj[p_key] is int) {return p_obj[p_key];}
-			if (p_obj[p_key] is Number) {return p_obj[p_key];}
+		static public function getValueNumber(p_obj:Object, p_key:String, p_default:Number = 0):Number
+		{
+			if (!p_obj)
+			{
+				return p_default;
+			}
+			if (!p_obj.hasOwnProperty(p_key))
+			{
+				return p_default;
+			}
+			if (p_obj[p_key] is int)
+			{
+				return p_obj[p_key];
+			}
+			if (p_obj[p_key] is Number)
+			{
+				return p_obj[p_key];
+			}
 			return p_default;
 		}
 		
-		static public function selectFrom(p_arr:Array):Object {
+		static public function selectFrom(p_arr:Array):Object
+		{
 			var index:int = int(Math.random() * p_arr.length);
 			return p_arr[index];
 		}

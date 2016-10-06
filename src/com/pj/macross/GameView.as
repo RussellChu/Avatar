@@ -82,7 +82,8 @@ package com.pj.macross
 			this.signal.dispatch({side: this._cmdSide, command: this._cmdCode}, EVENT_CMD_CLICK);
 		}
 		
-		public function updateScore(p_side:int, p_score:int):void {
+		public function updateScore(p_side:int, p_score:int):void
+		{
 			this._mark.setScore(p_side, p_score);
 		}
 		
@@ -140,7 +141,6 @@ package com.pj.macross
 	
 	}
 }
-
 import com.pj.common.Helper;
 import com.pj.common.JTimer;
 import com.pj.common.component.BasicContainer;
@@ -159,6 +159,7 @@ import flash.display.Sprite;
 import flash.events.MouseEvent;
 import flash.filters.DropShadowFilter;
 import flash.filters.GlowFilter;
+import flash.text.TextField;
 import flash.text.TextField;
 
 class SkinStoreItem extends BasicObject

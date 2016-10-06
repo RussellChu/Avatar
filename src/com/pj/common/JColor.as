@@ -49,6 +49,39 @@ package com.pj.common
 			this.a = p_a;
 		}
 		
+		public function addOver(p_r:Number, p_g:Number, p_b:Number, p_a:Number):JColor {
+			var addR:Number = JMath.bound(p_r, 0, 1);
+			var addG:Number = JMath.bound(p_g, 0, 1);
+			var addB:Number = JMath.bound(p_b, 0, 1);
+			var addA:Number = JMath.bound(p_a, 0, 1);
+			var newA:Number = this.a + addA - this.a * addA;
+			if (newA <= 0) {
+				this.r = 0;
+				this.g = 0;
+				this.b = 0;
+				this.a = 0;
+				return this;
+			}
+			var invA:Number = 1 / newA;
+			this.r = (addR * addA + this.r * this.a * (1 - addA)) * invA;
+			this.g = (addG * addA + this.g * this.a * (1 - addA)) * invA;
+			this.b = (addB * addA + this.b * this.a * (1 - addA)) * invA;
+			this.a = newA;
+			return this;
+		}
+		
+		public function addLight(p_r:Number, p_g:Number, p_b:Number, p_a:Number):JColor {
+			var addR:Number = JMath.bound(p_r, 0, 1);
+			var addG:Number = JMath.bound(p_g, 0, 1);
+			var addB:Number = JMath.bound(p_b, 0, 1);
+			var addA:Number = JMath.bound(p_a, 0, 1);
+			this.r = this.r * this.a + addR * addA;
+			this.g = this.g * this.a + addG * addA;
+			this.b = this.b * this.a + addB * addA;
+			this.a = this.a + addA;
+			return this;
+		}
+		
 		public function clone():JColor
 		{
 			return new JColor(this.r, this.g, this.b, this.a);
