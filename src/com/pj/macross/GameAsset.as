@@ -214,13 +214,13 @@ class FoldAni implements ICreatable
 			var ratio:Number = JMath.ratio(dist, b0, b1);
 			var lv:Number = 1 - Math.abs(2 * ratio - 1);
 			lv = lv * lv;
-			if (i == 0 && angle < 0)
+			if (i == 0)
 			{
-				maxA = angle / Math.PI + 1;
+				maxA = (angle / Math.PI - 1) * 0.5 + 1;
 			}
-			if (i == 2 && angle > 0)
+			if (i == 2)
 			{
-				maxA = 1 - angle / Math.PI;
+				maxA = 1 - (angle / Math.PI + 1) * 0.5;
 			}
 			var addA:Number = lv;
 			if (addA > maxA)
