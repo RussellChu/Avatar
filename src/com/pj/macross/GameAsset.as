@@ -209,11 +209,11 @@ class FoldAni implements ICreatable
 		for (var i:int = 0; i <= 2; i++)
 		{
 			var maxA:Number = 1;
-			var b0:Number = this.getLine(angle + Math.PI * 2 * i, p_side, 0.55 * p_alpha, 0.2 * p_alpha, 0);
-			var b1:Number = this.getLine(angle + Math.PI * 2 * i, p_side, 0.40 * p_alpha, 0.05 * p_alpha, 0);
+			var b0:Number = this.getLine(angle + Math.PI * 2 * i, p_side, (0.4875+0.15) * p_alpha, (0.15+0.15) * p_alpha, 0);
+			var b1:Number = this.getLine(angle + Math.PI * 2 * i, p_side, (0.4875-0.15) * p_alpha, (0.15-0.15) * p_alpha, 0);
 			var ratio:Number = JMath.ratio(dist, b0, b1);
 			var lv:Number = 1 - Math.abs(2 * ratio - 1);
-			lv = lv * (2 - lv);
+			lv = lv * lv;
 			if (i == 0 && angle < 0)
 			{
 				maxA = angle / Math.PI + 1;
@@ -254,11 +254,12 @@ class FoldAni implements ICreatable
 			var b0:Number = this.getLine(angle, 11, 1 * radius, 0.95 * radius, Math.PI / 11);
 			var b1:Number = this.getLine(angle, 11, 0.55 * radius, 0.5 * radius, 0);
 			var ratio:Number = JMath.ratio(dist, b0, b1);
-			var lvMax:Number = (b0 - b1) / (0.4 * radius);
+			var lvMax:Number = (b0 - b1) / (0.5 * radius);
 			var lv:Number = (1 - Math.abs(2 * ratio - 1)) * lvMax;
 			if (ratio >= 0 && ratio <= 1)
 			{
 				color.addLight(lv * lv, lv * lv * 0.5, lv, lv * 0.9);
+				color.addLight(lv, lv * 0.5, 1, lv * 0.9);
 			}
 			radius *= 0.65;
 		}
@@ -306,6 +307,9 @@ class FoldAni implements ICreatable
 	public function onCreate():Boolean
 	{
 		this._list = [];
+		
+		//addBitmap(4, 3, 5);
+		//return true;
 		
 		var startSide:Number = 2;
 		var endSide:Number = 7;

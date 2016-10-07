@@ -71,14 +71,81 @@ package com.pj.common
 		}
 		
 		public function addLight(p_r:Number, p_g:Number, p_b:Number, p_a:Number):JColor {
+			if (p_a <= 0) {
+				return this;
+			}
+			
+			if (this.a <= 0) {
+				this.r = p_r;
+				this.g = p_g;
+				this.b = p_b;
+				this.a = p_a;
+				return this;
+			}
+			
 			var addR:Number = JMath.bound(p_r, 0, 1);
 			var addG:Number = JMath.bound(p_g, 0, 1);
 			var addB:Number = JMath.bound(p_b, 0, 1);
 			var addA:Number = JMath.bound(p_a, 0, 1);
-			this.r = this.r * this.a + addR * addA;
-			this.g = this.g * this.a + addG * addA;
-			this.b = this.b * this.a + addB * addA;
-			this.a = this.a + addA;
+			
+			var baseR:Number = this.r;
+			var baseG:Number = this.g;
+			var baseB:Number = this.b;
+			var baseA:Number = this.a;
+			
+			if (addA > baseA) {
+				baseR = addR;
+				baseG = addG;
+				baseB = addB;
+				baseA = addA;
+				
+				addR = this.r;
+				addG = this.g;
+				addB = this.b;
+				addA = this.a;
+			}
+			
+			var ratio:Number = addA / baseA;
+			addR *= ratio;
+			addG *= ratio;
+			addB *= ratio;
+			
+			baseR += addR;
+			baseG += addG;
+			baseB += addB;
+			
+			ratio = 1;
+			if (baseR > ratio) {
+				ratio = baseR;
+			}
+			if (baseG > ratio) {
+				ratio = baseG;
+			}
+			if (baseB > ratio) {
+				ratio = baseB;
+			}
+			if ( baseA * ratio > 1 ) {
+				ratio = 1 / baseA;
+			}
+			baseR /= ratio;
+			baseG /= ratio;
+			baseB /= ratio;
+			baseA *= ratio;
+			if (baseR > 1) {
+				baseR = 1;
+			}
+			if (baseG > 1) {
+				baseG = 1;
+			}
+			if (baseB > 1) {
+				baseB = 1;
+			}
+			
+			this.r = baseR;
+			this.g = baseG;
+			this.b = baseB;
+			this.a = baseA;
+			
 			return this;
 		}
 		

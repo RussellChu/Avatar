@@ -442,6 +442,8 @@ class MarkBoard extends BasicObject
 		logo2.instance.y = logo1.instance.y + logo1.instance.height;
 		
 		var container:Sprite = this.instance as Sprite;
+		container.mouseChildren = false;
+		container.mouseEnabled = false;
 		container.addChild(logo0.instance);
 		container.addChild(logo1.instance);
 		container.addChild(logo2.instance);
