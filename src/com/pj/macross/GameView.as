@@ -53,6 +53,11 @@ package com.pj.macross
 			this._mark = new MarkBoard();
 		}
 		
+		public function capMap(p_name:String):void
+		{
+			this._slider.saveCapture(p_name + ".png");
+		}
+		
 		public function createMap(p_list:Array):void
 		{
 			this._map.create(p_list);
@@ -159,7 +164,6 @@ import flash.display.Sprite;
 import flash.events.MouseEvent;
 import flash.filters.DropShadowFilter;
 import flash.filters.GlowFilter;
-import flash.text.TextField;
 import flash.text.TextField;
 
 class SkinStoreItem extends BasicObject
@@ -919,6 +923,7 @@ class GameMap extends ButtonGroup
 		var target:DisplayObject = p_evt.target as DisplayObject;
 		var key:String = target.name;
 		var item:GameMapItem = this.findItem(key);
+		trace(key);
 		if (!item)
 		{
 			return;

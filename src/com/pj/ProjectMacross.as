@@ -4,6 +4,7 @@ package com.pj
 	import com.pj.common.Helper;
 	import com.pj.common.component.BasicContainer;
 	import com.pj.macross.GameAsset;
+	import com.pj.macross.GameConfig;
 	import com.pj.macross.GameData;
 	import com.pj.macross.GameModel;
 	import com.pj.macross.GameView;
@@ -69,19 +70,31 @@ package com.pj
 			this._view.resize(this._width, this._height);
 		}
 		
-		private function onModelEvent_LoadComplete(p_result:Object):void
-		{
-			var list:Array = p_result.list as Array;
-			this._view.createMap(list);
-			this._loading.leave();
-		}
-		
 		private function onModelEvent_CellUpdate(p_result:Object):void
 		{
 			var id:String = String(p_result.id);
 			var side:int = p_result.side;
 			var state:int = p_result.state;
 			this._view.updateMap(id, side, state);
+		}
+		
+		private function onModelEvent_CreateResult(p_result:Object):void
+		{
+			var isReady:Boolean = p_result.isReady;
+			if (isReady) {
+				trace("o: " + JSON.stringify(p_result.obstage));
+				trace("a: " + JSON.stringify(p_result.hostageA));
+				trace("b: " + JSON.stringify(p_result.hostageB));
+				trace("c: " + JSON.stringify(p_result.hostageC));
+				this._view.capMap(GameConfig.CAP_ID);
+			}
+		}
+		
+		private function onModelEvent_LoadComplete(p_result:Object):void
+		{
+			var list:Array = p_result.list as Array;
+			this._view.createMap(list);
+			this._loading.leave();
 		}
 		
 		private function onModelEvent_ScoreUpdate(p_result:Object):void
@@ -124,8 +137,9 @@ package com.pj
 			
 			this._assetReady = true;
 			
-			this._model.signal.add(this.onModelEvent_LoadComplete, GameModel.EVENT_LOAD_COMPLETE);
 			this._model.signal.add(this.onModelEvent_CellUpdate, GameModel.EVENT_CELL_UPDATE);
+			this._model.signal.add(this.onModelEvent_CreateResult, GameModel.EVENT_CREATE_RESULT);
+			this._model.signal.add(this.onModelEvent_LoadComplete, GameModel.EVENT_LOAD_COMPLETE);
 			this._model.signal.add(this.onModelEvent_ScoreUpdate, GameModel.EVENT_SCORE_UPDATE);
 			
 			this._view.signal.add(this.onViewEvent_CmdClick, GameView.EVENT_CMD_CLICK);

@@ -185,6 +185,7 @@ class CreatableBitmap extends Bitmap implements ICreatable
 
 class FoldAni implements ICreatable
 {
+	static public const DEFAULT_WIDTH:int = 64;
 	static private const IS_LOAD_BMP:Boolean = true;
 	private var _creater:Creater = null;
 	private var _signal:JSignal = null;
@@ -343,9 +344,9 @@ class FoldAni implements ICreatable
 			var src:BitmapData = (GameAsset.loader.getAsset(GameAsset.KEY_FOLD_IMG) as Bitmap).bitmapData;
 			for (var i:int = 0; i < 80; i++)
 			{
-				var x:int = 64 * (i % 10);
-				var y:int = 64 * int(i / 10);
-				var bmp:BitmapData = new BitmapData(64, 64, true, 0);
+				var x:int = DEFAULT_WIDTH * (i % 10);
+				var y:int = DEFAULT_WIDTH * int(i / 10);
+				var bmp:BitmapData = new BitmapData(DEFAULT_WIDTH, DEFAULT_WIDTH, true, 0);
 				bmp.draw(src, new Matrix(1, 0, 0, 1, -x, -y));
 				this._list.push(bmp);
 			}
@@ -435,6 +436,8 @@ class FoldMc extends BasicObject
 		super.init();
 		
 		this._sp = new Sprite();
+		this._sp.scaleX = GameConfig.CELL_RADIUS_MAP * 2 / FoldAni.DEFAULT_WIDTH;
+		this._sp.scaleY = this._sp.scaleX;
 		this.container.addChild(this._sp);
 		
 		this._timer = new JTimer(this.onTime);

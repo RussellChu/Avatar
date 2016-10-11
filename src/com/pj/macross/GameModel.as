@@ -17,8 +17,9 @@ package com.pj.macross
 	 */
 	public class GameModel implements IHasSignal
 	{
-		static public const EVENT_LOAD_COMPLETE:String = "GameModel.EVENT_LOAD_COMPLETE";
 		static public const EVENT_CELL_UPDATE:String = "GameModel.EVENT_CELL_UPDATE";
+		static public const EVENT_CREATE_RESULT:String = "GameModel.EVENT_CREATE_RESULT";
+		static public const EVENT_LOAD_COMPLETE:String = "GameModel.EVENT_LOAD_COMPLETE";
 		static public const EVENT_SCORE_UPDATE:String = "GameModel.EVENT_SCORE_UPDATE";
 		
 		static private const CHECK_BASE_LIST:Array = [//
@@ -58,16 +59,41 @@ package com.pj.macross
 		private var _score:Object = null;
 		private var _signal:JSignal = null;
 		
+		private var _createResult:Object = null;
+		
 		public function GameModel()
 		{
 			this._map = new MapCellCroup();
-			var hostageSide:Object = {};
+			this._createResult = {obstage: [], hostageA: [], hostageB: [], hostageC: [], isReady: false};
+			var mapInfo:Object = {};
+			var getMapInfo:Function = function(p_x:int, p_y:int, p_z:int):Object
+			{
+				var cellInfo:Object = mapInfo["" + p_x + ":" + p_y + ":" + p_z];
+				if (!cellInfo)
+				{
+					cellInfo = {isObstacle: 0, hostageSide: 0};
+					mapInfo["" + p_x + ":" + p_y + ":" + p_z] = cellInfo;
+				}
+				return cellInfo;
+			};
+			var setMapInfoHostage:Function = function(p_x:int, p_y:int, p_z:int, p_side:int):void
+			{
+				var cellInfo:Object = getMapInfo(p_x, p_y, p_z);
+				cellInfo.hostageSide = p_side;
+			};
+			var setMapInfoObstacle:Function = function(p_x:int, p_y:int, p_z:int, p_value:int):void
+			{
+				var cellInfo:Object = getMapInfo(p_x, p_y, p_z);
+				cellInfo.isObstacle = p_value;
+			};
 			
 			var i:int = 0;
 			var j:int = 0;
 			var k:int = 0;
 			
 			var id:int = 0;
+			var obstacleRemain:int = 10;
+			var hostageRemain:int = 20;
 			for (j = -(GameConfig.MAP_RADIUS - 1) * 2; j <= (GameConfig.MAP_RADIUS - 1) * 2; j++)
 			{
 				for (i = -(GameConfig.MAP_RADIUS - 1) * 2; i <= (GameConfig.MAP_RADIUS - 1) * 2; i++)
@@ -140,44 +166,111 @@ package com.pj.macross
 						key = "";
 						this.addBase(GameData.SIDE_A, x, y, z);
 					}
-					if (GameConfig.CELL_BASE_B.indexOf(id) >= 0)
+					else if (GameConfig.CELL_BASE_B.indexOf(id) >= 0)
 					{
 						key = "";
 						this.addBase(GameData.SIDE_B, x, y, z);
 					}
-					if (GameConfig.CELL_BASE_C.indexOf(id) >= 0)
+					else if (GameConfig.CELL_BASE_C.indexOf(id) >= 0)
 					{
 						key = "";
 						this.addBase(GameData.SIDE_C, x, y, z);
 					}
-					if (GameConfig.CELL_OBSTACLE.indexOf(id) >= 0 || GameConfig.CELL_OBSTACLE_OUT.indexOf(id) >= 0)
+					else if (GameConfig.CELL_OBSTACLE.indexOf(id) >= 0)
 					{
 						key = "";
 						this.addObstacle(x, y, z);
 					}
-					if (GameConfig.CELL_HOSTAGE.indexOf(id) >= 0)
+					else
 					{
-						if (!hostageSide["" + x + ":" + y + ":" + z]) {
-							var select:Array = Helper.selectFrom([//
-							[GameData.SIDE_A, GameData.SIDE_B, GameData.SIDE_C]//
-							, [GameData.SIDE_A, GameData.SIDE_C, GameData.SIDE_B]//
-							, [GameData.SIDE_B, GameData.SIDE_A, GameData.SIDE_C]//
-							, [GameData.SIDE_B, GameData.SIDE_C, GameData.SIDE_A]//
-							, [GameData.SIDE_C, GameData.SIDE_A, GameData.SIDE_B]//
-							, [GameData.SIDE_C, GameData.SIDE_B, GameData.SIDE_A]//
-							]) as Array;
-							hostageSide["" + x + ":" + y + ":" + z] = select[0];
-							hostageSide["" + y + ":" + z + ":" + x] = select[1];
-							hostageSide["" + z + ":" + x + ":" + y] = select[2];
+						var cellInfo:Object = getMapInfo(x, y, z);
+						var isObstacle:int = cellInfo.isObstacle;
+						var hostageSide:int = cellInfo.hostageSide;
+						if (isObstacle == 0 && hostageSide == 0)
+						{
+							if (Math.random() <= 10 / 100 && obstacleRemain > 0 && GameConfig.CELL_NO_OBSTACLE.indexOf(id) < 0)
+							{
+								obstacleRemain--;
+								setMapInfoObstacle(x, y, z, 1);
+								setMapInfoObstacle(y, z, x, 1);
+								setMapInfoObstacle(z, x, y, 1);
+							}
+							else if ((Math.random() <= 20 / 100 && hostageRemain > 0 && GameConfig.CELL_NO_HOSTAGE.indexOf(id) < 0) || GameConfig.CELL_HOSTAGE.indexOf(id) >= 0)
+							{
+								hostageRemain--;
+								var select:Array = Helper.selectFrom([//
+								[GameData.SIDE_A, GameData.SIDE_B, GameData.SIDE_C]//
+								, [GameData.SIDE_B, GameData.SIDE_C, GameData.SIDE_A]//
+								, [GameData.SIDE_C, GameData.SIDE_A, GameData.SIDE_B]//
+								]) as Array;
+								setMapInfoHostage(x, y, z, select[0]);
+								setMapInfoHostage(y, z, x, select[1]);
+								setMapInfoHostage(z, x, y, select[2]);
+								
+								for (var m:int = 0; m < CHECK_BASE_LIST.length; m++)
+								{
+									var move:Object = CHECK_BASE_LIST[m];
+									var nextX:int = x + move.x;
+									var nextY:int = y + move.y;
+									var nextZ:int = z + move.z;
+									setMapInfoHostage(nextX, nextY, nextZ, -1);
+									nextX = y + move.x;
+									nextY = z + move.y;
+									nextZ = x + move.z;
+									setMapInfoHostage(nextX, nextY, nextZ, -1);
+									nextX = z + move.x;
+									nextY = x + move.y;
+									nextZ = y + move.z;
+									setMapInfoHostage(nextX, nextY, nextZ, -1);
+								}
+							}
+							else
+							{
+								setMapInfoHostage(x, y, z, -1);
+								setMapInfoHostage(y, z, x, -1);
+								setMapInfoHostage(z, x, y, -1);
+								setMapInfoObstacle(x, y, z, -1);
+								setMapInfoObstacle(y, z, x, -1);
+								setMapInfoObstacle(z, x, y, -1);
+							}
 						}
-						var side:int = hostageSide["" + x + ":" + y + ":" + z];
-						this.addHostage(side, x, y, z);
+						cellInfo = getMapInfo(x, y, z);
+						isObstacle = cellInfo.isObstacle;
+						hostageSide = cellInfo.hostageSide;
+						if (isObstacle > 0)
+						{
+							this._createResult.obstage.push(id);
+							this.addObstacle(x, y, z);
+						}
+						else if (hostageSide > 0)
+						{
+							if (hostageSide == GameData.SIDE_A)
+							{
+								this._createResult.hostageA.push(id);
+							}
+							if (hostageSide == GameData.SIDE_B)
+							{
+								this._createResult.hostageB.push(id);
+							}
+							if (hostageSide == GameData.SIDE_C)
+							{
+								this._createResult.hostageC.push(id);
+							}
+							this._createResult.obstage.push(id);
+							this.addHostage(hostageSide, x, y, z);
+						}
 					}
 					id++;
 				}
 			}
-			
-			this.loadSave();
+			if (obstacleRemain == 0 && hostageRemain == -2 && GameConfig.CAP_ID != "")
+			{
+				this._createResult.isReady = true;
+			}
+			else
+			{
+				this.loadSave();
+			}
 		}
 		
 		private function getScore(p_side:int):int
@@ -507,8 +600,10 @@ package com.pj.macross
 			}
 		}
 		
-		public function start():void {
-			this.signal.dispatch({list:this._map.getList()}, EVENT_LOAD_COMPLETE);
+		public function start():void
+		{
+			this.signal.dispatch({list: this._map.getList()}, EVENT_LOAD_COMPLETE);
+			this.signal.dispatch(this._createResult, EVENT_CREATE_RESULT);
 			this.signal.dispatch({side: GameData.SIDE_A, score: this.getScore(GameData.SIDE_A)}, EVENT_SCORE_UPDATE);
 			this.signal.dispatch({side: GameData.SIDE_B, score: this.getScore(GameData.SIDE_B)}, EVENT_SCORE_UPDATE);
 			this.signal.dispatch({side: GameData.SIDE_C, score: this.getScore(GameData.SIDE_C)}, EVENT_SCORE_UPDATE);
@@ -558,7 +653,8 @@ package com.pj.macross
 					{
 						continue;
 					}
-					if (cell.state == GameData.STATE_HOSTAGE) {
+					if (cell.state == GameData.STATE_HOSTAGE)
+					{
 						if (cell.side != p_side)
 						{
 							continue;
@@ -578,7 +674,8 @@ package com.pj.macross
 					{
 						continue;
 					}
-					if (cell.state == GameData.STATE_HOSTAGE) {
+					if (cell.state == GameData.STATE_HOSTAGE)
+					{
 						if (cell.side != p_side)
 						{
 							continue;
@@ -636,7 +733,8 @@ package com.pj.macross
 		
 		public function get signal():JSignal
 		{
-			if (!this._signal) {
+			if (!this._signal)
+			{
 				this._signal = new JSignal();
 			}
 			return this._signal;
