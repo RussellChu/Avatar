@@ -19,7 +19,7 @@ package com.pj.macross
 		static public const KEY_S08:String = "s08";
 		static public const KEY_GALAXY:String = "galaxy";
 		static public const KEY_FOLD:String = "fold";
-		static public const KEY_FOLD_ANI_SRC:String = "foldAniSrc";
+		static public const KEY_FOLD_IMG:String = "foldImg";
 		static public const KEY_FOLD_ANI:String = "foldAni";
 		static public const KEY_FOLD_MC:String = "foldMc";
 		static public const KEY_TRI_A:String = "triA";
@@ -54,6 +54,8 @@ package com.pj.macross
 		static private var BMP_S07:Class;
 		[Embed(source = "/../bin/assets/s08.png")]
 		static private var BMP_S08:Class;
+		[Embed(source = "/../bin/assets/fold.png")]
+		static private var BMP_FOLD:Class;
 		
 		static private var __loader:AssetLoader = null;
 		
@@ -82,11 +84,12 @@ package com.pj.macross
 				__loader.addObject(KEY_S07, new BMP_S07());
 				__loader.addObject(KEY_S08, new BMP_S08());
 				__loader.addCreate(KEY_GALAXY, new Galaxy());
+				__loader.addObject(KEY_FOLD_IMG, new BMP_FOLD());
 				__loader.addCreate(KEY_FOLD_ANI, new FoldAni());
 				__loader.addShared(KEY_FOLD_MC, FoldMc);
-				__loader.addCreate(KEY_TRI_A, new HostageTriangle(new JColor(1, 0.411, 0.411, 1)));
-				__loader.addCreate(KEY_TRI_B, new HostageTriangle(new JColor(0, 1, 0, 1)));
-				__loader.addCreate(KEY_TRI_C, new HostageTriangle(new JColor(0.534, 0.534, 1, 1)));
+				__loader.addCreate(KEY_TRI_A, new HostageTriangle(new JColor(1, 0.706, 0.706, 1), new JColor(1, 0, 0, 1)));
+				__loader.addCreate(KEY_TRI_B, new HostageTriangle(new JColor(0.5, 1, 0.5, 1), new JColor(0, 1, 0, 1)));
+				__loader.addCreate(KEY_TRI_C, new HostageTriangle(new JColor(0.767, 0.767, 1, 1), new JColor(0, 0, 1, 1)));
 				
 				var sideList:Array = [GameData.SIDE_A, GameData.SIDE_B, GameData.SIDE_C];
 				var keyList:Array = [KEY_S01, KEY_S02, KEY_S03, KEY_S04, KEY_S05, KEY_S06, KEY_S07, KEY_S08];
@@ -125,6 +128,7 @@ package com.pj.macross
 	}
 }
 
+import com.adobe.images.PNGEncoder;
 import com.pj.common.Creater;
 import com.pj.common.Helper;
 import com.pj.common.ICreatable;
@@ -147,6 +151,8 @@ import flash.geom.ColorTransform;
 import flash.geom.Matrix;
 import flash.geom.Point;
 import flash.geom.Rectangle;
+import flash.net.FileReference;
+import flash.utils.ByteArray;
 
 class CreatableBitmap extends Bitmap implements ICreatable
 {
@@ -179,6 +185,7 @@ class CreatableBitmap extends Bitmap implements ICreatable
 
 class FoldAni implements ICreatable
 {
+	static private const IS_LOAD_BMP:Boolean = true;
 	private var _creater:Creater = null;
 	private var _signal:JSignal = null;
 	
@@ -211,8 +218,8 @@ class FoldAni implements ICreatable
 		for (var i:int = 0; i <= 2; i++)
 		{
 			var maxA:Number = 1;
-			var b0:Number = this.getLine(angle + Math.PI * 2 * i, p_side, (0.4875+0.15) * p_alpha, (0.15+0.15) * p_alpha, 0);
-			var b1:Number = this.getLine(angle + Math.PI * 2 * i, p_side, (0.4875-0.15) * p_alpha, (0.15-0.15) * p_alpha, 0);
+			var b0:Number = this.getLine(angle + Math.PI * 2 * i, p_side, (0.4875 + 0.15) * p_alpha, (0.15 + 0.15) * p_alpha, 0);
+			var b1:Number = this.getLine(angle + Math.PI * 2 * i, p_side, (0.4875 - 0.15) * p_alpha, (0.15 - 0.15) * p_alpha, 0);
 			var ratio:Number = JMath.ratio(dist, b0, b1);
 			var lv:Number = 1 - Math.abs(2 * ratio - 1);
 			lv = lv * lv;
@@ -280,6 +287,8 @@ class FoldAni implements ICreatable
 	{
 		var width:int = GameConfig.CELL_RADIUS_MAP * 2;
 		var height:int = GameConfig.CELL_RADIUS_MAP * 2;
+		var startTime:Number = 1.6;
+		var endTime:Number = 0.4;
 		
 		var bmp:BitmapData = new BitmapData(width, height, true, 0);
 		bmp.lock();
@@ -289,13 +298,13 @@ class FoldAni implements ICreatable
 			for (var y:int = 0; y < height; y++)
 			{
 				var alpha:Number = 1;
-				if (p_side < p_startSide + 1)
+				if (p_side < p_startSide + startTime)
 				{
-					alpha = p_side - p_startSide;
+					alpha = (p_side - p_startSide) / startTime;
 				}
-				if (p_side >= p_endSide - 1)
+				if (p_side >= p_endSide - endTime)
 				{
-					alpha = p_endSide - p_side;
+					alpha = (p_endSide - p_side) / endTime;
 				}
 				var color:JColor = this.getColor(x * 2 / width - 1, y * 2 / height - 1, p_side, alpha);
 				color = this.getColorAdd(x * 2 / width - 1, y * 2 / height - 1, alpha, -p_side, color);
@@ -306,15 +315,48 @@ class FoldAni implements ICreatable
 		this._list.push(bmp);
 	}
 	
+	private function saveAll():void
+	{
+		var width:int = GameConfig.CELL_RADIUS_MAP * 2 * (10);
+		var height:int = GameConfig.CELL_RADIUS_MAP * 2 * int(this._list.length / 10 + 1);
+		var bmp:BitmapData = new BitmapData(width, height, true, 0);
+		bmp.lock();
+		for (var i:int = 0; i < this._list.length; i++)
+		{
+			var src:BitmapData = this._list[i] as BitmapData;
+			var x:int = GameConfig.CELL_RADIUS_MAP * 2 * (i % 10);
+			var y:int = GameConfig.CELL_RADIUS_MAP * 2 * int(i / 10);
+			bmp.draw(src, new Matrix(1, 0, 0, 1, x, y));
+		}
+		bmp.unlock();
+		var ba:ByteArray = PNGEncoder.encode(bmp);
+		var fileReference:FileReference = new FileReference();
+		fileReference.save(ba, "fold.png");
+	}
+	
 	public function onCreate():Boolean
 	{
 		this._list = [];
+		
+		if (IS_LOAD_BMP)
+		{
+			var src:BitmapData = (GameAsset.loader.getAsset(GameAsset.KEY_FOLD_IMG) as Bitmap).bitmapData;
+			for (var i:int = 0; i < 80; i++)
+			{
+				var x:int = 64 * (i % 10);
+				var y:int = 64 * int(i / 10);
+				var bmp:BitmapData = new BitmapData(64, 64, true, 0);
+				bmp.draw(src, new Matrix(1, 0, 0, 1, -x, -y));
+				this._list.push(bmp);
+			}
+			return true;
+		}
 		
 		//addBitmap(4, 3, 5);
 		//return true;
 		
 		var startSide:Number = 2;
-		var endSide:Number = 7;
+		var endSide:Number = 6;
 		var step:Number = 0.05;
 		
 		Helper.loopTime(0, (endSide - startSide) / step - 1, function(p_index:int):Boolean
@@ -323,6 +365,7 @@ class FoldAni implements ICreatable
 			return true;
 		}, function():void
 		{
+			//	saveAll();
 			_creater.createReady();
 		});
 		
@@ -425,10 +468,12 @@ class FoldMc extends BasicObject
 class HostageTriangle extends CreatableBitmap
 {
 	private var _color:JColor = null;
+	private var _color2:JColor = null;
 	
-	public function HostageTriangle(p_color:JColor)
+	public function HostageTriangle(p_color:JColor, p_color2:JColor)
 	{
 		this._color = p_color;
+		this._color2 = p_color2;
 		super(GameConfig.CELL_RADIUS_MAP * 2, GameConfig.CELL_RADIUS_MAP * 2, true, 0);
 	}
 	
@@ -470,10 +515,10 @@ class HostageTriangle extends CreatableBitmap
 		var lv:Number = 1 - Math.abs(2 * ratio - 1);
 		if (ratio >= 0 && ratio <= 1)
 		{
-			cR += lv * this._color.r;
-			cG += lv * this._color.g;
-			cB += lv * this._color.b;
-			cA += lv * 3;
+			cR += this._color.r * ratio + this._color2.r * (1 - ratio);
+			cG += this._color.g * ratio + this._color2.g * (1 - ratio);
+			cB += this._color.b * ratio + this._color2.b * (1 - ratio);
+			cA += lv;
 		}
 		
 		return new JColor(cR, cG, cB, cA);
