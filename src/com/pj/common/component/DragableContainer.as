@@ -120,7 +120,7 @@ package com.pj.common.component
 		
 		public function getCapture():BitmapData
 		{
-			var bmp:BitmapData = new BitmapData(this._content.instance.width, this._content.instance.height);
+			var bmp:BitmapData = new BitmapData(this._contentWidth, this._contentHeight);
 			bmp.draw(this._content.instance);
 			return bmp;
 		}

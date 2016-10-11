@@ -13,15 +13,20 @@ package com.pj.macross
 		//static public const CELL_SIDE_MAP:int = 1;
 		//static public const FONT_SIZE_MAP:int = 8;
 		
-		static public const CELL_RADIUS_MAP:int = 32;
-		static public const CELL_SIDE_MAP:int = 2;
-		static public const FONT_SIZE_MAP:int = 12;
+		//static public const CELL_RADIUS_MAP:int = 32;
+		//static public const CELL_SIDE_MAP:int = 2;
+		//static public const FONT_SIZE_MAP:int = 12;
 		
 		//static public const CELL_RADIUS_MAP:int = 135;
 		//static public const CELL_SIDE_MAP:int = 6;
 		//static public const FONT_SIZE_MAP:int = 72;
 		
-		static public const FONT_COLOR_MAP:uint = 0xff00ff;
+		static public const CELL_RADIUS_MAP:int = 113;
+		static public const CELL_SIDE_MAP:int = 5;
+		static public const FONT_SIZE_MAP:int = 36;
+		
+	//	static public const FONT_COLOR_MAP:uint = 0xff00ff;
+		static public const FONT_COLOR_MAP:uint = 0x000000;
 		
 		static public const CELL_BASE_A:Array = [0, 2, 3, 598, 625, 626];
 		static public const CELL_BASE_B:Array = [247, 274, 275, 585, 612, 613];

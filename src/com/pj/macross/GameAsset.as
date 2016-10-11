@@ -36,6 +36,7 @@ package com.pj.macross
 		static public const KEY_CELL_ROAD_B:String = "KEY_CELL_ROAD_B";
 		static public const KEY_CELL_ROAD_C:String = "KEY_CELL_ROAD_C";
 		static public const KEY_CELL_ATTACK:String = "KEY_CELL_ATTACK";
+		static public const KEY_CELL_BORDER:String = "KEY_CELL_BORDER";
 		
 		[Embed(source = "/../bin/assets/s01.png")]
 		static private var BMP_S01:Class;
@@ -111,6 +112,7 @@ package com.pj.macross
 				__loader.addCreate(KEY_CELL_ROAD_B, new CellImage(CellImage.TYPE_ROAD_A, width, height, GameConfig.CELL_SIDE_MAP, new JColor(0, 0.509, 0, 1).value));
 				__loader.addCreate(KEY_CELL_ROAD_C, new CellImage(CellImage.TYPE_ROAD_A, width, height, GameConfig.CELL_SIDE_MAP, new JColor(0.209, 0.209, 1, 1).value));
 				__loader.addCreate(KEY_CELL_ATTACK, new CellImage(CellImage.TYPE_ROAD_B, width, height, GameConfig.CELL_SIDE_MAP, new JColor(0.967, 0.673, 0.9055, 0.5).value));
+				__loader.addCreate(KEY_CELL_BORDER, new CellImage(CellImage.TYPE_BORDER, width, height, GameConfig.CELL_SIDE_MAP, new JColor(0, 0, 0, 1).value));
 			}
 			return __loader;
 		}
@@ -611,6 +613,7 @@ class CellImage extends CreatableBitmap
 	static public const TYPE_BASE:int = 1;
 	static public const TYPE_ROAD_A:int = 2;
 	static public const TYPE_ROAD_B:int = 3;
+	static public const TYPE_BORDER:int = 4;
 	
 	private var _type:int = 0;
 	private var _width:int = 0;
@@ -663,6 +666,14 @@ class CellImage extends CreatableBitmap
 				if (this._type == TYPE_BASE)
 				{
 					if (funcHex(this._margin))
+					{
+						bmp.setPixel32(i, j, this._color);
+					}
+				}
+				
+				if (this._type == TYPE_BORDER)
+				{
+					if (funcHex(0) && !funcHex(this._margin))
 					{
 						bmp.setPixel32(i, j, this._color);
 					}
