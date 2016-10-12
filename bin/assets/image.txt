@@ -1,0 +1,7 @@
+{
+	"format": ["name", "x", "y", "w", "h"]
+	, "data": [
+		  "cmdIdle", 0, 0, 15, 14
+		, "cmdOver", 15, 0, 15, 14
+	]
+}

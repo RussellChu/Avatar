@@ -21,7 +21,8 @@ package com.pj.common.component
 		override protected function init():void
 		{
 			super.init();
-		//	this.container.mouseEnabled = false;
+			//this.container.mouseEnabled = false;
+			//this.container.mouseChildren = false;
 		}
 		
 		override public function clear():void

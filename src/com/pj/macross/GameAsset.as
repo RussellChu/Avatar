@@ -9,6 +9,8 @@ package com.pj.macross
 	 */
 	public class GameAsset
 	{
+		static public const KEY_CONFIG:String = "config";
+		static public const KEY_IMAGE:String = "image";
 		static public const KEY_S01:String = "s01";
 		static public const KEY_S02:String = "s02";
 		static public const KEY_S03:String = "s03";
@@ -38,6 +40,12 @@ package com.pj.macross
 		static public const KEY_CELL_ATTACK:String = "KEY_CELL_ATTACK";
 		static public const KEY_CELL_BORDER:String = "KEY_CELL_BORDER";
 		
+		[Embed(source = "/../bin/assets/config.txt", mimeType = "application/octet-stream")]
+		static private var TXT_CONFIG:Class;
+		[Embed(source = "/../bin/assets/image.txt", mimeType = "application/octet-stream")]
+		static private var TXT_IMAGE:Class;
+		[Embed(source = "/../bin/assets/image.png")]
+		static private var BMP_IMAGE:Class;
 		[Embed(source = "/../bin/assets/s01.png")]
 		static private var BMP_S01:Class;
 		[Embed(source = "/../bin/assets/s02.png")]
@@ -75,6 +83,7 @@ package com.pj.macross
 			if (!__loader)
 			{
 				__loader = new AssetLoader();
+				__loader.addObject(KEY_CONFIG, new TXT_CONFIG());
 				__loader.addObject(KEY_S01, new BMP_S01());
 				__loader.addObject(KEY_S02, new BMP_S02());
 				__loader.addObject(KEY_S03, new BMP_S03());
@@ -116,6 +125,8 @@ package com.pj.macross
 				__loader.addCreate(KEY_CELL_ROAD_C, new CellImage(CellImage.TYPE_ROAD_A, width, height, GameConfig.CELL_SIDE_MAP, new JColor(0.209, 0.209, 1, 1).value));
 				__loader.addCreate(KEY_CELL_ATTACK, new CellImage(CellImage.TYPE_ROAD_B, width, height, GameConfig.CELL_SIDE_MAP, new JColor(0.967, 0.673, 0.9055, 0.5).value));
 				__loader.addCreate(KEY_CELL_BORDER, new CellImage(CellImage.TYPE_BORDER, width, height, GameConfig.CELL_SIDE_MAP, new JColor(0, 0, 0, 1).value));
+				
+				__loader.addImageOfGroup(KEY_IMAGE, TXT_IMAGE, BMP_IMAGE);
 			}
 			return __loader;
 		}

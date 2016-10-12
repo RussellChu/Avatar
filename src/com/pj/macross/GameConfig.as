@@ -10,13 +10,13 @@ package com.pj.macross
 		static public const CAP_ID:String = "";
 		static public const SAVE_VERSION:int = 20161011;
 		
-		static public const CELL_RADIUS_MAP:int = 16;
-		static public const CELL_SIDE_MAP:int = 1;
-		static public const FONT_SIZE_MAP:int = 12;
+		//static public const CELL_RADIUS_MAP:int = 16;
+		//static public const CELL_SIDE_MAP:int = 1;
+		//static public const FONT_SIZE_MAP:int = 8;
 		
-		//static public const CELL_RADIUS_MAP:int = 32;
-		//static public const CELL_SIDE_MAP:int = 2;
-		//static public const FONT_SIZE_MAP:int = 12;
+		static public const CELL_RADIUS_MAP:int = 32;
+		static public const CELL_SIDE_MAP:int = 2;
+		static public const FONT_SIZE_MAP:int = 12;
 		
 		//static public const CELL_RADIUS_MAP:int = 113;
 		//static public const CELL_SIDE_MAP:int = 5;

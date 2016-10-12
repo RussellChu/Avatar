@@ -1,10 +1,7 @@
 package com.pj.common.component
 {
 	import com.pj.common.Helper;
-	import com.pj.common.JColor;
 	import flash.events.MouseEvent;
-	import flash.text.TextField;
-	import flash.text.TextFieldAutoSize;
 	
 	/**
 	 * ...
@@ -59,17 +56,12 @@ package com.pj.common.component
 			this._isMouseDown = false;
 			this._isMouseOver = false;
 			this._skin.reset();
-			this._skin.show(SKIN_IDLE);
+			this.skin = SKIN_IDLE;
 		}
 		
 		public function get id():int
 		{
 			return this._id;
-		}
-		
-		public function get skin():BasicSkin
-		{
-			return this._skin;
 		}
 		
 		public function get value():Boolean
@@ -82,16 +74,21 @@ package com.pj.common.component
 			this._id = p_id;
 		}
 		
+		public function set skin(p_id:int):void
+		{
+			this._skin.show(p_id);
+		}
+		
 		public function set value(p_value:Boolean):void
 		{
 			this._value = p_value;
 			if (this._value)
 			{
-				this._skin.show(SKIN_DOWN);
+				this.skin = SKIN_DOWN;
 			}
 			else
 			{
-				this._skin.show(SKIN_IDLE);
+				this.skin = SKIN_IDLE;
 			}
 		}
 		
@@ -108,7 +105,7 @@ package com.pj.common.component
 		override protected function onMouseDown(p_evt:MouseEvent):void
 		{
 			this._isMouseDown = true;
-			this._skin.show(SKIN_DOWN);
+			this.skin = SKIN_DOWN;
 			super.onMouseDown(p_evt);
 		}
 		
@@ -117,11 +114,11 @@ package com.pj.common.component
 			this._isMouseOver = true;
 			if (this._isMouseDown)
 			{
-				this._skin.show(SKIN_DOWN);
+				this.skin = SKIN_DOWN;
 			}
 			else
 			{
-				this._skin.show(SKIN_OVER);
+				this.skin = SKIN_OVER;
 			}
 			super.onMouseOver(p_evt);
 		}
@@ -131,17 +128,17 @@ package com.pj.common.component
 			this._isMouseDown = false;
 			if (this._isMouseOver)
 			{
-				this._skin.show(SKIN_OVER);
+				this.skin = SKIN_OVER;
 			}
 			else
 			{
 				if (this._value)
 				{
-					this._skin.show(SKIN_DOWN);
+					this.skin = SKIN_DOWN;
 				}
 				else
 				{
-					this._skin.show(SKIN_IDLE);
+					this.skin = SKIN_IDLE;
 				}
 			}
 			super.onMouseUp(p_evt);
@@ -151,14 +148,13 @@ package com.pj.common.component
 		{
 			this._isMouseDown = false;
 			this._isMouseOver = false;
-			this._skin.show(SKIN_IDLE);
 			if (this._value)
 			{
-				this._skin.show(SKIN_DOWN);
+				this.skin = SKIN_DOWN;
 			}
 			else
 			{
-				this._skin.show(SKIN_IDLE);
+				this.skin = SKIN_IDLE;
 			}
 			super.onMouseRollOut(p_evt);
 		}

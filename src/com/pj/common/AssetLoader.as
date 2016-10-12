@@ -3,11 +3,15 @@ package com.pj.common
 	import com.pj.common.Helper;
 	import com.pj.common.IDisposable;
 	import com.pj.common.JSignal;
+	import flash.display.Bitmap;
+	import flash.display.BitmapData;
 	import flash.display.DisplayObject;
 	import flash.display.Loader;
 	import flash.events.Event;
 	import flash.events.IOErrorEvent;
+	import flash.geom.Matrix;
 	import flash.net.URLRequest;
+	import flash.utils.ByteArray;
 	
 	/**
 	 * ...
@@ -28,6 +32,7 @@ package com.pj.common
 		private var _currKey:String = "";
 		private var _currPath:String = "";
 		private var _failList:Array = null;
+		private var _groupMap:Object = null;
 		private var _loader:Loader = null;
 		private var _listMax:int = 0;
 		private var _registerList:Array = null;
@@ -39,6 +44,7 @@ package com.pj.common
 		{
 			this._assetMap = {};
 			this._failList = [];
+			this._groupMap = {};
 			this._registerList = [];
 			this._registerMap = {};
 			this._signal = new JSignal();
@@ -55,6 +61,7 @@ package com.pj.common
 			this._assetMap = null;
 			this._currCreate = null;
 			this._failList = null;
+			this._groupMap = null;
 			this._loader = null;
 			this._registerList = null;
 			this._registerMap = null;
@@ -88,7 +95,77 @@ package com.pj.common
 			return true;
 		}
 		
-		public function addObject(p_key:String, p_obj:DisplayObject):Boolean
+		public function addImageOfGroup(p_key:String, p_clsTxt:Class, p_clsImg:Class):Boolean
+		{
+			if (this._registerMap[p_key])
+			{
+				return false;
+			}
+			
+			this._registerMap[p_key] = true;
+			
+			this._groupMap[p_key] = {};
+			
+			var img:Bitmap = new p_clsImg() as Bitmap;
+			var src:BitmapData = img.bitmapData;
+			var ba:ByteArray = new p_clsTxt() as ByteArray;
+			var str:String = ba.toString();
+			var obj:Object = null;
+			
+			/*
+			   //
+			   {
+			   "format": ["name", "x", "y", "w", "h"]
+			   , "data": [
+			   "cmdIdle", 0, 0, 15, 14
+			   , "cmdOver", 15, 0, 15, 14
+			   ]
+			   }
+			 */
+			obj = JSON.parse(str);
+			var format:Array = obj.format as Array;
+			var data:Array = obj.data as Array;
+			var name:String = "";
+			var posX:int = 0;
+			var posY:int = 0;
+			var width:int = 0;
+			var height:int = 0;
+			for (var i:int = 0; i < data.length; i++)
+			{
+				var formatIdx:int = i % format.length;
+				var field:String = format[formatIdx];
+				switch (field)
+				{
+				case "name": 
+					name = data[i] as String;
+					break;
+				case "x": 
+					posX = data[i] as int;
+					break;
+				case "y": 
+					posY = data[i] as int;
+					break;
+				case "w": 
+					width = data[i] as int;
+					break;
+				case "h": 
+					height = data[i] as int;
+					break;
+				default: 
+					;
+				}
+				if (formatIdx + 1 == format.length)
+				{
+					var bmp:BitmapData = new BitmapData(width, height, true, 0);
+					bmp.draw(src, new Matrix(1, 0, 0, 1, -posX, -posY));
+					this._groupMap[p_key][name] = bmp;
+				}
+			}
+			
+			return true;
+		}
+		
+		public function addObject(p_key:String, p_obj:Object):Boolean
 		{
 			if (this._registerMap[p_key])
 			{
@@ -123,6 +200,16 @@ package com.pj.common
 			}
 			
 			return this._assetMap[p_key];
+		}
+		
+		public function getAssetOfGroup(p_group:String, p_name:String):Object
+		{
+			if (!this._groupMap[p_group])
+			{
+				return null;
+			}
+			
+			return this._groupMap[p_group][p_name];
 		}
 		
 		public function load(p_start:Boolean = true):void

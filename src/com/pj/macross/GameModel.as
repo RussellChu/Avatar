@@ -183,18 +183,26 @@ package com.pj.macross
 					}
 					else
 					{
-						if (GameConfig.CELL_HOSTAGE_A.indexOf(id) >= 0) {
+						if (GameConfig.CELL_HOSTAGE_A.indexOf(id) >= 0)
+						{
 							this.addHostage(GameData.SIDE_A, x, y, z);
-						} else if (GameConfig.CELL_HOSTAGE_B.indexOf(id) >= 0) {
+						}
+						else if (GameConfig.CELL_HOSTAGE_B.indexOf(id) >= 0)
+						{
 							this.addHostage(GameData.SIDE_B, x, y, z);
-						} else if (GameConfig.CELL_HOSTAGE_C.indexOf(id) >= 0) {
+						}
+						else if (GameConfig.CELL_HOSTAGE_C.indexOf(id) >= 0)
+						{
 							this.addHostage(GameData.SIDE_C, x, y, z);
-						} else if (GameConfig.CELL_OBSTACLE_OUT.indexOf(id) >= 0) {
+						}
+						else if (GameConfig.CELL_OBSTACLE_OUT.indexOf(id) >= 0)
+						{
 							this.addObstacle(x, y, z);
 						}
 						
 						// build rand map
-						if (false) {
+						if (false)
+						{
 							var cellInfo:Object = getMapInfo(x, y, z);
 							var isObstacle:int = cellInfo.isObstacle;
 							var hostageSide:int = cellInfo.hostageSide;
