@@ -1071,9 +1071,138 @@ class GameMap extends ButtonGroup
 
 }
 
+/*
+//
+
+class SkinStoreItem2 extends BasicSkin
+{
+	private var _skin:BasicObject = null;
+	private var _skinDown:BasicObject = null;
+	private var _skinBlank:BasicObject = null;
+	private var _skinOver:BasicObject = null;
+	private var _type:int = 0;
+	
+	public function SkinStoreItem2()
+	{
+		this._type = SkinStore.TYPE_NONE;
+		super();
+	}
+	
+	override public function dispose():void
+	{
+		this.show(SkinStore.TYPE_NONE);
+		this._skin = null;
+		super.dispose();
+	}
+	
+	override protected function init():void
+	{
+		super.init();
+		this._skinDown = new BasicImage(GameAsset.loader.getAssetOfGroup(GameAsset.KEY_IMAGE, "cmdDown") as BitmapData);
+		this._skinBlank = new BasicImage(GameAsset.loader.getAssetOfGroup(GameAsset.KEY_IMAGE, "cmdIdle") as BitmapData);
+		this._skinOver = new BasicImage(GameAsset.loader.getAssetOfGroup(GameAsset.KEY_IMAGE, "cmdIdle") as BitmapData);
+	}
+	
+	override public function reset():void
+	{
+		super.reset();
+		this.show(SkinStore.TYPE_NONE);
+	}
+	
+	override public function show(p_id:int):void
+	{
+		if (p_id == this._type)
+		{
+			return;
+		}
+		
+		this.container.removeChildren();
+		
+		switch(p_id) {
+			case SkinStore.TYPE_DOWN:
+				this._skin = this._skinDown;
+				break;
+			case SkinStore.TYPE_BLANK:
+				this._skin = this._skinBlank;
+				break;
+			case SkinStore.TYPE_OVER:
+				this._skin = this._skinOver;
+				break;
+		}
+		
+		this.container.addChild(this._skin.instance);
+	}
+
+}
+
+*/
+
+class SkinStoreItem2 extends BasicSkin
+{
+	private var _skin:BasicObject = null;
+	private var _store:SkinStore = null;
+	private var _type:int = 0;
+	
+	public function SkinStoreItem2()
+	{
+		this._type = SkinStore.TYPE_NONE;
+		super();
+	}
+	
+	override public function dispose():void
+	{
+		this.show(SkinStore.TYPE_NONE);
+		this._skin = null;
+		this._store = null;
+		this._skin = null;
+		super.dispose();
+	}
+	
+	override protected function init():void
+	{
+		super.init();
+		this._store = new SkinStore();
+	}
+	
+	override public function reset():void
+	{
+		super.reset();
+		this.show(SkinStore.TYPE_NONE);
+	}
+	
+	override public function show(p_id:int):void
+	{
+		if (p_id == this._type)
+		{
+			return;
+		}
+		
+		this.container.removeChildren();
+		this._store.payBack(this._type, this._skin);
+		this._type = SkinStore.TYPE_NONE;
+		this._skin = null;
+		
+		if (p_id == SkinStore.TYPE_NONE)
+		{
+			return;
+		}
+		
+		this._type = p_id;
+		this._skin = this._store.borrow(this._type);
+		if (!this._skin)
+		{
+			this._type = SkinStore.TYPE_NONE;
+			return;
+		}
+		
+		this.container.addChild(this._skin.instance);
+	}
+
+}
+
 class GameMapItem2 extends BasicObject
 {
-	private var _front:SkinStoreItem = null;
+	private var _front:SkinStoreItem2 = null;
 	
 	public function GameMapItem2():void
 	{
@@ -1094,7 +1223,7 @@ class GameMapItem2 extends BasicObject
 		this.container.mouseChildren = false;
 		//	this.container.mouseEnabled = false;
 		
-		this._front = new SkinStoreItem();
+		this._front = new SkinStoreItem2();
 		//this._front.addSkin(SkinStore.TYPE_DOWN, new BasicImage(GameAsset.loader.getAssetOfGroup(GameAsset.KEY_IMAGE, "cmdDown") as BitmapData));
 		//this._front.addSkin(SkinStore.TYPE_BLANK, new BasicImage(GameAsset.loader.getAssetOfGroup(GameAsset.KEY_IMAGE, "cmdIdle") as BitmapData));
 		//this._front.addSkin(SkinStore.TYPE_OVER, new BasicImage(GameAsset.loader.getAssetOfGroup(GameAsset.KEY_IMAGE, "cmdIdle") as BitmapData));
