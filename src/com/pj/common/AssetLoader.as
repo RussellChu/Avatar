@@ -158,7 +158,7 @@ package com.pj.common
 				{
 					var bmp:BitmapData = new BitmapData(width, height, true, 0);
 					bmp.draw(src, new Matrix(1, 0, 0, 1, -posX, -posY));
-					this._groupMap[p_key][name] = bmp;
+					this._groupMap[p_key][name] = new Bitmap(bmp);
 				}
 			}
 			

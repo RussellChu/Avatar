@@ -151,11 +151,13 @@ package com.pj.macross
 }
 import com.pj.common.Helper;
 import com.pj.common.JTimer;
+import com.pj.common.component.BasicButton;
 import com.pj.common.component.BasicContainer;
 import com.pj.common.component.BasicImage;
 import com.pj.common.component.BasicObject;
 import com.pj.common.component.BasicSkin;
 import com.pj.common.component.JText;
+import com.pj.common.component.SimpleSkin;
 import com.pj.common.math.JMath;
 import com.pj.macross.GameAsset;
 import com.pj.macross.GameConfig;
@@ -169,64 +171,6 @@ import flash.events.MouseEvent;
 import flash.filters.DropShadowFilter;
 import flash.filters.GlowFilter;
 import flash.text.TextField;
-
-class SimpleSkin extends BasicSkin
-{
-	private var _currInst:DisplayObject = null;
-	private var _skinMap:Object = null;
-	
-	public function SimpleSkin()
-	{
-		super();
-	}
-	
-	override public function dispose():void
-	{
-		this._currInst = null;
-		this._skinMap = null;
-		super.dispose();
-	}
-	
-	override protected function init():void
-	{
-		super.init();
-		this._skinMap = {};
-	}
-	
-	public function addSkin(p_id:int, p_skin:BasicObject):void
-	{
-		this._skinMap[p_id] = p_skin;
-	}
-	
-	override public function show(p_id:int):void
-	{
-		var skin:BasicObject = this._skinMap[p_id];
-		if (!skin)
-		{
-			this.container.removeChildren();
-			return;
-		}
-		if (this._currInst == skin.instance)
-		{
-			return;
-		}
-		
-		this.container.removeChildren();
-		this.container.addChild(skin.instance);
-	
-	/*
-	   skin.instance.visible = true;
-	   this.container.addChild(skin.instance);
-	   if (this._currInst)
-	   {
-	   this._currInst.visible = false;
-	   //	this.container.removeChild(this._currInst);
-	   }
-	   this._currInst = skin.instance;
-	 */
-	}
-
-}
 
 class SkinStoreItem extends BasicSkin
 {
@@ -990,7 +934,6 @@ class GameMap extends ButtonGroup
 	
 	override protected function onMouseDown(p_evt:MouseEvent):void
 	{
-		trace("test down");
 		var target:DisplayObject = p_evt.target as DisplayObject;
 		var key:String = target.name;
 		if (key == this._downKey)
@@ -1059,7 +1002,6 @@ class GameMap extends ButtonGroup
 	
 	override protected function onMouseRollOut(p_evt:MouseEvent):void
 	{
-		trace("test out");
 		if (this._overKey == "")
 		{
 			return;
@@ -1071,191 +1013,9 @@ class GameMap extends ButtonGroup
 
 }
 
-/*
-//
-
-class SkinStoreItem2 extends BasicSkin
-{
-	private var _skin:BasicObject = null;
-	private var _skinDown:BasicObject = null;
-	private var _skinBlank:BasicObject = null;
-	private var _skinOver:BasicObject = null;
-	private var _type:int = 0;
-	
-	public function SkinStoreItem2()
-	{
-		this._type = SkinStore.TYPE_NONE;
-		super();
-	}
-	
-	override public function dispose():void
-	{
-		this.show(SkinStore.TYPE_NONE);
-		this._skin = null;
-		super.dispose();
-	}
-	
-	override protected function init():void
-	{
-		super.init();
-		this._skinDown = new BasicImage(GameAsset.loader.getAssetOfGroup(GameAsset.KEY_IMAGE, "cmdDown") as BitmapData);
-		this._skinBlank = new BasicImage(GameAsset.loader.getAssetOfGroup(GameAsset.KEY_IMAGE, "cmdIdle") as BitmapData);
-		this._skinOver = new BasicImage(GameAsset.loader.getAssetOfGroup(GameAsset.KEY_IMAGE, "cmdIdle") as BitmapData);
-	}
-	
-	override public function reset():void
-	{
-		super.reset();
-		this.show(SkinStore.TYPE_NONE);
-	}
-	
-	override public function show(p_id:int):void
-	{
-		if (p_id == this._type)
-		{
-			return;
-		}
-		
-		this.container.removeChildren();
-		
-		switch(p_id) {
-			case SkinStore.TYPE_DOWN:
-				this._skin = this._skinDown;
-				break;
-			case SkinStore.TYPE_BLANK:
-				this._skin = this._skinBlank;
-				break;
-			case SkinStore.TYPE_OVER:
-				this._skin = this._skinOver;
-				break;
-		}
-		
-		this.container.addChild(this._skin.instance);
-	}
-
-}
-
-*/
-
-class SkinStoreItem2 extends BasicSkin
-{
-	private var _skin:BasicObject = null;
-	private var _store:SkinStore = null;
-	private var _type:int = 0;
-	
-	public function SkinStoreItem2()
-	{
-		this._type = SkinStore.TYPE_NONE;
-		super();
-	}
-	
-	override public function dispose():void
-	{
-		this.show(SkinStore.TYPE_NONE);
-		this._skin = null;
-		this._store = null;
-		this._skin = null;
-		super.dispose();
-	}
-	
-	override protected function init():void
-	{
-		super.init();
-		this._store = new SkinStore();
-	}
-	
-	override public function reset():void
-	{
-		super.reset();
-		this.show(SkinStore.TYPE_NONE);
-	}
-	
-	override public function show(p_id:int):void
-	{
-		if (p_id == this._type)
-		{
-			return;
-		}
-		
-		this.container.removeChildren();
-		this._store.payBack(this._type, this._skin);
-		this._type = SkinStore.TYPE_NONE;
-		this._skin = null;
-		
-		if (p_id == SkinStore.TYPE_NONE)
-		{
-			return;
-		}
-		
-		this._type = p_id;
-		this._skin = this._store.borrow(this._type);
-		if (!this._skin)
-		{
-			this._type = SkinStore.TYPE_NONE;
-			return;
-		}
-		
-		this.container.addChild(this._skin.instance);
-	}
-
-}
-
-class GameMapItem2 extends BasicObject
-{
-	private var _front:SkinStoreItem2 = null;
-	
-	public function GameMapItem2():void
-	{
-		super();
-	}
-	
-	override public function dispose():void
-	{
-		Helper.dispose(this._front);
-		this._front = null;
-		super.dispose();
-	}
-	
-	override protected function init():void
-	{
-		super.init();
-		
-		this.container.mouseChildren = false;
-		//	this.container.mouseEnabled = false;
-		
-		this._front = new SkinStoreItem2();
-		//this._front.addSkin(SkinStore.TYPE_DOWN, new BasicImage(GameAsset.loader.getAssetOfGroup(GameAsset.KEY_IMAGE, "cmdDown") as BitmapData));
-		//this._front.addSkin(SkinStore.TYPE_BLANK, new BasicImage(GameAsset.loader.getAssetOfGroup(GameAsset.KEY_IMAGE, "cmdIdle") as BitmapData));
-		//this._front.addSkin(SkinStore.TYPE_OVER, new BasicImage(GameAsset.loader.getAssetOfGroup(GameAsset.KEY_IMAGE, "cmdIdle") as BitmapData));
-		this.container.addChild(this._front.instance);
-
-		this.setMouseClear();
-	}
-	
-	public function setMouseClear():void
-	{
-		this._front.show(SkinStore.TYPE_BLANK);
-	}
-	
-	public function setMouseDown():void
-	{
-		this._front.show(SkinStore.TYPE_DOWN);
-	}
-	
-	public function setMouseOver():void
-	{
-		this._front.show(SkinStore.TYPE_OVER);
-	}
-	
-	private function get container():Sprite
-	{
-		return (this.instance as Sprite);
-	}
-}
-
 class GameCommand extends BasicObject
 {
-	private var _c:GameMapItem2;
+	private var _btn:BasicButton = null;
 	
 	public function GameCommand()
 	{
@@ -1270,63 +1030,24 @@ class GameCommand extends BasicObject
 	override protected function init():void
 	{
 		super.init();
-		
-		this.container.addEventListener(MouseEvent.CLICK, this.onMouseClick);
-		this.container.addEventListener(MouseEvent.MOUSE_DOWN, this.onMouseDown);
-		this.container.addEventListener(MouseEvent.MOUSE_OVER, this.onMouseOver);
-		this.container.addEventListener(MouseEvent.MOUSE_UP, this.onMouseUp);
-		this.container.addEventListener(MouseEvent.ROLL_OUT, this.onMouseRollOut);
 	}
 	
 	override public function reset():void
 	{
 		super.reset();
 		
-		//var skin:SimpleSkin = new SimpleSkin();
-		//skin.addSkin(BasicButton.SKIN_DOWN, new BasicImage(GameAsset.loader.getAssetOfGroup(GameAsset.KEY_IMAGE, "cmdDown") as BitmapData));
-		//skin.addSkin(BasicButton.SKIN_IDLE, new BasicImage(GameAsset.loader.getAssetOfGroup(GameAsset.KEY_IMAGE, "cmdIdle") as BitmapData));
-		//skin.addSkin(BasicButton.SKIN_OVER, new BasicImage(GameAsset.loader.getAssetOfGroup(GameAsset.KEY_IMAGE, "cmdIdle") as BitmapData));
+		var skin:SimpleSkin = new SimpleSkin();
+		skin.addSkin(BasicButton.SKIN_DOWN, new BasicImage((GameAsset.loader.getAssetOfGroup(GameAsset.KEY_IMAGE, "cmdOver") as Bitmap).bitmapData));
+		skin.addSkin(BasicButton.SKIN_IDLE, new BasicImage((GameAsset.loader.getAssetOfGroup(GameAsset.KEY_IMAGE, "cmdIdle") as Bitmap).bitmapData));
+		skin.addSkin(BasicButton.SKIN_OVER, new BasicImage((GameAsset.loader.getAssetOfGroup(GameAsset.KEY_IMAGE, "cmdOver") as Bitmap).bitmapData));
+		this._btn = new BasicButton(skin);
 		
-		this._c = new GameMapItem2();
-		this.container.addChild(this._c.instance);
+		this.container.addChild(this._btn.instance);
 	}
 	
 	private function get container():Sprite
 	{
 		return (this.instance as Sprite);
-	}
-	
-	protected function onMouseClick(p_evt:MouseEvent):void
-	{
-		trace("big >> onMouseClick");
-	}
-	
-	protected function onMouseDown(p_evt:MouseEvent):void
-	{
-		trace("big >> onMouseDown");
-		//	this._b.show(BasicButton.SKIN_DOWN);
-		this._c.setMouseDown();
-	}
-	
-	protected function onMouseOver(p_evt:MouseEvent):void
-	{
-		trace("big >> onMouseOver");
-		//	this._b.show(BasicButton.SKIN_OVER);
-		this._c.setMouseOver();
-	}
-	
-	protected function onMouseUp(p_evt:MouseEvent):void
-	{
-		trace("big >> onMouseUp");
-		//	this._b.show(BasicButton.SKIN_OVER);
-		this._c.setMouseOver();
-	}
-	
-	protected function onMouseRollOut(p_evt:MouseEvent):void
-	{
-		trace("big >> onMouseRollOut");
-		//	this._b.show(BasicButton.SKIN_IDLE);
-		this._c.setMouseClear();
 	}
 
 }
