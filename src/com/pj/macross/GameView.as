@@ -1040,7 +1040,8 @@ class GameCommand extends BasicObject
 		skin.addSkin(BasicButton.SKIN_DOWN, new BasicImage((GameAsset.loader.getAssetOfGroup(GameAsset.KEY_IMAGE, "cmdOver") as Bitmap).bitmapData));
 		skin.addSkin(BasicButton.SKIN_IDLE, new BasicImage((GameAsset.loader.getAssetOfGroup(GameAsset.KEY_IMAGE, "cmdIdle") as Bitmap).bitmapData));
 		skin.addSkin(BasicButton.SKIN_OVER, new BasicImage((GameAsset.loader.getAssetOfGroup(GameAsset.KEY_IMAGE, "cmdOver") as Bitmap).bitmapData));
-		this._btn = new BasicButton(skin);
+		this._btn = new BasicButton(skin, null, true);
+		this._btn.signal.add(this.onEnterClick);
 		
 		this.container.addChild(this._btn.instance);
 	}
@@ -1048,6 +1049,10 @@ class GameCommand extends BasicObject
 	private function get container():Sprite
 	{
 		return (this.instance as Sprite);
+	}
+	
+	private function onEnterClick(p_result:Object):void {
+		;
 	}
 
 }
