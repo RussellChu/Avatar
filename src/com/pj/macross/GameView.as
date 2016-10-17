@@ -87,7 +87,7 @@ package com.pj.macross
 		public function updateMap(p_id:String, p_side:int, p_state:int):void
 		{
 			this._map.setCell(p_id, p_side, p_state);
-			this.signal.dispatch({side: this._cmdSide, command: this._cmdCode}, EVENT_CMD_CLICK);
+			GameController.i.signal.dispatch({side: this._cmdSide, command: this._cmdCode}, EVENT_CMD_CLICK);
 		}
 		
 		public function updateScore(p_side:int, p_score:int):void
@@ -139,11 +139,11 @@ package com.pj.macross
 				{
 					this._cmdCode = GameData.COMMAND_ROAD;
 				}
-				this.signal.dispatch({side: this._cmdSide, command: this._cmdCode}, EVENT_CMD_CLICK);
+				GameController.i.signal.dispatch({side: this._cmdSide, command: this._cmdCode}, EVENT_CMD_CLICK);
 			}
 			else
 			{
-				this.signal.dispatch({id: id, side: this._cmdSide, command: this._cmdCode}, EVENT_MAP_CLICK);
+				GameController.i.signal.dispatch({id: id, side: this._cmdSide, command: this._cmdCode}, EVENT_MAP_CLICK);
 			}
 		}
 	
@@ -162,6 +162,7 @@ import com.pj.common.component.SimpleSkin;
 import com.pj.common.math.JMath;
 import com.pj.macross.GameAsset;
 import com.pj.macross.GameConfig;
+import com.pj.macross.GameController;
 import com.pj.macross.GameData;
 import com.pj.macross.structure.MapCell;
 import flash.display.Bitmap;
@@ -571,7 +572,8 @@ class ButtonGroup extends BasicObject
 
 }
 
-class ButtonList extends BasicObject {
+class ButtonList extends BasicObject
+{
 	private var _bmpIdleA:BitmapData = null;
 	private var _bmpIdleB:BitmapData = null;
 	private var _bmpIdleC:BitmapData = null;
@@ -626,18 +628,25 @@ class ButtonList extends BasicObject {
 		return (this.instance as Sprite);
 	}
 	
-	public function add(p_title:String, p_data:Object):void {
+	public function add(p_title:String, p_data:Object):void
+	{
 		var skin:SimpleSkin = new SimpleSkin();
-		if (!this._lastBtn) {
+		if (!this._lastBtn)
+		{
 			skin.addSkin(BasicButton.SKIN_DOWN, new BasicImage(this._bmpOverD));
 			skin.addSkin(BasicButton.SKIN_IDLE, new BasicImage(this._bmpIdleD));
 			skin.addSkin(BasicButton.SKIN_OVER, new BasicImage(this._bmpOverD));
-		} else {
-			if (this._count == 1) {
+		}
+		else
+		{
+			if (this._count == 1)
+			{
 				skin.addSkin(BasicButton.SKIN_DOWN, new BasicImage(this._bmpOverA));
 				skin.addSkin(BasicButton.SKIN_IDLE, new BasicImage(this._bmpIdleA));
 				skin.addSkin(BasicButton.SKIN_OVER, new BasicImage(this._bmpOverA));
-			} else {
+			}
+			else
+			{
 				skin.addSkin(BasicButton.SKIN_DOWN, new BasicImage(this._bmpOverB));
 				skin.addSkin(BasicButton.SKIN_IDLE, new BasicImage(this._bmpIdleB));
 				skin.addSkin(BasicButton.SKIN_OVER, new BasicImage(this._bmpOverB));
@@ -661,10 +670,11 @@ class ButtonList extends BasicObject {
 		this.container.addChild(tf.instance);
 	}
 	
-	private function onClick(p_result:Object):void {
+	private function onClick(p_result:Object):void
+	{
 		this.signal.dispatch(p_result.data);
 	}
-	
+
 }
 
 class GameMapItem extends BasicObject
@@ -1149,19 +1159,21 @@ class GameCommand extends BasicObject
 		this.container.addChild(this._btn.instance);
 		
 		this._listBtn = new ButtonList(//
-			  (GameAsset.loader.getAssetOfGroup(GameAsset.KEY_IMAGE, "cmdListIdleA") as Bitmap).bitmapData//
-			, (GameAsset.loader.getAssetOfGroup(GameAsset.KEY_IMAGE, "cmdListIdleB") as Bitmap).bitmapData//
-			,(GameAsset.loader.getAssetOfGroup(GameAsset.KEY_IMAGE, "cmdListIdleC") as Bitmap).bitmapData//
-			, (GameAsset.loader.getAssetOfGroup(GameAsset.KEY_IMAGE, "cmdListIdleD") as Bitmap).bitmapData//
-			, (GameAsset.loader.getAssetOfGroup(GameAsset.KEY_IMAGE, "cmdListOverA") as Bitmap).bitmapData//
-			, (GameAsset.loader.getAssetOfGroup(GameAsset.KEY_IMAGE, "cmdListOverB") as Bitmap).bitmapData//
-			,(GameAsset.loader.getAssetOfGroup(GameAsset.KEY_IMAGE, "cmdListOverC") as Bitmap).bitmapData//
-			, (GameAsset.loader.getAssetOfGroup(GameAsset.KEY_IMAGE, "cmdListOverD") as Bitmap).bitmapData//
+		(GameAsset.loader.getAssetOfGroup(GameAsset.KEY_IMAGE, "cmdListIdleA") as Bitmap).bitmapData//
+		, (GameAsset.loader.getAssetOfGroup(GameAsset.KEY_IMAGE, "cmdListIdleB") as Bitmap).bitmapData//
+		, (GameAsset.loader.getAssetOfGroup(GameAsset.KEY_IMAGE, "cmdListIdleC") as Bitmap).bitmapData//
+		, (GameAsset.loader.getAssetOfGroup(GameAsset.KEY_IMAGE, "cmdListIdleD") as Bitmap).bitmapData//
+		, (GameAsset.loader.getAssetOfGroup(GameAsset.KEY_IMAGE, "cmdListOverA") as Bitmap).bitmapData//
+		, (GameAsset.loader.getAssetOfGroup(GameAsset.KEY_IMAGE, "cmdListOverB") as Bitmap).bitmapData//
+		, (GameAsset.loader.getAssetOfGroup(GameAsset.KEY_IMAGE, "cmdListOverC") as Bitmap).bitmapData//
+		, (GameAsset.loader.getAssetOfGroup(GameAsset.KEY_IMAGE, "cmdListOverD") as Bitmap).bitmapData//
 		);
 		
 		this._listBtn.instance.x = this._btn.instance.x;
 		this._listBtn.instance.y = this._btn.instance.y + this._btn.instance.height;
 		this._listBtn.instance.visible = false;
+		
+		this.loadListBtn();
 		
 		this._listBtn.add("AAA", {n: 1});
 		this._listBtn.add("BBB", {n: 2});
@@ -1171,16 +1183,24 @@ class GameCommand extends BasicObject
 		this.container.addChild(this._listBtn.instance);
 	}
 	
+	private function loadListBtn():void
+	{
+		var list:Array = GameController.i.config.view.game_command_list as Array;
+		// to do
+	}
+	
 	private function get container():Sprite
 	{
 		return (this.instance as Sprite);
 	}
 	
-	private function onEnterClick(p_result:Object):void {
+	private function onEnterClick(p_result:Object):void
+	{
 		this._listBtn.instance.visible = this._btn.value;
 	}
 	
-	private function onCmdClick(p_result:Object):void {
+	private function onCmdClick(p_result:Object):void
+	{
 		trace(p_result.n);
 	}
 

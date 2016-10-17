@@ -425,6 +425,7 @@ class FoldAni implements ICreatable
 class FoldMc extends BasicObject
 {
 	private var _count:Number = 0;
+	private var _img:Bitmap = null;
 	private var _sp:Sprite = null;
 	private var _timer:JTimer = null;
 	
@@ -436,6 +437,7 @@ class FoldMc extends BasicObject
 	override public function dispose():void
 	{
 		Helper.dispose(this._timer);
+		this._img = null;
 		this._sp = null;
 		this._timer = null;
 		
@@ -465,12 +467,19 @@ class FoldMc extends BasicObject
 		var src:FoldAni = GameAsset.loader.getAsset(GameAsset.KEY_FOLD_ANI) as FoldAni;
 		var bmp:BitmapData = src.getFrame(int(this._count));
 		this._count = src.getFrameId(this._count, p_delta);
-		var img:Bitmap = new Bitmap(bmp);
-		img.x = -img.width * 0.5;
-		img.y = -img.height * 0.5;
 		
-		this._sp.removeChildren();
-		this._sp.addChild(img);
+		if (!this._img)
+		{
+			this._img = new Bitmap(bmp);
+			this._sp.removeChildren();
+			this._sp.addChild(this._img);
+		}
+		else
+		{
+			this._img.bitmapData = bmp;
+		}
+		this._img.x = -this._img.width * 0.5;
+		this._img.y = -this._img.height * 0.5;
 	}
 	
 	private function get container():Sprite

@@ -5,10 +5,13 @@ package com.pj
 	import com.pj.common.component.BasicContainer;
 	import com.pj.macross.GameAsset;
 	import com.pj.macross.GameConfig;
+	import com.pj.macross.GameController;
 	import com.pj.macross.GameData;
+	import com.pj.macross.GameLang;
 	import com.pj.macross.GameModel;
 	import com.pj.macross.GameView;
 	import flash.display.Sprite;
+	import flash.utils.ByteArray;
 	
 	/**
 	 * ...
@@ -44,6 +47,7 @@ package com.pj
 		override protected function init():void
 		{
 			super.init();
+			GameController.i.init();
 			this._layer = new Sprite();
 			this._loading = new LoadingPanel();
 			this.container.addChild(this._layer);
@@ -81,7 +85,8 @@ package com.pj
 		private function onModelEvent_CreateResult(p_result:Object):void
 		{
 			var isReady:Boolean = p_result.isReady;
-			if (isReady) {
+			if (isReady)
+			{
 				trace("o: " + JSON.stringify(p_result.obstage));
 				trace("a: " + JSON.stringify(p_result.hostageA));
 				trace("b: " + JSON.stringify(p_result.hostageB));
@@ -131,19 +136,24 @@ package com.pj
 		
 		private function onAssetLoaded(p_result:Object):void
 		{
+			var ba:ByteArray = GameAsset.loader.getAsset(GameAsset.KEY_CONFIG) as ByteArray;
+			var str:String = ba.toString();
+			var obj:Object = JSON.parse(str);
+			GameController.i.config = obj;
+			GameController.i.signal.dispatch({list: GameController.i.config.lang}, GameLang.EVENT_LOAD_LANG);
+			
 			this._model = new GameModel();
 			this._view = new GameView();
 			this._layer.addChild(this._view.instance);
 			
 			this._assetReady = true;
 			
-			this._model.signal.add(this.onModelEvent_CellUpdate, GameModel.EVENT_CELL_UPDATE);
-			this._model.signal.add(this.onModelEvent_CreateResult, GameModel.EVENT_CREATE_RESULT);
-			this._model.signal.add(this.onModelEvent_LoadComplete, GameModel.EVENT_LOAD_COMPLETE);
-			this._model.signal.add(this.onModelEvent_ScoreUpdate, GameModel.EVENT_SCORE_UPDATE);
-			
-			this._view.signal.add(this.onViewEvent_CmdClick, GameView.EVENT_CMD_CLICK);
-			this._view.signal.add(this.onViewEvent_MapClick, GameView.EVENT_MAP_CLICK);
+			GameController.i.signal.add(this.onModelEvent_CellUpdate, GameModel.EVENT_CELL_UPDATE);
+			GameController.i.signal.add(this.onModelEvent_CreateResult, GameModel.EVENT_CREATE_RESULT);
+			GameController.i.signal.add(this.onModelEvent_LoadComplete, GameModel.EVENT_LOAD_COMPLETE);
+			GameController.i.signal.add(this.onModelEvent_ScoreUpdate, GameModel.EVENT_SCORE_UPDATE);
+			GameController.i.signal.add(this.onViewEvent_CmdClick, GameView.EVENT_CMD_CLICK);
+			GameController.i.signal.add(this.onViewEvent_MapClick, GameView.EVENT_MAP_CLICK);
 			
 			this._model.start();
 			
@@ -165,12 +175,15 @@ import com.pj.common.JTimer;
 import com.pj.common.component.BasicObject;
 import com.pj.common.component.JText;
 import com.pj.common.component.Quad;
+import com.pj.macross.GameController;
+import com.pj.macross.GameLang;
 import flash.display.Sprite;
 
 class LoadingPanel extends BasicObject
 {
 	private var _bg:Quad = null;
 	private var _leave:int = 0;
+	private var _msg:String = "";
 	private var _timer:JTimer = null;
 	private var _txt:JText = null;
 	private var _value:Number = 0;
@@ -199,8 +212,10 @@ class LoadingPanel extends BasicObject
 		(this.instance as Sprite).addChild(this._bg.instance);
 		
 		this._txt = new JText(12, 0, JText.ALIGN_CENTER);
-		this._txt.text = "Loading";
+		this._txt.text = "";
 		(this.instance as Sprite).addChild(this._txt.instance);
+		
+		GameController.i.signal.add(this.onLangUpdate, GameLang.EVENT_LANG_UPDATE);
 		
 		this._timer = new JTimer(this.onTime);
 		this._timer.start();
@@ -256,7 +271,13 @@ class LoadingPanel extends BasicObject
 	
 	public function update(p_index:int, p_total:int):void
 	{
-		this._txt.text = "Loading: " + (p_total - p_index) + " / " + p_total;
+		this._msg = ": " + (p_total - p_index) + " / " + p_total;
+		this.onLangUpdate(null);
+	}
+	
+	private function onLangUpdate(p_result:Object):void
+	{
+		this._txt.text = GameLang.i.getValue("lang-00001") + this._msg;
 	}
 
 }

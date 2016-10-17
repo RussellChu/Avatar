@@ -1,3 +1,29 @@
 {
-	 "data": "some data ++"
+	  "data": "some data ++"
+	, "lang": [
+  "", ""
+, "cmds-00001", "R: Move", "紅：移動"
+, "cmds-00002", "R: Fold", "紅：跳躍"
+, "cmds-00003", "R: Atk ", "紅：攻擊"
+, "cmds-00004", "G: Move", "綠：移動"
+, "cmds-00005", "G: Fold", "綠：跳躍"
+, "cmds-00006", "G: Atk ", "綠：攻擊"
+, "cmds-00007", "B: Move", "藍：移動"
+, "cmds-00008", "B: Fold", "藍：跳躍"
+, "cmds-00009", "B: Atk ", "藍：攻擊"
+, "lang-00001", "Loading", "載入中"
+	]
+	, "view": {
+		"game_command_list": [
+  "a:mov", "cmd-00001"
+, "a:jmp", "cmd-00002"
+, "a:atk", "cmd-00003"
+, "b:mov", "cmd-00004"
+, "b:jmp", "cmd-00005"
+, "b:atk", "cmd-00006"
+, "c:mov", "cmd-00007"
+, "c:jmp", "cmd-00008"
+, "c:atk", "cmd-00009"
+		]
+	}
 }
