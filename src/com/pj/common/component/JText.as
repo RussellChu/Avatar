@@ -45,6 +45,9 @@ package com.pj.common.component
 		{
 			super.init();
 			
+			this.container.mouseChildren = false;
+			this.container.mouseEnabled = false;
+			
 			this._txt = new TextField();
 			if (this._width > 0)
 			{

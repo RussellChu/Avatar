@@ -92,12 +92,23 @@ package com.pj.common.component
 			}
 		}
 		
+		public function reloadSkin(p_skin:BasicSkin):void {
+			if (this._skin) {
+				this.container.removeChild(this._skin.instance);
+				Helper.dispose(this._skin);
+				this._skin = null;
+			}
+			this._skin = p_skin;
+			this.container.addChild(this._skin.instance);
+			this.skin = SKIN_IDLE;
+		}
+		
 		override protected function onMouseClick(p_evt:MouseEvent):void
 		{
 			if (this._toggle)
 			{
 				this._value = !this._value;
-				this._signal.dispatch({action: ACTION_VALUE_CHANGE, data: this._data, target: this});
+				this._signal.dispatch({action: ACTION_VALUE_CHANGE, data: this._data, target: this}, ACTION_VALUE_CHANGE);
 			}
 			super.onMouseClick(p_evt);
 		}

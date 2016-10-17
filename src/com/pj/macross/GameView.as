@@ -151,6 +151,7 @@ package com.pj.macross
 }
 import com.pj.common.Helper;
 import com.pj.common.JTimer;
+import com.pj.common.component.AbstractButton;
 import com.pj.common.component.BasicButton;
 import com.pj.common.component.BasicContainer;
 import com.pj.common.component.BasicImage;
@@ -568,6 +569,102 @@ class ButtonGroup extends BasicObject
 		;
 	}
 
+}
+
+class ButtonList extends BasicObject {
+	private var _bmpIdleA:BitmapData = null;
+	private var _bmpIdleB:BitmapData = null;
+	private var _bmpIdleC:BitmapData = null;
+	private var _bmpIdleD:BitmapData = null;
+	private var _bmpOverA:BitmapData = null;
+	private var _bmpOverB:BitmapData = null;
+	private var _bmpOverC:BitmapData = null;
+	private var _bmpOverD:BitmapData = null;
+	private var _count:int = 0;
+	private var _lastBtn:BasicButton = null;
+	
+	public function ButtonList(//
+	p_bmpIdleA:BitmapData//
+	, p_bmpIdleB:BitmapData//
+	, p_bmpIdleC:BitmapData//
+	, p_bmpIdleD:BitmapData//
+	, p_bmpOverA:BitmapData//
+	, p_bmpOverB:BitmapData//
+	, p_bmpOverC:BitmapData//
+	, p_bmpOverD:BitmapData//
+	)
+	{
+		this._bmpIdleA = p_bmpIdleA;
+		this._bmpIdleB = p_bmpIdleB;
+		this._bmpIdleC = p_bmpIdleC;
+		this._bmpIdleD = p_bmpIdleD;
+		this._bmpOverA = p_bmpOverA;
+		this._bmpOverB = p_bmpOverB;
+		this._bmpOverC = p_bmpOverC;
+		this._bmpOverD = p_bmpOverD;
+		
+		super();
+	}
+	
+	override public function dispose():void
+	{
+		this._bmpIdleA = null;
+		this._bmpIdleB = null;
+		this._bmpIdleC = null;
+		this._bmpIdleD = null;
+		this._bmpOverA = null;
+		this._bmpOverB = null;
+		this._bmpOverC = null;
+		this._bmpOverD = null;
+		this._lastBtn = null;
+		
+		super.dispose();
+	}
+	
+	private function get container():Sprite
+	{
+		return (this.instance as Sprite);
+	}
+	
+	public function add(p_title:String, p_data:Object):void {
+		var skin:SimpleSkin = new SimpleSkin();
+		if (!this._lastBtn) {
+			skin.addSkin(BasicButton.SKIN_DOWN, new BasicImage(this._bmpOverD));
+			skin.addSkin(BasicButton.SKIN_IDLE, new BasicImage(this._bmpIdleD));
+			skin.addSkin(BasicButton.SKIN_OVER, new BasicImage(this._bmpOverD));
+		} else {
+			if (this._count == 1) {
+				skin.addSkin(BasicButton.SKIN_DOWN, new BasicImage(this._bmpOverA));
+				skin.addSkin(BasicButton.SKIN_IDLE, new BasicImage(this._bmpIdleA));
+				skin.addSkin(BasicButton.SKIN_OVER, new BasicImage(this._bmpOverA));
+			} else {
+				skin.addSkin(BasicButton.SKIN_DOWN, new BasicImage(this._bmpOverB));
+				skin.addSkin(BasicButton.SKIN_IDLE, new BasicImage(this._bmpIdleB));
+				skin.addSkin(BasicButton.SKIN_OVER, new BasicImage(this._bmpOverB));
+			}
+			this._lastBtn.reloadSkin(skin);
+			
+			skin = new SimpleSkin();
+			skin.addSkin(BasicButton.SKIN_DOWN, new BasicImage(this._bmpOverC));
+			skin.addSkin(BasicButton.SKIN_IDLE, new BasicImage(this._bmpIdleC));
+			skin.addSkin(BasicButton.SKIN_OVER, new BasicImage(this._bmpOverC));
+		}
+		this._lastBtn = new BasicButton(skin, p_data);
+		this._lastBtn.instance.y = this._count * this._bmpIdleA.height;
+		this._lastBtn.signal.add(this.onClick, AbstractButton.ACTION_CLICK);
+		this._count++;
+		this.container.addChild(this._lastBtn.instance);
+		
+		var tf:JText = new JText(12, 0, JText.ALIGN_CENTER, 0, this._bmpIdleA.width, this._bmpIdleA.height);
+		tf.text = p_title;
+		tf.instance.y = this._lastBtn.instance.y;
+		this.container.addChild(tf.instance);
+	}
+	
+	private function onClick(p_result:Object):void {
+		this.signal.dispatch(p_result.data);
+	}
+	
 }
 
 class GameMapItem extends BasicObject
@@ -1016,6 +1113,7 @@ class GameMap extends ButtonGroup
 class GameCommand extends BasicObject
 {
 	private var _btn:BasicButton = null;
+	private var _listBtn:ButtonList = null;
 	
 	public function GameCommand()
 	{
@@ -1024,6 +1122,11 @@ class GameCommand extends BasicObject
 	
 	override public function dispose():void
 	{
+		Helper.dispose(this._btn);
+		Helper.dispose(this._listBtn);
+		this._btn = null;
+		this._listBtn = null;
+		
 		super.dispose();
 	}
 	
@@ -1041,9 +1144,31 @@ class GameCommand extends BasicObject
 		skin.addSkin(BasicButton.SKIN_IDLE, new BasicImage((GameAsset.loader.getAssetOfGroup(GameAsset.KEY_IMAGE, "cmdIdle") as Bitmap).bitmapData));
 		skin.addSkin(BasicButton.SKIN_OVER, new BasicImage((GameAsset.loader.getAssetOfGroup(GameAsset.KEY_IMAGE, "cmdOver") as Bitmap).bitmapData));
 		this._btn = new BasicButton(skin, null, true);
-		this._btn.signal.add(this.onEnterClick);
+		this._btn.signal.add(this.onEnterClick, BasicButton.ACTION_VALUE_CHANGE);
 		
 		this.container.addChild(this._btn.instance);
+		
+		this._listBtn = new ButtonList(//
+			  (GameAsset.loader.getAssetOfGroup(GameAsset.KEY_IMAGE, "cmdListIdleA") as Bitmap).bitmapData//
+			, (GameAsset.loader.getAssetOfGroup(GameAsset.KEY_IMAGE, "cmdListIdleB") as Bitmap).bitmapData//
+			,(GameAsset.loader.getAssetOfGroup(GameAsset.KEY_IMAGE, "cmdListIdleC") as Bitmap).bitmapData//
+			, (GameAsset.loader.getAssetOfGroup(GameAsset.KEY_IMAGE, "cmdListIdleD") as Bitmap).bitmapData//
+			, (GameAsset.loader.getAssetOfGroup(GameAsset.KEY_IMAGE, "cmdListOverA") as Bitmap).bitmapData//
+			, (GameAsset.loader.getAssetOfGroup(GameAsset.KEY_IMAGE, "cmdListOverB") as Bitmap).bitmapData//
+			,(GameAsset.loader.getAssetOfGroup(GameAsset.KEY_IMAGE, "cmdListOverC") as Bitmap).bitmapData//
+			, (GameAsset.loader.getAssetOfGroup(GameAsset.KEY_IMAGE, "cmdListOverD") as Bitmap).bitmapData//
+		);
+		
+		this._listBtn.instance.x = this._btn.instance.x;
+		this._listBtn.instance.y = this._btn.instance.y + this._btn.instance.height;
+		this._listBtn.instance.visible = false;
+		
+		this._listBtn.add("AAA", {n: 1});
+		this._listBtn.add("BBB", {n: 2});
+		this._listBtn.add("CCC", {n: 3});
+		this._listBtn.signal.add(this.onCmdClick);
+		
+		this.container.addChild(this._listBtn.instance);
 	}
 	
 	private function get container():Sprite
@@ -1052,7 +1177,11 @@ class GameCommand extends BasicObject
 	}
 	
 	private function onEnterClick(p_result:Object):void {
-		;
+		this._listBtn.instance.visible = this._btn.value;
+	}
+	
+	private function onCmdClick(p_result:Object):void {
+		trace(p_result.n);
 	}
 
 }

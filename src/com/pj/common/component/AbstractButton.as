@@ -68,27 +68,27 @@ package com.pj.common.component
 		
 		protected function onMouseClick(p_evt:MouseEvent):void
 		{
-			this.signal.dispatch({action: ACTION_CLICK, data: this._data, target: this});
+			this.signal.dispatch({action: ACTION_CLICK, data: this._data, target: this}, ACTION_CLICK);
 		}
 		
 		protected function onMouseDown(p_evt:MouseEvent):void
 		{
-			this.signal.dispatch({action: ACTION_DOWN, data: this._data, target: this});
+			this.signal.dispatch({action: ACTION_DOWN, data: this._data, target: this}, ACTION_DOWN);
 		}
 		
 		protected function onMouseOver(p_evt:MouseEvent):void
 		{
-			this.signal.dispatch({action: ACTION_OVER, data: this._data, target: this});
+			this.signal.dispatch({action: ACTION_OVER, data: this._data, target: this}, ACTION_OVER);
 		}
 		
 		protected function onMouseUp(p_evt:MouseEvent):void
 		{
-			this.signal.dispatch({action: ACTION_UP, data: this._data, target: this});
+			this.signal.dispatch({action: ACTION_UP, data: this._data, target: this}, ACTION_UP);
 		}
 		
 		protected function onMouseRollOut(p_evt:MouseEvent):void
 		{
-			this.signal.dispatch({action: ACTION_OUT, data: this._data, target: this});
+			this.signal.dispatch({action: ACTION_OUT, data: this._data, target: this}, ACTION_OUT);
 		}
 	
 	}

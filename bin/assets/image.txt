@@ -1,7 +1,15 @@
 {
 	"format": ["name", "x", "y", "w", "h"]
 	, "data": [
-		  "cmdIdle", 0, 0, 15, 14
-		, "cmdOver", 15, 0, 15, 14
+		  "cmdIdle", 0, 200, 15, 14
+		, "cmdOver", 15, 200, 15, 14
+		, "cmdListIdleA", 0, 0, 150, 25
+		, "cmdListIdleB", 0, 25, 150, 25
+		, "cmdListIdleC", 0, 50, 150, 25
+		, "cmdListIdleD", 0, 75, 150, 25
+		, "cmdListOverA", 0, 100, 150, 25
+		, "cmdListOverB", 0, 125, 150, 25
+		, "cmdListOverC", 0, 150, 150, 25
+		, "cmdListOverD", 0, 175, 150, 25
 	]
 }
