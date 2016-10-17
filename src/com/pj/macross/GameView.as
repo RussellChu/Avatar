@@ -70,6 +70,7 @@ package com.pj.macross
 				this.addChild(this._mark);
 				
 				var cmd:GameCommand = new GameCommand();
+				cmd.signal.add(this.onCmdClick, GameCommand.ACTION_CLICK);
 				this.addChild(cmd);
 			}
 		}
@@ -114,6 +115,22 @@ package com.pj.macross
 			this._map.instance.y = posY;
 		}
 		
+		private function onCmdClick(p_result:Object):void
+		{
+			var cmdCode:int = p_result.cmd;
+			switch (cmdCode)
+			{
+			case GameData.COMMAND_ROAD: 
+			case GameData.COMMAND_ROAD_EX: 
+			case GameData.COMMAND_ATTACK: 
+				var side:int = p_result.side;
+				GameController.i.signal.dispatch({side: side, command: cmdCode}, EVENT_CMD_CLICK);
+				break;
+			default: 
+				;
+			}
+		}
+		
 		private function onMapClick(p_result:Object):void
 		{
 			var data:Object = p_result.data;
@@ -149,6 +166,7 @@ package com.pj.macross
 	
 	}
 }
+
 import com.pj.common.Helper;
 import com.pj.common.JTimer;
 import com.pj.common.component.AbstractButton;
@@ -164,6 +182,7 @@ import com.pj.macross.GameAsset;
 import com.pj.macross.GameConfig;
 import com.pj.macross.GameController;
 import com.pj.macross.GameData;
+import com.pj.macross.GameLang;
 import com.pj.macross.structure.MapCell;
 import flash.display.Bitmap;
 import flash.display.BitmapData;
@@ -584,6 +603,7 @@ class ButtonList extends BasicObject
 	private var _bmpOverD:BitmapData = null;
 	private var _count:int = 0;
 	private var _lastBtn:BasicButton = null;
+	private var _txtMap:Object = null;
 	
 	public function ButtonList(//
 	p_bmpIdleA:BitmapData//
@@ -619,8 +639,15 @@ class ButtonList extends BasicObject
 		this._bmpOverC = null;
 		this._bmpOverD = null;
 		this._lastBtn = null;
+		this._txtMap = null;
 		
 		super.dispose();
+	}
+	
+	override protected function init():void
+	{
+		super.init();
+		this._txtMap = {};
 	}
 	
 	private function get container():Sprite
@@ -628,7 +655,7 @@ class ButtonList extends BasicObject
 		return (this.instance as Sprite);
 	}
 	
-	public function add(p_title:String, p_data:Object):void
+	public function add(p_key:String, p_lang:String, p_data:Object):void
 	{
 		var skin:SimpleSkin = new SimpleSkin();
 		if (!this._lastBtn)
@@ -665,9 +692,21 @@ class ButtonList extends BasicObject
 		this.container.addChild(this._lastBtn.instance);
 		
 		var tf:JText = new JText(12, 0, JText.ALIGN_CENTER, 0, this._bmpIdleA.width, this._bmpIdleA.height);
-		tf.text = p_title;
 		tf.instance.y = this._lastBtn.instance.y;
 		this.container.addChild(tf.instance);
+		
+		this._txtMap[p_key] = {tf: tf, lang: p_lang};
+	}
+	
+	public function updateLang():void
+	{
+		for (var key:String in this._txtMap)
+		{
+			var tf:JText = this._txtMap[key].tf as JText;
+			var lang:String = this._txtMap[key].lang as String;
+			var str:String = GameLang.i.getValue(lang);
+			tf.text = str;
+		}
 	}
 	
 	private function onClick(p_result:Object):void
@@ -1122,6 +1161,8 @@ class GameMap extends ButtonGroup
 
 class GameCommand extends BasicObject
 {
+	static public const ACTION_CLICK:String = "GameCommand.ACTION_CLICK";
+	
 	private var _btn:BasicButton = null;
 	private var _listBtn:ButtonList = null;
 	
@@ -1168,25 +1209,31 @@ class GameCommand extends BasicObject
 		, (GameAsset.loader.getAssetOfGroup(GameAsset.KEY_IMAGE, "cmdListOverC") as Bitmap).bitmapData//
 		, (GameAsset.loader.getAssetOfGroup(GameAsset.KEY_IMAGE, "cmdListOverD") as Bitmap).bitmapData//
 		);
-		
 		this._listBtn.instance.x = this._btn.instance.x;
 		this._listBtn.instance.y = this._btn.instance.y + this._btn.instance.height;
 		this._listBtn.instance.visible = false;
-		
 		this.loadListBtn();
-		
-		this._listBtn.add("AAA", {n: 1});
-		this._listBtn.add("BBB", {n: 2});
-		this._listBtn.add("CCC", {n: 3});
 		this._listBtn.signal.add(this.onCmdClick);
-		
 		this.container.addChild(this._listBtn.instance);
+		
+		GameController.i.signal.add(this.onLangUpdate, GameLang.EVENT_LANG_UPDATE);
 	}
 	
 	private function loadListBtn():void
 	{
 		var list:Array = GameController.i.config.view.game_command_list as Array;
-		// to do
+		Helper.loadArray(list, 2, function(p_result:Array):void
+		{
+			if (p_result.length != 2)
+			{
+				return;
+			}
+			var key:String = p_result[0];
+			var lang:String = p_result[1];
+			var cmd:String = key;
+			_listBtn.add(key, lang, {cmd: cmd});
+		});
+		this._listBtn.updateLang();
 	}
 	
 	private function get container():Sprite
@@ -1194,14 +1241,58 @@ class GameCommand extends BasicObject
 		return (this.instance as Sprite);
 	}
 	
+	private function onCmdClick(p_result:Object):void
+	{
+		this._btn.value = false;
+		this._listBtn.instance.visible = this._btn.value;
+		
+		var data:Object = {};
+		var cmd:String = p_result.cmd as String;
+		var cmdCode:int = 0;
+		var cmdSide:int = 0;
+		switch (cmd)
+		{
+		case "a:mov": 
+			data = {cmd: GameData.COMMAND_ROAD, side: GameData.SIDE_A};
+			break;
+		case "a:jmp": 
+			data = {cmd: GameData.COMMAND_ROAD_EX, side: GameData.SIDE_A};
+			break;
+		case "a:atk": 
+			data = {cmd: GameData.COMMAND_ATTACK, side: GameData.SIDE_A};
+			break;
+		case "b:mov": 
+			data = {cmd: GameData.COMMAND_ROAD, side: GameData.SIDE_B};
+			break;
+		case "b:jmp": 
+			data = {cmd: GameData.COMMAND_ROAD_EX, side: GameData.SIDE_B};
+			break;
+		case "b:atk": 
+			data = {cmd: GameData.COMMAND_ATTACK, side: GameData.SIDE_B};
+			break;
+		case "c:mov": 
+			data = {cmd: GameData.COMMAND_ROAD, side: GameData.SIDE_C};
+			break;
+		case "c:jmp": 
+			data = {cmd: GameData.COMMAND_ROAD_EX, side: GameData.SIDE_C};
+			break;
+		case "c:atk": 
+			data = {cmd: GameData.COMMAND_ATTACK, side: GameData.SIDE_C};
+			break;
+		default: 
+			return;
+		}
+		this.signal.dispatch(data, ACTION_CLICK);
+	}
+	
 	private function onEnterClick(p_result:Object):void
 	{
 		this._listBtn.instance.visible = this._btn.value;
 	}
 	
-	private function onCmdClick(p_result:Object):void
+	private function onLangUpdate(p_result:Object):void
 	{
-		trace(p_result.n);
+		this._listBtn.updateLang();
 	}
 
 }

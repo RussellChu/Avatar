@@ -1,5 +1,6 @@
 package com.pj.macross
 {
+	import com.pj.common.Helper;
 	
 	/**
 	 * ...
@@ -39,24 +40,6 @@ package com.pj.macross
 			this.onLoadLang({list: ["lang-00001", "Loading", "載入中"]});
 		}
 		
-		private function loadArray(p_src:Array, p_sizeEach:int, p_func:Function):void
-		{
-			var result:Array;
-			for (var i:int = 0; i < p_src.length; i++)
-			{
-				var index:int = i % p_sizeEach;
-				if (index == 0)
-				{
-					result = [];
-				}
-				result.push(p_src[i]);
-				if (index >= p_sizeEach - 1)
-				{
-					p_func(result);
-				}
-			}
-		}
-		
 		public function getLang():String
 		{
 			return this._lang;
@@ -78,7 +61,7 @@ package com.pj.macross
 		private function onLoadLang(p_result:Object):void
 		{
 			var list:Array = p_result.list as Array;
-			this.loadArray(list, 3, function(p_result:Array):void
+			Helper.loadArray(list, 3, function(p_result:Array):void
 			{
 				if (p_result.length != 3)
 				{

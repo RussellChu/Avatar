@@ -94,6 +94,24 @@ package com.pj.common
 			}
 		}
 		
+		static public function loadArray(p_src:Array, p_sizeEach:int, p_func:Function):void
+		{
+			var result:Array;
+			for (var i:int = 0; i < p_src.length; i++)
+			{
+				var index:int = i % p_sizeEach;
+				if (index == 0)
+				{
+					result = [];
+				}
+				result.push(p_src[i]);
+				if (index >= p_sizeEach - 1)
+				{
+					p_func(result);
+				}
+			}
+		}
+		
 		static public function loopTime(p_from:int, p_to:int, p_func:Function, p_onComplete:Function):void
 		{
 			var i:int = p_from;

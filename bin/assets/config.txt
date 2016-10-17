@@ -1,7 +1,7 @@
 {
 	  "data": "some data ++"
 	, "lang": [
-  "", ""
+  "", "", ""
 , "cmds-00001", "R: Move", "紅：移動"
 , "cmds-00002", "R: Fold", "紅：跳躍"
 , "cmds-00003", "R: Atk ", "紅：攻擊"
@@ -15,15 +15,15 @@
 	]
 	, "view": {
 		"game_command_list": [
-  "a:mov", "cmd-00001"
-, "a:jmp", "cmd-00002"
-, "a:atk", "cmd-00003"
-, "b:mov", "cmd-00004"
-, "b:jmp", "cmd-00005"
-, "b:atk", "cmd-00006"
-, "c:mov", "cmd-00007"
-, "c:jmp", "cmd-00008"
-, "c:atk", "cmd-00009"
+  "a:mov", "cmds-00001"
+, "a:jmp", "cmds-00002"
+, "a:atk", "cmds-00003"
+, "b:mov", "cmds-00004"
+, "b:jmp", "cmds-00005"
+, "b:atk", "cmds-00006"
+, "c:mov", "cmds-00007"
+, "c:jmp", "cmds-00008"
+, "c:atk", "cmds-00009"
 		]
 	}
 }
