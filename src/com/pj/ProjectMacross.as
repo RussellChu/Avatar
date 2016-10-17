@@ -111,19 +111,35 @@ package com.pj
 		
 		private function onViewEvent_CmdClick(p_result:Object):void
 		{
-			var side:int = p_result.side;
 			var command:int = p_result.command;
-			var list:Array = this._model.getMovableList(command, side);
-			var state:int = 0;
-			if (command == GameData.COMMAND_ROAD_EX)
+			switch (command)
 			{
-				state = GameData.STATE_ROAD_EX;
+			case GameData.COMMAND_ROAD: 
+			case GameData.COMMAND_ROAD_EX: 
+			case GameData.COMMAND_ATTACK: 
+				var side:int = p_result.side;
+				var state:int = GameData.STATE_NONE;
+				var list:Array = this._model.getMovableList(command, side);
+				if (command == GameData.COMMAND_ROAD_EX)
+				{
+					state = GameData.STATE_ROAD_EX;
+					this._view.flashMap(side, state, list);
+				}
+				else
+				{
+					state = GameData.STATE_ROAD;
+				}
+				this._view.flashMap(side, state, list);
+				break;
+			case GameData.COMMAND_UNDO: 
+				this._model.undo();
+				break;
+			case GameData.COMMAND_CLEAR: 
+				while (this._model.undo()){};
+				break;
+			default: 
+				;
 			}
-			else
-			{
-				state = GameData.STATE_ROAD;
-			}
-			this._view.flashMap(side, state, list);
 		}
 		
 		private function onViewEvent_MapClick(p_result:Object):void
@@ -277,7 +293,7 @@ class LoadingPanel extends BasicObject
 	
 	private function onLangUpdate(p_result:Object):void
 	{
-		this._txt.text = GameLang.i.getValue("lang-00001") + this._msg;
+		this._txt.text = GameLang.i.getValue("text-00001") + this._msg;
 	}
 
 }

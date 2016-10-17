@@ -710,11 +710,11 @@ package com.pj.macross
 			return result;
 		}
 		
-		public function undo():Object
+		public function undo():Boolean
 		{
 			if (this._record.length == 0)
 			{
-				return null;
+				return false;
 			}
 			var item:Array = this._record.pop();
 			var preState:int = item[5];
@@ -745,7 +745,9 @@ package com.pj.macross
 				this.clearCell(x, y, z);
 			}
 			var cell:MapCell = this._map.getCellByKey(x, y, z);
-			return {id: cell.id, side: cell.side, state: cell.state, scoreSide: side, score: preScore};
+			GameController.i.signal.dispatch({id: cell.id, side: cell.side, state: cell.state}, EVENT_CELL_UPDATE);
+			GameController.i.signal.dispatch({side: side, score: preScore}, EVENT_SCORE_UPDATE);
+			return true;
 		}
 	
 	}

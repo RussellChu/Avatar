@@ -37,7 +37,7 @@ package com.pj.macross
 			this._lang = LANG_ZH;
 			GameController.i.signal.add(this.onLoadLang, EVENT_LOAD_LANG);
 			GameController.i.signal.add(this.onSetLang, EVENT_SET_LANG);
-			this.onLoadLang({list: ["lang-00001", "Loading", "載入中"]});
+			this.onLoadLang({list: ["text-00001", "Loading", "載入中"]});
 		}
 		
 		public function getLang():String
@@ -78,7 +78,7 @@ package com.pj.macross
 		private function onSetLang(p_result:Object):void
 		{
 			this._lang = p_result.lang;
-			GameController.i.signal.dispatch({}, EVENT_SET_LANG);
+			GameController.i.signal.dispatch({}, EVENT_LANG_UPDATE);
 		}
 	
 	}

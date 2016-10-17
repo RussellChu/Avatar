@@ -123,11 +123,16 @@ package com.pj.macross
 			case GameData.COMMAND_ROAD: 
 			case GameData.COMMAND_ROAD_EX: 
 			case GameData.COMMAND_ATTACK: 
-				var side:int = p_result.side;
-				GameController.i.signal.dispatch({side: side, command: cmdCode}, EVENT_CMD_CLICK);
+				this._cmdSide = p_result.side;
+				this._cmdCode = cmdCode;
+				GameController.i.signal.dispatch({side: this._cmdSide, command: this._cmdCode}, EVENT_CMD_CLICK);
+				break;
+			case GameData.COMMAND_LANG: 
+				var lang:String = p_result.lang;
+				GameController.i.signal.dispatch({lang: lang}, GameLang.EVENT_SET_LANG);
 				break;
 			default: 
-				;
+				GameController.i.signal.dispatch({command: cmdCode}, EVENT_CMD_CLICK);
 			}
 		}
 		
@@ -1278,6 +1283,21 @@ class GameCommand extends BasicObject
 			break;
 		case "c:atk": 
 			data = {cmd: GameData.COMMAND_ATTACK, side: GameData.SIDE_C};
+			break;
+		case "lang:zh": 
+			data = {cmd: GameData.COMMAND_LANG, lang: GameLang.LANG_ZH};
+			break;
+		case "lang:en": 
+			data = {cmd: GameData.COMMAND_LANG, lang: GameLang.LANG_EN};
+			break;
+		case "sys:undo": 
+			data = {cmd: GameData.COMMAND_UNDO};
+			break;
+		case "sys:clr": 
+			data = {cmd: GameData.COMMAND_CLEAR};
+			break;
+		case "sys:save": 
+			data = {cmd: GameData.COMMAND_SAVE};
 			break;
 		default: 
 			return;

@@ -11,19 +11,27 @@
 , "cmds-00007", "B: Move", "藍：移動"
 , "cmds-00008", "B: Fold", "藍：跳躍"
 , "cmds-00009", "B: Atk ", "藍：攻擊"
-, "lang-00001", "Loading", "載入中"
+, "cmds-00010", "Undo", "還原"
+, "cmds-00011", "Clear", "清空"
+, "lang-00001", "中", "中"
+, "lang-00002", "English", "English"
+, "text-00001", "Loading", "載入中"
 	]
 	, "view": {
 		"game_command_list": [
-  "a:mov", "cmds-00001"
-, "a:jmp", "cmds-00002"
-, "a:atk", "cmds-00003"
-, "b:mov", "cmds-00004"
-, "b:jmp", "cmds-00005"
-, "b:atk", "cmds-00006"
-, "c:mov", "cmds-00007"
-, "c:jmp", "cmds-00008"
-, "c:atk", "cmds-00009"
+  "a:mov",		"cmds-00001"
+, "a:jmp",		"cmds-00002"
+, "a:atk",		"cmds-00003"
+, "b:mov",		"cmds-00004"
+, "b:jmp",		"cmds-00005"
+, "b:atk",		"cmds-00006"
+, "c:mov",		"cmds-00007"
+, "c:jmp",		"cmds-00008"
+, "c:atk",		"cmds-00009"
+, "sys:undo",	"cmds-00010"
+, "sys:clr",	"cmds-00011"
+, "lang:zh",	"lang-00001"
+, "lang:en",	"lang-00002"
 		]
 	}
 }
