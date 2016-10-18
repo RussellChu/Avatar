@@ -25,10 +25,12 @@ package com.pj
 		private var _layer:Sprite = null;
 		private var _loading:LoadingPanel = null;
 		private var _model:GameModel = null;
+		private var _param:Object = null;
 		private var _view:GameView = null;
 		
-		public function ProjectMacross(p_inst:Sprite = null)
+		public function ProjectMacross(p_inst:Sprite = null, p_param:Object)
 		{
+			this._param = p_param;
 			super(null, p_inst);
 		}
 		
