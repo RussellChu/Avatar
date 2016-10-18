@@ -426,7 +426,6 @@ class FoldMc extends BasicObject
 {
 	private var _count:Number = 0;
 	private var _img:Bitmap = null;
-	private var _sp:Sprite = null;
 	private var _timer:JTimer = null;
 	
 	public function FoldMc(p_data:Object)
@@ -438,7 +437,6 @@ class FoldMc extends BasicObject
 	{
 		Helper.dispose(this._timer);
 		this._img = null;
-		this._sp = null;
 		this._timer = null;
 		
 		super.dispose();
@@ -448,10 +446,8 @@ class FoldMc extends BasicObject
 	{
 		super.init();
 		
-		this._sp = new Sprite();
-		this._sp.scaleX = GameConfig.CELL_RADIUS_MAP * 2 / FoldAni.DEFAULT_WIDTH;
-		this._sp.scaleY = this._sp.scaleX;
-		this.container.addChild(this._sp);
+		this.container.scaleX = GameConfig.CELL_RADIUS_MAP * 2 / FoldAni.DEFAULT_WIDTH;
+		this.container.scaleY = this.container.scaleX;
 		
 		this._timer = new JTimer(this.onTime);
 		this._timer.start();
@@ -459,11 +455,6 @@ class FoldMc extends BasicObject
 	
 	private function onTime(p_delta:Number):void
 	{
-		if (!this._sp)
-		{
-			return;
-		}
-		
 		var src:FoldAni = GameAsset.loader.getAsset(GameAsset.KEY_FOLD_ANI) as FoldAni;
 		var bmp:BitmapData = src.getFrame(int(this._count));
 		this._count = src.getFrameId(this._count, p_delta);
@@ -471,8 +462,8 @@ class FoldMc extends BasicObject
 		if (!this._img)
 		{
 			this._img = new Bitmap(bmp);
-			this._sp.removeChildren();
-			this._sp.addChild(this._img);
+			this.container.removeChildren();
+			this.container.addChild(this._img);
 		}
 		else
 		{

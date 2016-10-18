@@ -103,6 +103,23 @@ class JTimerCtrl
 		var count:int = 0;
 		var id:int = -1;
 		var timer:JTimer = null;
+		
+		if (true){
+			for (var i:int = 0; i < this._list.length; i++){
+				timer = this._list[i];
+				if (timer.isDisposed())
+				{
+					continue;
+				}
+				if (!timer.state())
+				{
+					continue;
+				}
+				timer.run(currTime);
+			}
+			return;
+		}
+		
 		while (currTime == new Date().time)
 		{
 			timer = this._list.shift();
