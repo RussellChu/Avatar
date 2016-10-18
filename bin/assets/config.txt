@@ -16,6 +16,7 @@
 , "lang-00001", "中", "中"
 , "lang-00002", "English", "English"
 , "text-00001", "Loading", "載入中"
+, "tips-00001", "", "按左上方的「▼」可選取指令"
 	]
 	, "view": {
 		"game_command_list": [

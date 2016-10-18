@@ -28,7 +28,7 @@ package com.pj
 		private var _param:Object = null;
 		private var _view:GameView = null;
 		
-		public function ProjectMacross(p_inst:Sprite = null, p_param:Object)
+		public function ProjectMacross(p_inst:Sprite = null, p_param:Object = null)
 		{
 			this._param = p_param;
 			super(null, p_inst);
@@ -89,10 +89,10 @@ package com.pj
 			var isReady:Boolean = p_result.isReady;
 			if (isReady)
 			{
-				trace("o: " + JSON.stringify(p_result.obstage));
-				trace("a: " + JSON.stringify(p_result.hostageA));
-				trace("b: " + JSON.stringify(p_result.hostageB));
-				trace("c: " + JSON.stringify(p_result.hostageC));
+				//trace("o: " + JSON.stringify(p_result.obstage));
+				//trace("a: " + JSON.stringify(p_result.hostageA));
+				//trace("b: " + JSON.stringify(p_result.hostageB));
+				//trace("c: " + JSON.stringify(p_result.hostageC));
 				this._view.capMap(GameConfig.CAP_ID);
 			}
 		}

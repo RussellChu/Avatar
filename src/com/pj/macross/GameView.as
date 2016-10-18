@@ -19,6 +19,7 @@ package com.pj.macross
 		private var _map:GameMap = null;
 		private var _mark:MarkBoard = null;
 		private var _slider:Slider = null;
+		private var _tips:TipsBoard = null;
 		
 		private var _cmdSide:int = 0;
 		private var _cmdCode:int = 0;
@@ -72,6 +73,10 @@ package com.pj.macross
 				var cmd:GameCommand = new GameCommand();
 				cmd.signal.add(this.onCmdClick, GameCommand.ACTION_CLICK);
 				this.addChild(cmd);
+				
+				this._tips = new TipsBoard();
+				this.addChild(this._tips);
+				this._tips.showMsg(TipsBoard.MSG_START_01);
 			}
 		}
 		
@@ -113,6 +118,9 @@ package com.pj.macross
 			}
 			this._map.instance.x = posX;
 			this._map.instance.y = posY;
+			
+			posX = (p_width - this._tips.width) * 0.5;
+			this._tips.instance.x = posX;
 		}
 		
 		private function onCmdClick(p_result:Object):void
@@ -516,6 +524,49 @@ class MarkBoard extends BasicObject
 			break;
 		case GameData.SIDE_C: 
 			this._tf2.text = " x " + p_score;
+			break;
+		default: 
+			;
+		}
+	}
+
+}
+
+class TipsBoard extends JText
+{
+	static public const MSG_START_01:int = 1;
+	static public const MSG_START_02:int = 2;
+	static public const MSG_START_03:int = 3;
+	
+	public function TipsBoard()
+	{
+		super(12, 0xff000000, JText.ALIGN_CENTER, 0, 1000, 30);
+	}
+	
+	override public function dispose():void
+	{
+		super.dispose();
+	}
+	
+	override protected function init():void
+	{
+		super.init();
+		this.textField.background = true;
+		this.textField.backgroundColor = 0xffffff;
+	}
+	
+	public function showMsg(p_code:int):void
+	{
+		switch (p_code)
+		{
+		case MSG_START_01: 
+			this.text = GameLang.i.getValue("tips-00001");
+			break;
+		case MSG_START_02: 
+			this.text = GameLang.i.getValue("tips-00002");
+			break;
+		case MSG_START_03: 
+			this.text = GameLang.i.getValue("tips-00003");
 			break;
 		default: 
 			;

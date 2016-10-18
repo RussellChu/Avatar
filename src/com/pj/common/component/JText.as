@@ -74,6 +74,10 @@ package com.pj.common.component
 			return this._txt;
 		}
 		
+		public function get width():int {
+			return this._width;
+		}
+		
 		public function set text(p_text:String):void
 		{
 			this._txt.text = p_text;
