@@ -128,9 +128,24 @@ package com.pj.macross
 			var cmdCode:int = p_result.cmd;
 			switch (cmdCode)
 			{
+			case GameData.COMMAND_OPEN: 
+				this._tips.showMsg(TipsBoard.MSG_START_02);
+				break;
 			case GameData.COMMAND_ROAD: 
 			case GameData.COMMAND_ROAD_EX: 
 			case GameData.COMMAND_ATTACK: 
+				switch (cmdCode)
+				{
+				case GameData.COMMAND_ROAD: 
+					this._tips.showMsg(TipsBoard.MSG_CMD_MOVE);
+					break;
+				case GameData.COMMAND_ROAD_EX: 
+					this._tips.showMsg(TipsBoard.MSG_CMD_JUMP);
+					break;
+				case GameData.COMMAND_ATTACK: 
+					this._tips.showMsg(TipsBoard.MSG_CMD_ATK);
+					break;
+				}
 				this._cmdSide = p_result.side;
 				this._cmdCode = cmdCode;
 				GameController.i.signal.dispatch({side: this._cmdSide, command: this._cmdCode}, EVENT_CMD_CLICK);
@@ -138,6 +153,9 @@ package com.pj.macross
 			case GameData.COMMAND_LANG: 
 				var lang:String = p_result.lang;
 				GameController.i.signal.dispatch({lang: lang}, GameLang.EVENT_SET_LANG);
+				break;
+			case GameData.COMMAND_TIPS: 
+				this._tips.showMsg(TipsBoard.MSG_CMD_TIPS);
 				break;
 			default: 
 				GameController.i.signal.dispatch({command: cmdCode}, EVENT_CMD_CLICK);
@@ -536,7 +554,10 @@ class TipsBoard extends JText
 {
 	static public const MSG_START_01:int = 1;
 	static public const MSG_START_02:int = 2;
-	static public const MSG_START_03:int = 3;
+	static public const MSG_CMD_MOVE:int = 3;
+	static public const MSG_CMD_JUMP:int = 4;
+	static public const MSG_CMD_ATK:int = 5;
+	static public const MSG_CMD_TIPS:int = 6;
 	
 	public function TipsBoard()
 	{
@@ -565,8 +586,17 @@ class TipsBoard extends JText
 		case MSG_START_02: 
 			this.text = GameLang.i.getValue("tips-00002");
 			break;
-		case MSG_START_03: 
+		case MSG_CMD_MOVE: 
 			this.text = GameLang.i.getValue("tips-00003");
+			break;
+		case MSG_CMD_JUMP: 
+			this.text = GameLang.i.getValue("tips-00004");
+			break;
+		case MSG_CMD_ATK: 
+			this.text = GameLang.i.getValue("tips-00005");
+			break;
+		case MSG_CMD_TIPS: 
+			this.text = GameLang.i.getValue("tips-00006");
 			break;
 		default: 
 			;
@@ -1350,6 +1380,9 @@ class GameCommand extends BasicObject
 		case "sys:save": 
 			data = {cmd: GameData.COMMAND_SAVE};
 			break;
+		case "sys:tips": 
+			data = {cmd: GameData.COMMAND_TIPS};
+			break;
 		default: 
 			return;
 		}
@@ -1358,7 +1391,17 @@ class GameCommand extends BasicObject
 	
 	private function onEnterClick(p_result:Object):void
 	{
+		var data:Object = {};
 		this._listBtn.instance.visible = this._btn.value;
+		if (this._btn.value)
+		{
+			data = {cmd: GameData.COMMAND_OPEN};
+		}
+		else
+		{
+			data = {cmd: GameData.COMMAND_TIPS};
+		}
+		this.signal.dispatch(data, ACTION_CLICK);
 	}
 	
 	private function onLangUpdate(p_result:Object):void

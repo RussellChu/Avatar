@@ -29,6 +29,8 @@ package com.pj.macross
 		static public const COMMAND_CLEAR:int = 5;
 		static public const COMMAND_SAVE:int = 6;
 		static public const COMMAND_LANG:int = 7;
+		static public const COMMAND_TIPS:int = 8;
+		static public const COMMAND_OPEN:int = 9;
 		
 		public function GameData()
 		{
