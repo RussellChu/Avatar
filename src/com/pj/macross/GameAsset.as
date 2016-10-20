@@ -62,7 +62,7 @@ package com.pj.macross
 		static private var BMP_S07:Class;
 		[Embed(source = "/../bin/assets/s08.png")]
 		static private var BMP_S08:Class;
-		[Embed(source = "/../bin/assets/fold_2.png")]
+		[Embed(source = "/../bin/assets/fold.png")]
 		static private var BMP_FOLD:Class;
 		
 		static private var __loader:AssetLoader = null;
@@ -302,8 +302,15 @@ class FoldAni implements ICreatable
 		
 		if (dist < 0.5 * p_radius)
 		{
-			var c:Number = 1 - dist / (0.5 * p_radius);
-			color.addLight(c, c * 0.5, c, c);
+			var c:Number = (0.6 + p_radius * 0.5 - dist / p_radius * 2);
+			if (c > 1) {
+				c = 1;
+			}
+			var c2:Number = (0.6 + p_radius * 0.5 - dist / p_radius * 4);
+			if (c2 > 1) {
+				c2 = 1;
+			}
+			color.addLight(c, c2, c, c);
 		}
 		
 		return p_color.addLight(color.r, color.g, color.b, color.a);
@@ -391,7 +398,7 @@ class FoldAni implements ICreatable
 			return true;
 		}, function():void
 		{
-			//	saveAll();
+		//	saveAll();
 			_creater.createReady();
 		});
 		
