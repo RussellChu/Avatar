@@ -867,7 +867,7 @@ class GameMapItem extends BasicObject
 		this._txt.text = this._key;
 		this._txt.instance.x = -GameConfig.CELL_RADIUS_MAP;
 		this._txt.instance.y = -GameConfig.CELL_RADIUS_MAP;
-		this.container.addChild(this._txt.instance);
+	//	this.container.addChild(this._txt.instance);
 		
 		this._bottom.show(SkinStore.TYPE_BLANK);
 		this._flash.instance.visible = false;
@@ -1032,6 +1032,7 @@ class GameMapItem extends BasicObject
 	{
 		return (this.instance as Sprite);
 	}
+	
 }
 
 class GameMap extends ButtonGroup

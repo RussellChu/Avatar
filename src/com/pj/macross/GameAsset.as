@@ -62,7 +62,7 @@ package com.pj.macross
 		static private var BMP_S07:Class;
 		[Embed(source = "/../bin/assets/s08.png")]
 		static private var BMP_S08:Class;
-		[Embed(source = "/../bin/assets/fold.png")]
+		[Embed(source = "/../bin/assets/fold_2.png")]
 		static private var BMP_FOLD:Class;
 		
 		static private var __loader:AssetLoader = null;
@@ -248,6 +248,18 @@ class FoldAni implements ICreatable
 			{
 				addA = maxA;
 			}
+			if (dist < 0.3)
+			{
+				maxA = (dist - 0.15) / 0.15;
+				if (addA > maxA)
+				{
+					addA = maxA;
+				}
+				if (addA < 0)
+				{
+					addA = 0;
+				}
+			}
 			if (ratio >= 0 && ratio <= 1)
 			{
 				color.addLight(1, lv * 2, 1 - lv * 4 + lv * lv * 4, addA);
@@ -275,22 +287,24 @@ class FoldAni implements ICreatable
 			var b0:Number = this.getLine(angle, 11, 1 * radius, 0.95 * radius, Math.PI / 11);
 			var b1:Number = this.getLine(angle, 11, 0.55 * radius, 0.5 * radius, 0);
 			var ratio:Number = JMath.ratio(dist, b0, b1);
-			var lvMax:Number = (b0 - b1) / (0.5 * radius);
-			var lv:Number = (1 - Math.abs(2 * ratio - 1)) * lvMax;
+			var hill:Number = ((b0 - b1) / radius - (0.95 - 0.55)) / (0.5 - (0.95 - 0.55));
 			if (ratio >= 0 && ratio <= 1)
 			{
-				color.addLight(lv * lv, lv * lv * 0.5, lv, lv * 0.9);
-				color.addLight(lv, lv * 0.5, 1, lv * 0.9);
+				var x:Number = Math.abs(2 * ratio - 1);
+				var r:Number = Math.exp(-x * x * 12) * (0.4 + hill * 0.3) * 1.4;
+				var g:Number = Math.exp(-x * x * 12) * (0.25 + hill * 0.15) * 1.4;
+				var b:Number = Math.exp(-x * x * 4) * (0.55) * 1.4;
+				var a:Number = (1 - x) * (0.8 + hill * 0.2);
+				color.addLight(r, g, b, a);
 			}
 			radius *= 0.65;
 		}
 		
-		//var dist:Number = Math.sqrt(p_x * p_x + p_y * p_y);
-		//if (dist < 1) {
-		//var addLight:Number = 1 - dist;
-		//addLight *= addLight;
-		//addLight *= addLight;
-		//}
+		if (dist < 0.5 * p_radius)
+		{
+			var c:Number = 1 - dist / (0.5 * p_radius);
+			color.addLight(c, c * 0.5, c, c);
+		}
 		
 		return p_color.addLight(color.r, color.g, color.b, color.a);
 	}
