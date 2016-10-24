@@ -128,7 +128,7 @@ package com.pj.common
 				{
 					var isLoop:Boolean = p_func(i) as Boolean;
 					i++;
-					if (i >= p_to || !isLoop)
+					if (i > p_to || !isLoop)
 					{
 						p_onComplete();
 						return;

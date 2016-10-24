@@ -220,7 +220,7 @@ class FoldAni implements ICreatable
 		return (Math.cos((p_angle + p_add) * p_side) + 1) * 0.5 * (p_out - p_in) + p_in;
 	}
 	
-	private function getColor(p_x:Number, p_y:Number, p_side:Number, p_alpha:Number):JColor
+	private function getColor(p_x:Number, p_y:Number, p_side:Number, p_alpha:Number, p_add:Number):JColor
 	{
 		var angle:Number = Math.atan2(p_y, p_x);
 		var dist:Number = Math.sqrt(p_x * p_x + p_y * p_y);
@@ -230,8 +230,8 @@ class FoldAni implements ICreatable
 		for (var i:int = 0; i <= 2; i++)
 		{
 			var maxA:Number = 1;
-			var b0:Number = this.getLine(angle + Math.PI * 2 * i, p_side, (0.4875 + 0.15) * p_alpha, (0.15 + 0.15) * p_alpha, 0);
-			var b1:Number = this.getLine(angle + Math.PI * 2 * i, p_side, (0.4875 - 0.15) * p_alpha, (0.15 - 0.15) * p_alpha, 0);
+			var b0:Number = this.getLine(angle + Math.PI * 2 * i, p_side, (0.45 + 0.15) * p_alpha, (0.15 + 0.15) * p_alpha, p_add);
+			var b1:Number = this.getLine(angle + Math.PI * 2 * i, p_side, (0.45 - 0.15) * p_alpha, (0.15 - 0.15) * p_alpha, p_add);
 			var ratio:Number = JMath.ratio(dist, b0, b1);
 			var lv:Number = 1 - Math.abs(2 * ratio - 1);
 			lv = lv * lv;
@@ -266,10 +266,10 @@ class FoldAni implements ICreatable
 			}
 		}
 		
-		if (color.a > p_alpha)
-		{
-			color.a = p_alpha;
-		}
+		//if (color.a > p_alpha)
+		//{
+			//color.a = p_alpha;
+		//}
 		
 		return color;
 	}
@@ -320,26 +320,32 @@ class FoldAni implements ICreatable
 	{
 		var width:int = GameConfig.CELL_RADIUS_MAP * 2;
 		var height:int = GameConfig.CELL_RADIUS_MAP * 2;
-		var startTime:Number = 1.6;
-		var endTime:Number = 0.4;
+		var startTime:Number = 1.5;
+		var endTime:Number = 0.3;
 		
 		var bmp:BitmapData = new BitmapData(width, height, true, 0);
 		bmp.lock();
+		
+		var alpha:Number = 1;
+		if (p_side < p_startSide + startTime)
+		{
+			alpha = (p_side - p_startSide) / startTime;
+		}
+		if (p_side >= p_endSide - endTime)
+		{
+			alpha = (p_endSide - p_side) / endTime;
+		}
+		var side:Number = p_side;
+		if (side > p_endSide - endTime) {
+			side = p_endSide - endTime;
+		}
+		var add:Number = p_side - side;
 		
 		for (var x:int = 0; x < width; x++)
 		{
 			for (var y:int = 0; y < height; y++)
 			{
-				var alpha:Number = 1;
-				if (p_side < p_startSide + startTime)
-				{
-					alpha = (p_side - p_startSide) / startTime;
-				}
-				if (p_side >= p_endSide - endTime)
-				{
-					alpha = (p_endSide - p_side) / endTime;
-				}
-				var color:JColor = this.getColor(x * 2 / width - 1, y * 2 / height - 1, p_side, alpha);
+				var color:JColor = this.getColor(x * 2 / width - 1, y * 2 / height - 1, side, alpha, add);
 				color = this.getColorAdd(x * 2 / width - 1, y * 2 / height - 1, alpha, -p_side, color);
 				bmp.setPixel32(x, y, color.value);
 			}
@@ -364,7 +370,7 @@ class FoldAni implements ICreatable
 		bmp.unlock();
 		var ba:ByteArray = PNGEncoder.encode(bmp);
 		var fileReference:FileReference = new FileReference();
-		fileReference.save(ba, "fold.png");
+		fileReference.save(ba, "fold2.png");
 	}
 	
 	public function onCreate():Boolean
@@ -374,7 +380,7 @@ class FoldAni implements ICreatable
 		if (IS_LOAD_BMP)
 		{
 			var src:BitmapData = (GameAsset.loader.getAsset(GameAsset.KEY_FOLD_IMG) as Bitmap).bitmapData;
-			for (var i:int = 0; i < 80; i++)
+			for (var i:int = 0; i < 70; i++)
 			{
 				var x:int = DEFAULT_WIDTH * (i % 10);
 				var y:int = DEFAULT_WIDTH * int(i / 10);
@@ -389,16 +395,16 @@ class FoldAni implements ICreatable
 		//return true;
 		
 		var startSide:Number = 2;
-		var endSide:Number = 6;
+		var endSide:Number = 5.3;
 		var step:Number = 0.05;
 		
-		Helper.loopTime(0, (endSide - startSide) / step - 1, function(p_index:int):Boolean
+		Helper.loopTime(0, (endSide - startSide) / step, function(p_index:int):Boolean
 		{
 			addBitmap(startSide + p_index * step, startSide, endSide);
 			return true;
 		}, function():void
 		{
-		//	saveAll();
+			saveAll();
 			_creater.createReady();
 		});
 		
