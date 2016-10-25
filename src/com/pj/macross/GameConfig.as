@@ -17,6 +17,7 @@ package com.pj.macross
 		static private var __fontColor:uint = 0xff00ff;
 		static private var __fontDisplay:Boolean = false;
 		static private var __mapRadius:int = 10;
+		static private var __mapRandom:Boolean = false;
 		
 		static private var __mapBaseA:Array = [0, 2, 3, 598, 625, 626];
 		static private var __mapBaseB:Array = [247, 274, 275, 585, 612, 613];
@@ -81,6 +82,8 @@ package com.pj.macross
 		
 		static public function getMapRadius():int  { return __mapRadius; }
 		
+		static public function getMapRandom():Boolean  { return __mapRandom; }
+		
 		static public function getMapBaseA():Array  { return __mapBaseA; }
 		
 		static public function getMapBaseB():Array  { return __mapBaseB; }
@@ -113,6 +116,7 @@ package com.pj.macross
 			__fontColor = Helper.getValueUInt(p_data, "fontColor", __fontColor);
 			__fontDisplay = Helper.getValueBoolean(p_data, "fontDisplay", __fontDisplay);
 			__mapRadius = Helper.getValueInteger(p_data, "mapRadius", __mapRadius);
+			__mapRandom = Helper.getValueBoolean(p_data, "mapRandom", __mapRandom);
 			__mapBaseA = Helper.getValueArray(p_data, "mapBaseA", __mapBaseA);
 			__mapBaseB = Helper.getValueArray(p_data, "mapBaseB", __mapBaseB);
 			__mapBaseC = Helper.getValueArray(p_data, "mapBaseC", __mapBaseC);

@@ -180,39 +180,41 @@ package com.pj.macross
 					}
 					else
 					{
-						if (GameConfig.getMapHostageA().indexOf(id) >= 0)
+						if (!GameConfig.getMapRandom())
 						{
-							this.addHostage(GameData.SIDE_A, x, y, z);
+							if (GameConfig.getMapHostageA().indexOf(id) >= 0)
+							{
+								this.addHostage(GameData.SIDE_A, x, y, z);
+							}
+							else if (GameConfig.getMapHostageB().indexOf(id) >= 0)
+							{
+								this.addHostage(GameData.SIDE_B, x, y, z);
+							}
+							else if (GameConfig.getMapHostageC().indexOf(id) >= 0)
+							{
+								this.addHostage(GameData.SIDE_C, x, y, z);
+							}
+							else if (GameConfig.getMapObstacleOut().indexOf(id) >= 0)
+							{
+								this.addObstacle(x, y, z);
+							}
 						}
-						else if (GameConfig.getMapHostageB().indexOf(id) >= 0)
+						else
 						{
-							this.addHostage(GameData.SIDE_B, x, y, z);
-						}
-						else if (GameConfig.getMapHostageC().indexOf(id) >= 0)
-						{
-							this.addHostage(GameData.SIDE_C, x, y, z);
-						}
-						else if (GameConfig.getMapObstacleOut().indexOf(id) >= 0)
-						{
-							this.addObstacle(x, y, z);
-						}
-						
-						// build rand map
-						if (false)
-						{
+							// build rand map
 							var cellInfo:Object = getMapInfo(x, y, z);
 							var isObstacle:int = cellInfo.isObstacle;
 							var hostageSide:int = cellInfo.hostageSide;
 							if (isObstacle == 0 && hostageSide == 0)
 							{
-								if (Math.random() <= 10 / 100 && obstacleRemain > 0 && GameConfig.CELL_NO_OBSTACLE.indexOf(id) < 0)
+								if (Math.random() <= 10 / 100 && obstacleRemain > 0 && GameConfig.getMapObstacleClear().indexOf(id) < 0)
 								{
 									obstacleRemain--;
 									setMapInfoObstacle(x, y, z, 1);
 									setMapInfoObstacle(y, z, x, 1);
 									setMapInfoObstacle(z, x, y, 1);
 								}
-								else if ((Math.random() <= 20 / 100 && hostageRemain > 0 && GameConfig.CELL_NO_HOSTAGE.indexOf(id) < 0) || GameConfig.CELL_HOSTAGE.indexOf(id) >= 0)
+								else if ((Math.random() <= 20 / 100 && hostageRemain > 0 && GameConfig.getMapHostageClear().indexOf(id) < 0) || GameConfig.getMapHostageCenter().indexOf(id) >= 0)
 								{
 									hostageRemain--;
 									var select:Array = Helper.selectFrom([//

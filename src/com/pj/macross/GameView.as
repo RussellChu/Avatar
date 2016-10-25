@@ -1005,6 +1005,11 @@ class GameMapItem extends BasicObject
 		}
 	}
 	
+	public function setText(p_value:String):void
+	{
+		this._txt.text = p_value;
+	}
+	
 	public function get state():int
 	{
 		return this._state;
@@ -1088,6 +1093,7 @@ class GameMap extends ButtonGroup
 			var item:GameMapItem = new GameMapItem(key);
 			item.instance.name = key;
 			item.setState(data.state, data.side);
+			//	item.setText( "" + data.keyX +"," + data.keyY +"," + data.keyZ);
 			var posX:int = data.posX * int(cellWidth * 0.75) + cellWidth;
 			var posY:int = data.posY * int(cellHeight * 0.5) + cellHeight;
 			if (posX > this._xMax)
