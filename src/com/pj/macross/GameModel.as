@@ -58,10 +58,18 @@ package com.pj.macross
 		
 		private var _createResult:Object = null;
 		
+		private var _aiA:SideAI = null;
+		private var _aiB:SideAI = null;
+		private var _aiC:SideAI = null;
+		
 		public function GameModel()
 		{
 			this._map = new MapCellCroup();
 			this._createResult = {obstage: [], hostageA: [], hostageB: [], hostageC: [], isReady: false};
+			this._aiA = new SideAI(GameData.SIDE_A, this);
+			this._aiB = new SideAI(GameData.SIDE_B, this);
+			this._aiC = new SideAI(GameData.SIDE_C, this);
+			
 			var mapInfo:Object = {};
 			var getMapInfo:Function = function(p_x:int, p_y:int, p_z:int):Object
 			{
@@ -751,10 +759,34 @@ package com.pj.macross
 			GameController.i.signal.dispatch({side: side, score: preScore}, EVENT_SCORE_UPDATE);
 			return true;
 		}
+		
+		public function autoPlay():void {
+			
+/*
+			case GameData.COMMAND_ROAD: 
+			case GameData.COMMAND_ROAD_EX: 
+			case GameData.COMMAND_ATTACK: 
+				var side:int = p_result.side;
+				var state:int = GameData.STATE_NONE;
+				var list:Array = this._model.getMovableList(command, side);
+				if (command == GameData.COMMAND_ROAD_EX)
+				{
+					state = GameData.STATE_ROAD_EX;
+					this._view.flashMap(side, state, list);
+				}
+				else
+				{
+					state = GameData.STATE_ROAD;
+				}
+				this._view.flashMap(side, state, list);
+				break;
+*/
+		}
 	
 	}
 }
 
+import com.pj.macross.GameModel;
 import com.pj.macross.structure.MapCell;
 
 class MapCellCroup
@@ -811,4 +843,20 @@ class MapCellCroup
 		return this._list;
 	}
 
+}
+
+class SideAI
+{
+	private var _model:GameModel = null;
+	private var _side:int = 0;
+	
+	public function SideAI(p_side:int, p_model:GameModel) {
+		this._model = p_model;
+		this._side = p_side;
+	}
+	
+	public function doAct():void {
+		;
+	}
+	
 }

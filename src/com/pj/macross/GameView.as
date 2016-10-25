@@ -596,7 +596,41 @@ class TipsBoard extends JText
 			this.text = GameLang.i.getValue("tips-00005");
 			break;
 		case MSG_CMD_TIPS: 
-			this.text = GameLang.i.getValue("tips-00006");
+			var list:Array = [//
+			"tips-10000"//
+			, "tips-10001"//
+			, "tips-10002"//
+			, "tips-10003"//
+			, "tips-10004"//
+			, "tips-10005"//
+			, "tips-10006"//
+			, "tips-10007"//
+			];
+			if (new Date().time > new Date(2016, 10, 31).time && new Date().time < new Date(2016, 11, 27).time)
+			{
+				list.push("tips-20000");
+				list.push("tips-20001");
+				list.push("tips-20002");
+				list.push("tips-20003");
+				list.push("tips-20004");
+				list.push("tips-20005");
+				list.push("tips-20006");
+				list.push("tips-20007");
+				list.push("tips-20008");
+			}
+			else if (new Date().time < new Date(2016, 11, 28).time)
+			{
+				list.push("tips-10008");
+			}
+			else if (new Date().time < new Date(2017, 11, 28).time)
+			{
+				list.push("tips-10009");
+			}
+			else
+			{
+				list.push("tips-10010");
+			}
+			this.text = GameLang.i.getValue(Helper.selectFrom(list) as String);
 			break;
 		default: 
 			;

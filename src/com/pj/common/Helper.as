@@ -112,34 +112,6 @@ package com.pj.common
 			}
 		}
 		
-		static public function loopTime(p_from:int, p_to:int, p_func:Function, p_onComplete:Function):void
-		{
-			var i:int = p_from;
-			if (p_from > p_to)
-			{
-				p_onComplete();
-				return;
-			}
-			
-			var funcA:Function;
-			var func:Function = function():void
-			{
-				setTimeout(function():void
-				{
-					var isLoop:Boolean = p_func(i) as Boolean;
-					i++;
-					if (i > p_to || !isLoop)
-					{
-						p_onComplete();
-						return;
-					}
-					funcA();
-				}, 1);
-			};
-			funcA = func;
-			funcA();
-		}
-		
 		static public function hasValue(p_obj:Object, p_key:String):Boolean
 		{
 			if (!p_obj)

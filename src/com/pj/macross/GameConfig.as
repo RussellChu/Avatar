@@ -16,6 +16,8 @@ package com.pj.macross
 		static private var __fontSize:int = 12;
 		static private var __fontColor:uint = 0xff00ff;
 		static private var __fontDisplay:Boolean = false;
+		static private var __foldAniSrcLoad:Boolean = true;
+		static private var __foldAniSrcWidth:int = 64;
 		static private var __mapRadius:int = 10;
 		static private var __mapRandom:Boolean = false;
 		
@@ -80,6 +82,10 @@ package com.pj.macross
 		
 		static public function getFontDisplay():Boolean  { return __fontDisplay; }
 		
+		static public function getFoldAniSrcLoad():Boolean  { return __foldAniSrcLoad; }
+		
+		static public function getFoldAniSrcWidth():int  { return __foldAniSrcWidth; }
+		
 		static public function getMapRadius():int  { return __mapRadius; }
 		
 		static public function getMapRandom():Boolean  { return __mapRandom; }
@@ -115,6 +121,8 @@ package com.pj.macross
 			__fontSize = Helper.getValueInteger(p_data, "fontSize", __fontSize);
 			__fontColor = Helper.getValueUInt(p_data, "fontColor", __fontColor);
 			__fontDisplay = Helper.getValueBoolean(p_data, "fontDisplay", __fontDisplay);
+			__foldAniSrcLoad = Helper.getValueBoolean(p_data, "foldAniSrcLoad", __foldAniSrcLoad);
+			__foldAniSrcWidth = Helper.getValueInteger(p_data, "foldAniSrcWidth", __foldAniSrcWidth);
 			__mapRadius = Helper.getValueInteger(p_data, "mapRadius", __mapRadius);
 			__mapRandom = Helper.getValueBoolean(p_data, "mapRandom", __mapRandom);
 			__mapBaseA = Helper.getValueArray(p_data, "mapBaseA", __mapBaseA);

@@ -31,8 +31,10 @@ var data = {};
 //data.fontSize = 36;
 //data.fontColor = 0;
 //data.fontDisplay = true;
+//data.foldAniSrcLoad = false;
+//data.foldAniSrcWidth = 226;
 //data.mapRadius = 0;
-//data.mapRandom = rue;
+//data.mapRandom = true;
 //data.mapBaseA = [];
 //data.mapBaseB = [];
 //data.mapBaseC = [];
@@ -44,6 +46,19 @@ var data = {};
 //data.mapHostageA = [];
 //data.mapHostageB = [];
 //data.mapHostageC = [];
+/*
+data.cellRadius = 113;
+data.cellMargin = 5;
+data.fontSize = 36;
+data.fontDisplay = true;
+data.foldAniSrcLoad = false;
+data.foldAniSrcWidth = 226;
+data.mapRandom = true;
+*/
+
+data.cellRadius = 16;
+data.cellMargin = 1;
+data.mapRandom = true;
 
 var valueStr = encodeObjToUrlParam( {data: JSON.stringify( data )} );
 paramElement.setAttribute( "value", valueStr );

@@ -145,6 +145,7 @@ import com.pj.common.Helper;
 import com.pj.common.ICreatable;
 import com.pj.common.JColor;
 import com.pj.common.JSignal;
+import com.pj.common.JTimeLooper;
 import com.pj.common.JTimer;
 import com.pj.common.component.BasicObject;
 import com.pj.common.component.JBmp;
@@ -196,11 +197,10 @@ class CreatableBitmap extends Bitmap implements ICreatable
 
 class FoldAni implements ICreatable
 {
-	static public const DEFAULT_WIDTH:int = 64;
 	static private const IS_LOAD_BMP:Boolean = true;
 	private var _creater:Creater = null;
 	private var _signal:JSignal = null;
-	
+	private var _looper:JTimeLooper = null;
 	private var _list:Array = null;
 	
 	public function FoldAni()
@@ -380,14 +380,14 @@ class FoldAni implements ICreatable
 	{
 		this._list = [];
 		
-		if (IS_LOAD_BMP)
+		if (GameConfig.getFoldAniSrcLoad())
 		{
 			var src:BitmapData = (GameAsset.loader.getAsset(GameAsset.KEY_FOLD_IMG) as Bitmap).bitmapData;
 			for (var i:int = 0; i < 70; i++)
 			{
-				var x:int = DEFAULT_WIDTH * (i % 10);
-				var y:int = DEFAULT_WIDTH * int(i / 10);
-				var bmp:BitmapData = new BitmapData(DEFAULT_WIDTH, DEFAULT_WIDTH, true, 0);
+				var x:int = GameConfig.getFoldAniSrcWidth() * (i % 10);
+				var y:int = GameConfig.getFoldAniSrcWidth() * int(i / 10);
+				var bmp:BitmapData = new BitmapData(GameConfig.getFoldAniSrcWidth(), GameConfig.getFoldAniSrcWidth(), true, 0);
 				bmp.draw(src, new Matrix(1, 0, 0, 1, -x, -y));
 				this._list.push(bmp);
 			}
@@ -401,15 +401,16 @@ class FoldAni implements ICreatable
 		var endSide:Number = 5.3;
 		var step:Number = 0.05;
 		
-		Helper.loopTime(0, (endSide - startSide) / step, function(p_index:int):Boolean
+		this._looper = new JTimeLooper(0, (endSide - startSide) / step, function(p_index:int):Boolean
 		{
 			addBitmap(startSide + p_index * step, startSide, endSide);
 			return true;
 		}, function():void
 		{
-			saveAll();
+		//	saveAll();
 			_creater.createReady();
 		});
+		this._looper.loop();
 		
 		return false;
 	}
@@ -476,7 +477,7 @@ class FoldMc extends BasicObject
 	{
 		super.init();
 		
-		this.container.scaleX = GameConfig.getCellRadius() * 2 / FoldAni.DEFAULT_WIDTH;
+		this.container.scaleX = GameConfig.getCellRadius() * 2 / GameConfig.getFoldAniSrcWidth();
 		this.container.scaleY = this.container.scaleX;
 		
 		this._timer = new JTimer(this.onTime);
