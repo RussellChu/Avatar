@@ -25,12 +25,11 @@ package com.pj
 		private var _layer:Sprite = null;
 		private var _loading:LoadingPanel = null;
 		private var _model:GameModel = null;
-		private var _param:Object = null;
 		private var _view:GameView = null;
 		
 		public function ProjectMacross(p_inst:Sprite = null, p_param:Object = null)
 		{
-			this._param = p_param;
+			GameConfig.update(p_param);
 			super(null, p_inst);
 		}
 		
@@ -93,7 +92,7 @@ package com.pj
 				//trace("a: " + JSON.stringify(p_result.hostageA));
 				//trace("b: " + JSON.stringify(p_result.hostageB));
 				//trace("c: " + JSON.stringify(p_result.hostageC));
-				this._view.capMap(GameConfig.CAP_ID);
+				this._view.capMap(GameConfig.getCapId());
 			}
 		}
 		
@@ -137,7 +136,10 @@ package com.pj
 				this._model.undo();
 				break;
 			case GameData.COMMAND_CLEAR: 
-				while (this._model.undo()){};
+				while (this._model.undo())
+				{
+				}
+				;
 				break;
 			default: 
 				;

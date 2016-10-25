@@ -1,7 +1,51 @@
 <html>
+<head>
+</head>
 <body style="margin:0;">
-<object type="application/x-shockwave-flash" data="mohk_game.v.0.21.swf" width="100%" height="100%">
-<param name=FlashVars value="" />
-</object>
 </body>
+<script>
+var encodeObjToUrlParam = function ( p_obj ) {
+	var str = "";
+	for (var key in p_obj) {
+		if ( str != "" ) {
+			str += "&";
+		}
+		str += key + "=" + encodeURIComponent( p_obj[key] );
+	}
+	return str;
+};
+var objElement = document.createElement( "object" );
+objElement.setAttribute( "type", "application/x-shockwave-flash" );
+//objElement.setAttribute( "data", "mohk_game.v.0.21.swf" );
+objElement.setAttribute( "data", "Avatar.swf" );
+objElement.setAttribute( "width", "100%" );
+objElement.setAttribute( "height", "100%" );
+var paramElement = document.createElement( "param" );
+paramElement.setAttribute( "name", "FlashVars" );
+
+var data = {};
+//data.capId = "";
+//data.saveVer = 0;
+data.cellRadius = 113;
+data.cellMargin = 5;
+data.fontSize = 36;
+//data.fontColor = 0;
+data.fontDisplay = true;
+//data.mapRadius = 0;
+//data.mapBaseA = [];
+//data.mapBaseB = [];
+//data.mapBaseC = [];
+//data.mapObstacle = [];
+//data.mapObstacleOut = [];
+//data.mapObstacleClear = [];
+//data.mapHostageCenter = [];
+//data.mapHostageClear = [];
+//data.mapHostageA = [];
+//data.mapHostageB = [];
+//data.mapHostageC = [];
+var valueStr = encodeObjToUrlParam( {data: JSON.stringify( data )}  );
+paramElement.setAttribute( "value", valueStr );
+objElement.appendChild( paramElement );
+document.body.appendChild( objElement );
+</script>
 </html>

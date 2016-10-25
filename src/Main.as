@@ -1,7 +1,7 @@
 package
 {
 	import com.pj.ProjectMacross;
-	import com.pj.ProjectTest;
+	import com.pj.common.Helper;
 	import com.pj.common.component.BasicContainer;
 	import flash.display.Sprite;
 	import flash.display.StageAlign;
@@ -29,8 +29,16 @@ package
 		
 		private function init():void
 		{
+			var param:Object = this.loaderInfo.parameters;
+			var data:Object = {};
+			if (Helper.hasValue(param, "data"))
+			{
+				var dataStr:String = param.data as String;
+				data = JSON.parse(dataStr);
+			}
+			var paramStr:String = "";
 			//this._project = new ProjectTest(this);
-			this._project = new ProjectMacross(this, this.loaderInfo.parameters);
+			this._project = new ProjectMacross(this, data);
 			this.stage.addEventListener(Event.RESIZE, this.onResize);
 		}
 		

@@ -505,9 +505,9 @@ class MarkBoard extends BasicObject
 		container.addChild(logo1.instance);
 		container.addChild(logo2.instance);
 		
-		this._tf0 = new JText(GameConfig.FONT_SIZE_MAP * 2, 0xffff00, JText.ALIGN_CENTER, 0, 0, logo0.instance.height);
-		this._tf1 = new JText(GameConfig.FONT_SIZE_MAP * 2, 0xffff00, JText.ALIGN_CENTER, 0, 0, logo1.instance.height);
-		this._tf2 = new JText(GameConfig.FONT_SIZE_MAP * 2, 0xffff00, JText.ALIGN_CENTER, 0, 0, logo2.instance.height);
+		this._tf0 = new JText(GameConfig.getFontSize() * 2, 0xffff00, JText.ALIGN_CENTER, 0, 0, logo0.instance.height);
+		this._tf1 = new JText(GameConfig.getFontSize() * 2, 0xffff00, JText.ALIGN_CENTER, 0, 0, logo1.instance.height);
+		this._tf2 = new JText(GameConfig.getFontSize() * 2, 0xffff00, JText.ALIGN_CENTER, 0, 0, logo2.instance.height);
 		
 		this._tf0.instance.x = logo0.instance.x + logo0.instance.width * 0.5;
 		this._tf1.instance.x = logo1.instance.x + logo1.instance.width * 0.5;
@@ -856,18 +856,21 @@ class GameMapItem extends BasicObject
 		this.container.addChild(this._flash.instance);
 		this.container.addChild(this._front.instance);
 		
-		this._txt = new JText(GameConfig.FONT_SIZE_MAP, GameConfig.FONT_COLOR_MAP, JText.ALIGN_BOTTON, 0, GameConfig.CELL_RADIUS_MAP * 2, GameConfig.CELL_RADIUS_MAP * 1.732);
+		this._txt = new JText(GameConfig.getFontSize(), GameConfig.getFontColor(), JText.ALIGN_BOTTON, 0, GameConfig.getCellRadius() * 2, GameConfig.getCellRadius() * 1.732);
 		var tf:TextField = this._txt.textField;
 		
 		//tf.background = true;
 		//tf.backgroundColor = 0x88ffff88;
-		tf.filters = [new GlowFilter(0xffffff, 1, GameConfig.FONT_SIZE_MAP * 0.3, GameConfig.FONT_SIZE_MAP * 0.3)//
-		, new DropShadowFilter(GameConfig.FONT_SIZE_MAP * 0.1, 131, 0, 1, GameConfig.FONT_SIZE_MAP * 0.3, GameConfig.FONT_SIZE_MAP * 0.3)];
+		tf.filters = [new GlowFilter(0xffffff, 1, GameConfig.getFontSize() * 0.3, GameConfig.getFontSize() * 0.3)//
+		, new DropShadowFilter(GameConfig.getFontSize() * 0.1, 131, 0, 1, GameConfig.getFontSize() * 0.3, GameConfig.getFontSize() * 0.3)];
 		
 		this._txt.text = this._key;
-		this._txt.instance.x = -GameConfig.CELL_RADIUS_MAP;
-		this._txt.instance.y = -GameConfig.CELL_RADIUS_MAP;
-	//	this.container.addChild(this._txt.instance);
+		this._txt.instance.x = -GameConfig.getCellRadius();
+		this._txt.instance.y = -GameConfig.getCellRadius();
+		if (GameConfig.getFontDisplay())
+		{
+			this.container.addChild(this._txt.instance);
+		}
 		
 		this._bottom.show(SkinStore.TYPE_BLANK);
 		this._flash.instance.visible = false;
@@ -1032,7 +1035,7 @@ class GameMapItem extends BasicObject
 	{
 		return (this.instance as Sprite);
 	}
-	
+
 }
 
 class GameMap extends ButtonGroup
@@ -1076,8 +1079,8 @@ class GameMap extends ButtonGroup
 	{
 		this.reset();
 		
-		var cellWidth:int = GameConfig.CELL_RADIUS_MAP * 2 + 0.5;
-		var cellHeight:int = GameConfig.CELL_RADIUS_MAP * 1.732 + 0.5;
+		var cellWidth:int = GameConfig.getCellRadius() * 2 + 0.5;
+		var cellHeight:int = GameConfig.getCellRadius() * 1.732 + 0.5;
 		for (var i:int = 0; i < p_list.length; i++)
 		{
 			var data:MapCell = p_list[i] as MapCell;

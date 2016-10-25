@@ -259,6 +259,28 @@ package com.pj.common
 			return false;
 		}
 		
+		static public function getValueArray(p_obj:Object, p_key:String, p_default:Array = null):Array
+		{
+			var defaultValue:Array = p_default;
+			if (!defaultValue)
+			{
+				defaultValue = [];
+			}
+			if (!p_obj)
+			{
+				return defaultValue;
+			}
+			if (!p_obj.hasOwnProperty(p_key))
+			{
+				return defaultValue;
+			}
+			if (p_obj[p_key] is Array)
+			{
+				return p_obj[p_key];
+			}
+			return defaultValue;
+		}
+		
 		static public function getValueBoolean(p_obj:Object, p_key:String, p_default:Boolean = false):Boolean
 		{
 			if (!p_obj)
@@ -293,6 +315,23 @@ package com.pj.common
 			return p_default;
 		}
 		
+		static public function getValueUInt(p_obj:Object, p_key:String, p_default:uint = 0):uint
+		{
+			if (!p_obj)
+			{
+				return p_default;
+			}
+			if (!p_obj.hasOwnProperty(p_key))
+			{
+				return p_default;
+			}
+			if (p_obj[p_key] is uint)
+			{
+				return p_obj[p_key];
+			}
+			return p_default;
+		}
+		
 		static public function getValueNumber(p_obj:Object, p_key:String, p_default:Number = 0):Number
 		{
 			if (!p_obj)
@@ -308,6 +347,23 @@ package com.pj.common
 				return p_obj[p_key];
 			}
 			if (p_obj[p_key] is Number)
+			{
+				return p_obj[p_key];
+			}
+			return p_default;
+		}
+		
+		static public function getValueString(p_obj:Object, p_key:String, p_default:String = ""):String
+		{
+			if (!p_obj)
+			{
+				return p_default;
+			}
+			if (!p_obj.hasOwnProperty(p_key))
+			{
+				return p_default;
+			}
+			if (p_obj[p_key] is String)
 			{
 				return p_obj[p_key];
 			}

@@ -1,9 +1,7 @@
 package com.pj.common.component
 {
-	import com.pj.common.component.BasicObject;
 	import flash.display.Graphics;
 	import flash.display.Sprite;
-	
 	
 	/**
 	 * ...

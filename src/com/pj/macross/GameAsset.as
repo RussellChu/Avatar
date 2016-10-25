@@ -111,20 +111,20 @@ package com.pj.macross
 					}
 				}
 				
-				var width:int = GameConfig.CELL_RADIUS_MAP * 2 + 0.5;
-				var height:int = GameConfig.CELL_RADIUS_MAP * 1.732 + 0.5;
-				__loader.addCreate(KEY_CELL_BLANK, new CellImage(CellImage.TYPE_BASE, width, height, GameConfig.CELL_SIDE_MAP, new JColor(0.5, 0.5, 0.5, 0.5).value));
-				__loader.addCreate(KEY_CELL_DOWN, new CellImage(CellImage.TYPE_BASE, width, height, GameConfig.CELL_SIDE_MAP, new JColor(0, 1, 1, 0.5).value));
-				__loader.addCreate(KEY_CELL_OVER, new CellImage(CellImage.TYPE_BASE, width, height, GameConfig.CELL_SIDE_MAP, new JColor(1, 1, 0, 0.5).value));
-				__loader.addCreate(KEY_CELL_BASE_A, new CellImage(CellImage.TYPE_BASE, width, height, GameConfig.CELL_SIDE_MAP, new JColor(1, 0.411, 0.411, 1).value));
-				__loader.addCreate(KEY_CELL_BASE_B, new CellImage(CellImage.TYPE_BASE, width, height, GameConfig.CELL_SIDE_MAP, new JColor(0, 1, 0, 1).value));
-				__loader.addCreate(KEY_CELL_BASE_C, new CellImage(CellImage.TYPE_BASE, width, height, GameConfig.CELL_SIDE_MAP, new JColor(0.534, 0.534, 1, 1).value));
-				__loader.addCreate(KEY_CELL_OBSTACLE, new CellImage(CellImage.TYPE_BASE, width, height, GameConfig.CELL_SIDE_MAP, new JColor(0.286, 0.0485, 0, 0.5).value));
-				__loader.addCreate(KEY_CELL_ROAD_A, new CellImage(CellImage.TYPE_ROAD_A, width, height, GameConfig.CELL_SIDE_MAP, new JColor(1, 0, 0, 1).value));
-				__loader.addCreate(KEY_CELL_ROAD_B, new CellImage(CellImage.TYPE_ROAD_A, width, height, GameConfig.CELL_SIDE_MAP, new JColor(0, 0.509, 0, 1).value));
-				__loader.addCreate(KEY_CELL_ROAD_C, new CellImage(CellImage.TYPE_ROAD_A, width, height, GameConfig.CELL_SIDE_MAP, new JColor(0.209, 0.209, 1, 1).value));
-				__loader.addCreate(KEY_CELL_ATTACK, new CellImage(CellImage.TYPE_ROAD_B, width, height, GameConfig.CELL_SIDE_MAP, new JColor(0.967, 0.673, 0.9055, 0.5).value));
-				__loader.addCreate(KEY_CELL_BORDER, new CellImage(CellImage.TYPE_BORDER, width, height, GameConfig.CELL_SIDE_MAP, new JColor(0, 0, 0, 1).value));
+				var width:int = GameConfig.getCellRadius() * 2 + 0.5;
+				var height:int = GameConfig.getCellRadius() * 1.732 + 0.5;
+				__loader.addCreate(KEY_CELL_BLANK, new CellImage(CellImage.TYPE_BASE, width, height, GameConfig.getCellMargin(), new JColor(0.5, 0.5, 0.5, 0.5).value));
+				__loader.addCreate(KEY_CELL_DOWN, new CellImage(CellImage.TYPE_BASE, width, height, GameConfig.getCellMargin(), new JColor(0, 1, 1, 0.5).value));
+				__loader.addCreate(KEY_CELL_OVER, new CellImage(CellImage.TYPE_BASE, width, height, GameConfig.getCellMargin(), new JColor(1, 1, 0, 0.5).value));
+				__loader.addCreate(KEY_CELL_BASE_A, new CellImage(CellImage.TYPE_BASE, width, height, GameConfig.getCellMargin(), new JColor(1, 0.411, 0.411, 1).value));
+				__loader.addCreate(KEY_CELL_BASE_B, new CellImage(CellImage.TYPE_BASE, width, height, GameConfig.getCellMargin(), new JColor(0, 1, 0, 1).value));
+				__loader.addCreate(KEY_CELL_BASE_C, new CellImage(CellImage.TYPE_BASE, width, height, GameConfig.getCellMargin(), new JColor(0.534, 0.534, 1, 1).value));
+				__loader.addCreate(KEY_CELL_OBSTACLE, new CellImage(CellImage.TYPE_BASE, width, height, GameConfig.getCellMargin(), new JColor(0.286, 0.0485, 0, 0.5).value));
+				__loader.addCreate(KEY_CELL_ROAD_A, new CellImage(CellImage.TYPE_ROAD_A, width, height, GameConfig.getCellMargin(), new JColor(1, 0, 0, 1).value));
+				__loader.addCreate(KEY_CELL_ROAD_B, new CellImage(CellImage.TYPE_ROAD_A, width, height, GameConfig.getCellMargin(), new JColor(0, 0.509, 0, 1).value));
+				__loader.addCreate(KEY_CELL_ROAD_C, new CellImage(CellImage.TYPE_ROAD_A, width, height, GameConfig.getCellMargin(), new JColor(0.209, 0.209, 1, 1).value));
+				__loader.addCreate(KEY_CELL_ATTACK, new CellImage(CellImage.TYPE_ROAD_B, width, height, GameConfig.getCellMargin(), new JColor(0.967, 0.673, 0.9055, 0.5).value));
+				__loader.addCreate(KEY_CELL_BORDER, new CellImage(CellImage.TYPE_BORDER, width, height, GameConfig.getCellMargin(), new JColor(0, 0, 0, 1).value));
 				
 				__loader.addImageOfGroup(KEY_IMAGE, TXT_IMAGE, BMP_IMAGE);
 			}
@@ -268,7 +268,7 @@ class FoldAni implements ICreatable
 		
 		//if (color.a > p_alpha)
 		//{
-			//color.a = p_alpha;
+		//color.a = p_alpha;
 		//}
 		
 		return color;
@@ -303,11 +303,13 @@ class FoldAni implements ICreatable
 		if (dist < 0.5 * p_radius)
 		{
 			var c:Number = (0.6 + p_radius * 0.5 - dist / p_radius * 2);
-			if (c > 1) {
+			if (c > 1)
+			{
 				c = 1;
 			}
 			var c2:Number = (0.6 + p_radius * 0.5 - dist / p_radius * 4);
-			if (c2 > 1) {
+			if (c2 > 1)
+			{
 				c2 = 1;
 			}
 			color.addLight(c, c2, c, c);
@@ -318,8 +320,8 @@ class FoldAni implements ICreatable
 	
 	private function addBitmap(p_side:Number, p_startSide:Number, p_endSide:Number):void
 	{
-		var width:int = GameConfig.CELL_RADIUS_MAP * 2;
-		var height:int = GameConfig.CELL_RADIUS_MAP * 2;
+		var width:int = GameConfig.getCellRadius() * 2;
+		var height:int = GameConfig.getCellRadius() * 2;
 		var startTime:Number = 1.5;
 		var endTime:Number = 0.3;
 		
@@ -336,7 +338,8 @@ class FoldAni implements ICreatable
 			alpha = (p_endSide - p_side) / endTime;
 		}
 		var side:Number = p_side;
-		if (side > p_endSide - endTime) {
+		if (side > p_endSide - endTime)
+		{
 			side = p_endSide - endTime;
 		}
 		var add:Number = p_side - side;
@@ -356,15 +359,15 @@ class FoldAni implements ICreatable
 	
 	private function saveAll():void
 	{
-		var width:int = GameConfig.CELL_RADIUS_MAP * 2 * (10);
-		var height:int = GameConfig.CELL_RADIUS_MAP * 2 * int(this._list.length / 10 + 1);
+		var width:int = GameConfig.getCellRadius() * 2 * (10);
+		var height:int = GameConfig.getCellRadius() * 2 * int(this._list.length / 10 + 1);
 		var bmp:BitmapData = new BitmapData(width, height, true, 0);
 		bmp.lock();
 		for (var i:int = 0; i < this._list.length; i++)
 		{
 			var src:BitmapData = this._list[i] as BitmapData;
-			var x:int = GameConfig.CELL_RADIUS_MAP * 2 * (i % 10);
-			var y:int = GameConfig.CELL_RADIUS_MAP * 2 * int(i / 10);
+			var x:int = GameConfig.getCellRadius() * 2 * (i % 10);
+			var y:int = GameConfig.getCellRadius() * 2 * int(i / 10);
 			bmp.draw(src, new Matrix(1, 0, 0, 1, x, y));
 		}
 		bmp.unlock();
@@ -473,7 +476,7 @@ class FoldMc extends BasicObject
 	{
 		super.init();
 		
-		this.container.scaleX = GameConfig.CELL_RADIUS_MAP * 2 / FoldAni.DEFAULT_WIDTH;
+		this.container.scaleX = GameConfig.getCellRadius() * 2 / FoldAni.DEFAULT_WIDTH;
 		this.container.scaleY = this.container.scaleX;
 		
 		this._timer = new JTimer(this.onTime);
@@ -515,7 +518,7 @@ class HostageTriangle extends CreatableBitmap
 	{
 		this._color = p_color;
 		this._color2 = p_color2;
-		super(GameConfig.CELL_RADIUS_MAP * 2, GameConfig.CELL_RADIUS_MAP * 2, true, 0);
+		super(GameConfig.getCellRadius() * 2, GameConfig.getCellRadius() * 2, true, 0);
 	}
 	
 	private function getLine(p_angle:Number, p_side:int, p_out:Number, p_in:Number, p_add:Number):Number
@@ -641,12 +644,12 @@ class Hostage extends BasicObject
 		sp.scaleY = 0.5;
 		
 		var imgManA:Bitmap = new Bitmap(bmpMan);
-		imgManA.scaleX = GameConfig.CELL_RADIUS_MAP * 2 / bmpMan.width;
+		imgManA.scaleX = GameConfig.getCellRadius() * 2 / bmpMan.width;
 		imgManA.scaleY = imgManA.scaleX;
 		imgManA.x = -imgManA.width * 0.5;
 		imgManA.y = -imgManA.height * 0.5;
 		var imgManB:Bitmap = new Bitmap(bmpMan);
-		imgManB.scaleX = GameConfig.CELL_RADIUS_MAP * 2 / bmpMan.width;
+		imgManB.scaleX = GameConfig.getCellRadius() * 2 / bmpMan.width;
 		imgManB.scaleY = imgManB.scaleX;
 		imgManB.x = -imgManB.width * 0.5;
 		imgManB.y = -imgManB.height * 0.5;

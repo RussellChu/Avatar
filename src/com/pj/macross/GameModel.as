@@ -91,12 +91,12 @@ package com.pj.macross
 			var id:int = 0;
 			var obstacleRemain:int = 10;
 			var hostageRemain:int = 20;
-			for (j = -(GameConfig.MAP_RADIUS - 1) * 2; j <= (GameConfig.MAP_RADIUS - 1) * 2; j++)
+			for (j = -(GameConfig.getMapRadius() - 1) * 2; j <= (GameConfig.getMapRadius() - 1) * 2; j++)
 			{
-				for (i = -(GameConfig.MAP_RADIUS - 1) * 2; i <= (GameConfig.MAP_RADIUS - 1) * 2; i++)
+				for (i = -(GameConfig.getMapRadius() - 1) * 2; i <= (GameConfig.getMapRadius() - 1) * 2; i++)
 				{
 					k = i + j;
-					if (k < -(GameConfig.MAP_RADIUS - 1) * 2 || k > (GameConfig.MAP_RADIUS - 1) * 2)
+					if (k < -(GameConfig.getMapRadius() - 1) * 2 || k > (GameConfig.getMapRadius() - 1) * 2)
 					{
 						continue;
 					}
@@ -139,60 +139,60 @@ package com.pj.macross
 						mid = j;
 						min = i;
 					}
-					if (max - min > (GameConfig.MAP_RADIUS - 1) * 3)
+					if (max - min > (GameConfig.getMapRadius() - 1) * 3)
 					{
 						continue;
 					}
-					if (max + mid > (GameConfig.MAP_RADIUS - 1) * 3)
+					if (max + mid > (GameConfig.getMapRadius() - 1) * 3)
 					{
 						continue;
 					}
-					if (mid + min < -(GameConfig.MAP_RADIUS - 1) * 3)
+					if (mid + min < -(GameConfig.getMapRadius() - 1) * 3)
 					{
 						continue;
 					}
 					var x:int = i;
 					var y:int = j;
 					var z:int = -k;
-					var startX:int = (GameConfig.MAP_RADIUS - 1) * 2 + j;
-					var startY:int = (GameConfig.MAP_RADIUS - 1) * 3 + i * 2 + j;
+					var startX:int = (GameConfig.getMapRadius() - 1) * 2 + j;
+					var startY:int = (GameConfig.getMapRadius() - 1) * 3 + i * 2 + j;
 					this._map.addCell(id, x, y, z, startX, startY);
 					var key:String = "" + x + ":" + y + ":" + z;
-					if (GameConfig.CELL_BASE_A.indexOf(id) >= 0)
+					if (GameConfig.getMapBaseA().indexOf(id) >= 0)
 					{
 						key = "";
 						this.addBase(GameData.SIDE_A, x, y, z);
 					}
-					else if (GameConfig.CELL_BASE_B.indexOf(id) >= 0)
+					else if (GameConfig.getMapBaseB().indexOf(id) >= 0)
 					{
 						key = "";
 						this.addBase(GameData.SIDE_B, x, y, z);
 					}
-					else if (GameConfig.CELL_BASE_C.indexOf(id) >= 0)
+					else if (GameConfig.getMapBaseC().indexOf(id) >= 0)
 					{
 						key = "";
 						this.addBase(GameData.SIDE_C, x, y, z);
 					}
-					else if (GameConfig.CELL_OBSTACLE.indexOf(id) >= 0)
+					else if (GameConfig.getMapObstacle().indexOf(id) >= 0)
 					{
 						key = "";
 						this.addObstacle(x, y, z);
 					}
 					else
 					{
-						if (GameConfig.CELL_HOSTAGE_A.indexOf(id) >= 0)
+						if (GameConfig.getMapHostageA().indexOf(id) >= 0)
 						{
 							this.addHostage(GameData.SIDE_A, x, y, z);
 						}
-						else if (GameConfig.CELL_HOSTAGE_B.indexOf(id) >= 0)
+						else if (GameConfig.getMapHostageB().indexOf(id) >= 0)
 						{
 							this.addHostage(GameData.SIDE_B, x, y, z);
 						}
-						else if (GameConfig.CELL_HOSTAGE_C.indexOf(id) >= 0)
+						else if (GameConfig.getMapHostageC().indexOf(id) >= 0)
 						{
 							this.addHostage(GameData.SIDE_C, x, y, z);
 						}
-						else if (GameConfig.CELL_OBSTACLE_OUT.indexOf(id) >= 0)
+						else if (GameConfig.getMapObstacleOut().indexOf(id) >= 0)
 						{
 							this.addObstacle(x, y, z);
 						}
@@ -280,7 +280,7 @@ package com.pj.macross
 					id++;
 				}
 			}
-			if (obstacleRemain == 0 && hostageRemain == -2 && GameConfig.CAP_ID != "")
+			if (obstacleRemain == 0 && hostageRemain == -2 && GameConfig.getCapId() != "")
 			{
 				this._createResult.isReady = true;
 			}
@@ -320,9 +320,9 @@ package com.pj.macross
 			}
 			this._save = this._so.data.data;
 			var version:int = this._save.version;
-			if (version != GameConfig.SAVE_VERSION)
+			if (version != GameConfig.getSaveVer())
 			{
-				this._save.version = GameConfig.SAVE_VERSION;
+				this._save.version = GameConfig.getSaveVer();
 				this._save.list = [];
 			}
 			this._record = this._save.list;
