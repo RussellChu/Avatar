@@ -141,6 +141,9 @@ package com.pj
 				}
 				;
 				break;
+			case GameData.COMMAND_AUTO: 
+				this._model.autoPlay();
+				break;
 			default: 
 				;
 			}

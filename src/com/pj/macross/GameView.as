@@ -157,6 +157,10 @@ package com.pj.macross
 			case GameData.COMMAND_TIPS: 
 				this._tips.showMsg(TipsBoard.MSG_CMD_TIPS);
 				break;
+			case GameData.COMMAND_AUTO: 
+				this._tips.showMsg(TipsBoard.MSG_CMD_AUTO);
+				GameController.i.signal.dispatch({command: cmdCode}, EVENT_CMD_CLICK);
+				break;
 			default: 
 				GameController.i.signal.dispatch({command: cmdCode}, EVENT_CMD_CLICK);
 			}
@@ -558,6 +562,7 @@ class TipsBoard extends JText
 	static public const MSG_CMD_JUMP:int = 4;
 	static public const MSG_CMD_ATK:int = 5;
 	static public const MSG_CMD_TIPS:int = 6;
+	static public const MSG_CMD_AUTO:int = 7;
 	
 	public function TipsBoard()
 	{
@@ -594,6 +599,9 @@ class TipsBoard extends JText
 			break;
 		case MSG_CMD_ATK: 
 			this.text = GameLang.i.getValue("tips-00005");
+			break;
+		case MSG_CMD_AUTO: 
+			this.text = GameLang.i.getValue("tips-00006");
 			break;
 		case MSG_CMD_TIPS: 
 			var list:Array = [//
@@ -1426,6 +1434,9 @@ class GameCommand extends BasicObject
 			break;
 		case "sys:tips": 
 			data = {cmd: GameData.COMMAND_TIPS};
+			break;
+		case "sys:auto": 
+			data = {cmd: GameData.COMMAND_AUTO};
 			break;
 		default: 
 			return;

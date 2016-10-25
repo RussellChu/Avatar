@@ -1,6 +1,7 @@
 package com.pj.macross
 {
 	import com.pj.common.Helper;
+	import com.pj.common.JTimer;
 	import com.pj.macross.GameConfig;
 	import com.pj.macross.GameData;
 	import com.pj.macross.structure.MapCell;
@@ -369,6 +370,9 @@ package com.pj.macross
 		
 		private function addRecord(p_state:int, p_side:int, p_x:int, p_y:int, p_z:int, p_preState:int, p_preSide:int, p_score:int, p_preScore:int):void
 		{
+			if (this._record.length > 10000) {
+				return;
+			}
 			var item:Array = [];
 			item.push(p_state);
 			item.push(p_side);
@@ -546,20 +550,20 @@ package com.pj.macross
 			return false;
 		}
 		
-		public function command(p_id:int, p_side:int, p_command:int):void
+		public function command(p_id:int, p_side:int, p_command:int):Boolean
 		{
 			var cell:MapCell = this._map.getCellById(p_id);
 			if (!cell)
 			{
-				return;
+				return false;
 			}
 			if (p_side == 0)
 			{
-				return;
+				return false;
 			}
 			if (!this.checkBase(p_id, p_side, p_command == GameData.COMMAND_ROAD_EX))
 			{
-				return;
+				return false;
 			}
 			
 			var preState:int = cell.state;
@@ -572,25 +576,25 @@ package com.pj.macross
 			case GameData.COMMAND_ATTACK: 
 				if (cell.side == 0 || cell.side == p_side)
 				{
-					return;
+					return false;
 				}
 				if (cell.state != GameData.STATE_ROAD && cell.state != GameData.STATE_ROAD_EX)
 				{
-					return;
+					return false;
 				}
 				this.addRoad(p_side, cell.keyX, cell.keyY, cell.keyZ);
 				this.addRecord(cell.state, cell.side, cell.keyX, cell.keyY, cell.keyZ, preState, preSide, score, preScore);
 				GameController.i.signal.dispatch({id: cell.id, side: cell.side, state: cell.state}, EVENT_CELL_UPDATE);
 				GameController.i.signal.dispatch({side: cell.side, score: score}, EVENT_SCORE_UPDATE);
-				return;
+				return true;
 			case GameData.COMMAND_ROAD: 
 				if (cell.state != GameData.STATE_NONE && cell.state != GameData.STATE_HOSTAGE)
 				{
-					return;
+					return false;
 				}
 				if (cell.state == GameData.STATE_HOSTAGE && cell.side != p_side)
 				{
-					return;
+					return false;
 				}
 				if (cell.state == GameData.STATE_HOSTAGE)
 				{
@@ -601,15 +605,15 @@ package com.pj.macross
 				this.addRecord(cell.state, cell.side, cell.keyX, cell.keyY, cell.keyZ, preState, preSide, score, preScore);
 				GameController.i.signal.dispatch({id: cell.id, side: cell.side, state: cell.state}, EVENT_CELL_UPDATE);
 				GameController.i.signal.dispatch({side: cell.side, score: score}, EVENT_SCORE_UPDATE);
-				return;
+				return true;
 			case GameData.COMMAND_ROAD_EX: 
 				if (cell.state != GameData.STATE_NONE && cell.state != GameData.STATE_HOSTAGE)
 				{
-					return;
+					return false;
 				}
 				if (cell.state == GameData.STATE_HOSTAGE && cell.side != p_side)
 				{
-					return;
+					return false;
 				}
 				if (cell.state == GameData.STATE_HOSTAGE)
 				{
@@ -620,10 +624,9 @@ package com.pj.macross
 				this.addRecord(cell.state, cell.side, cell.keyX, cell.keyY, cell.keyZ, preState, preSide, score, preScore);
 				GameController.i.signal.dispatch({id: cell.id, side: cell.side, state: cell.state}, EVENT_CELL_UPDATE);
 				GameController.i.signal.dispatch({side: cell.side, score: score}, EVENT_SCORE_UPDATE);
-				return;
+				return true;
 			default: 
-				return;
-				;
+				return false;
 			}
 		}
 		
@@ -760,32 +763,44 @@ package com.pj.macross
 			return true;
 		}
 		
-		public function autoPlay():void {
-			
-/*
-			case GameData.COMMAND_ROAD: 
-			case GameData.COMMAND_ROAD_EX: 
-			case GameData.COMMAND_ATTACK: 
-				var side:int = p_result.side;
-				var state:int = GameData.STATE_NONE;
-				var list:Array = this._model.getMovableList(command, side);
-				if (command == GameData.COMMAND_ROAD_EX)
-				{
-					state = GameData.STATE_ROAD_EX;
-					this._view.flashMap(side, state, list);
-				}
-				else
-				{
-					state = GameData.STATE_ROAD;
-				}
-				this._view.flashMap(side, state, list);
+		private var _timer:JTimer = null;
+		private var _autoDelta:Number = 0;
+		private var _autoState:int = 0;
+		
+		private function onAutoPlayTime(p_delta:Number):void
+		{
+			this._autoDelta += p_delta;
+			if (this._autoDelta < 200)
+			{
+			//	return;
+			}
+			this._autoDelta = 0;
+			var side:int = Helper.selectFrom([GameData.SIDE_A, GameData.SIDE_B, GameData.SIDE_C]) as int;
+			switch (side)
+			{
+			case GameData.SIDE_A: 
+				this._aiA.doAct();
 				break;
-*/
+			case GameData.SIDE_B: 
+				this._aiB.doAct();
+				break;
+			case GameData.SIDE_C: 
+				this._aiC.doAct();
+				break;
+			}
+		}
+		
+		public function autoPlay():void
+		{
+			this._timer = new JTimer(this.onAutoPlayTime);
+			this._timer.start();
 		}
 	
 	}
 }
 
+import com.pj.common.Helper;
+import com.pj.macross.GameData;
 import com.pj.macross.GameModel;
 import com.pj.macross.structure.MapCell;
 
@@ -849,14 +864,36 @@ class SideAI
 {
 	private var _model:GameModel = null;
 	private var _side:int = 0;
+	private var _cmdList:Array = null;
 	
-	public function SideAI(p_side:int, p_model:GameModel) {
+	public function SideAI(p_side:int, p_model:GameModel)
+	{
 		this._model = p_model;
 		this._side = p_side;
+		this._cmdList = [];
 	}
 	
-	public function doAct():void {
-		;
+	public function doAct():void
+	{
+		var command:int = Helper.selectFrom([GameData.COMMAND_ROAD, GameData.COMMAND_ROAD, GameData.COMMAND_ROAD, GameData.COMMAND_ROAD_EX, GameData.COMMAND_ATTACK, GameData.COMMAND_ATTACK]) as int;
+		this._cmdList.push(command);
+		command = this._cmdList.shift();
+		var list:Array = this._model.getMovableList(command, this._side);
+		if (list.length == 0)
+		{
+			this._cmdList.push(command);
+			return;
+		}
+		var cellId:int = Helper.selectFrom(list) as int;
+		var result:Boolean = this._model.command(cellId, this._side, command);
+		if (!result)
+		{
+			this._cmdList.push(command);
+			if (this._cmdList.length > 100) {
+				this._cmdList = [];
+			}
+			return;
+		}
 	}
-	
+
 }
