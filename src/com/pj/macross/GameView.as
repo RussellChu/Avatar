@@ -1360,14 +1360,18 @@ class GameCommand extends BasicObject
 	private function loadListBtn():void
 	{
 		var list:Array = GameController.i.config.view.game_command_list as Array;
-		Helper.loadArray(list, 2, function(p_result:Array):void
+		Helper.loadArray(list, 3, function(p_result:Array):void
 		{
-			if (p_result.length != 2)
+			if (p_result.length != 3)
 			{
 				return;
 			}
 			var key:String = p_result[0];
 			var lang:String = p_result[1];
+			var state:int = p_result[2];
+			if (state == 0) {
+				return;
+			}
 			var cmd:String = key;
 			_listBtn.add(key, lang, {cmd: cmd});
 		});

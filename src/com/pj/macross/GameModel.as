@@ -51,6 +51,8 @@ package com.pj.macross
 		, {x: -1, y: -1, z: 2}//
 		];
 		
+		private var _aiCheckList:Array = null;
+		
 		private var _map:MapCellCroup = null;
 		private var _record:Array = null;
 		private var _save:Object = null;
@@ -62,6 +64,10 @@ package com.pj.macross
 		private var _aiA:SideAI = null;
 		private var _aiB:SideAI = null;
 		private var _aiC:SideAI = null;
+		
+		private var _timer:JTimer = null;
+		private var _autoDelta:Number = 0;
+		private var _autoState:int = 0;
 		
 		public function GameModel()
 		{
@@ -317,6 +323,7 @@ package com.pj.macross
 		private function setScore(p_side:int, p_score:int):void
 		{
 			this.getScore(p_side);
+			trace("setScore of " + p_side + " >> " + p_score);
 			this._score[p_side] = p_score;
 		}
 		
@@ -370,8 +377,9 @@ package com.pj.macross
 		
 		private function addRecord(p_state:int, p_side:int, p_x:int, p_y:int, p_z:int, p_preState:int, p_preSide:int, p_score:int, p_preScore:int):void
 		{
-			if (this._record.length > 10000) {
-				return;
+			if (this._record.length >= 10000)
+			{
+				this._record.shift();
 			}
 			var item:Array = [];
 			item.push(p_state);
@@ -727,6 +735,12 @@ package com.pj.macross
 		{
 			if (this._record.length == 0)
 			{
+				this.setScore(GameData.SIDE_A, 0);
+				this.setScore(GameData.SIDE_B, 0);
+				this.setScore(GameData.SIDE_C, 0);
+				GameController.i.signal.dispatch({side: GameData.SIDE_A, score: 0}, EVENT_SCORE_UPDATE);
+				GameController.i.signal.dispatch({side: GameData.SIDE_B, score: 0}, EVENT_SCORE_UPDATE);
+				GameController.i.signal.dispatch({side: GameData.SIDE_C, score: 0}, EVENT_SCORE_UPDATE);
 				return false;
 			}
 			var item:Array = this._record.pop();
@@ -763,16 +777,11 @@ package com.pj.macross
 			return true;
 		}
 		
-		private var _timer:JTimer = null;
-		private var _autoDelta:Number = 0;
-		private var _autoState:int = 0;
-		
 		private function onAutoPlayTime(p_delta:Number):void
 		{
 			this._autoDelta += p_delta;
-			if (this._autoDelta < 200)
-			{
-			//	return;
+			if (this._autoDelta < 100) {
+				return;
 			}
 			this._autoDelta = 0;
 			var side:int = Helper.selectFrom([GameData.SIDE_A, GameData.SIDE_B, GameData.SIDE_C]) as int;
@@ -792,8 +801,204 @@ package com.pj.macross
 		
 		public function autoPlay():void
 		{
-			this._timer = new JTimer(this.onAutoPlayTime);
-			this._timer.start();
+			if (!this._timer)
+			{
+				this._timer = new JTimer(this.onAutoPlayTime);
+			//	this.getSearchList(5);
+			}
+			if (this._timer.state())
+			{
+				this._timer.stop();
+			}
+			else
+			{
+				this._timer.start();
+			}
+		}
+		
+		private function get aiCheckList():Array
+		{
+			if (!this._aiCheckList)
+			{
+				var maxDist:int = 6;
+				var i:int = 0;
+				var j:int = 0;
+				var distList:Array = [];
+				for (i = 0; i <= maxDist; i++)
+				{
+					distList.push([]);
+				}
+				for (i = -maxDist; i <= maxDist; i++)
+				{
+					var x:int = i;
+					var yStart:int = -maxDist;
+					if (x < 0)
+					{
+						yStart = -maxDist - x;
+					}
+					var yEnd:int = maxDist;
+					if (x > 0)
+					{
+						yEnd = maxDist - x;
+					}
+					for (j = yStart; j <= yEnd; j++)
+					{
+						var dist:int = Math.abs(x);
+						var y:int = j;
+						if (Math.abs(y) > dist)
+						{
+							dist = Math.abs(y);
+						}
+						var z:int = -(x + y);
+						if (Math.abs(z) > dist)
+						{
+							dist = Math.abs(z);
+						}
+						distList[dist].push({x: x, y: y, z: z});
+					}
+				}
+				var list:Array = [];
+				for (i = 1; i < distList.length; i++)
+				{
+					for (j = 0; j < distList[i].length; j++)
+					{
+						list.push(distList[i][j]);
+					}
+				}
+				for (i = 0; i < list.length; i++)
+				{
+					trace("" + list[i].x + ", " + list[i].y + ", " + list[i].z);
+				}
+				this._aiCheckList = list;
+			}
+			return this._aiCheckList;
+		}
+		
+		public function getBestSide():int {
+			var scoreA:int = this.getScore(GameData.SIDE_A);
+			var scoreB:int = this.getScore(GameData.SIDE_B);
+			var scoreC:int = this.getScore(GameData.SIDE_C);
+			if (scoreA > scoreB && scoreA > scoreC) {
+				return GameData.SIDE_A;
+			}
+			if (scoreB > scoreC && scoreB > scoreA) {
+				return GameData.SIDE_B;
+			}
+			if (scoreC > scoreA && scoreC > scoreB) {
+				return GameData.SIDE_C;
+			}
+			return 0;
+		}
+		
+		public function getAIList(p_command:int, p_side:int, p_atkSide:int):Array
+		{
+			var targetList:Array = [];
+			var cellList:Array = this._map.getList();
+			var cell:MapCell = null;
+			var i:int = 0;
+			for (i = 0; i < cellList.length; i++)
+			{
+				cell = cellList[i] as MapCell;
+				if (cell.state == GameData.STATE_HOSTAGE && cell.side == p_atkSide)
+				{
+					targetList.push({x: cell.keyX, y: cell.keyY, z: cell.keyZ});
+				}
+			}
+			
+			var result:Array = [];
+			if (p_side == 0)
+			{
+				return result;
+			}
+			
+			var list:Array = this._map.getList();
+			switch (p_command)
+			{
+			case GameData.COMMAND_ATTACK: 
+				for (i = 0; i < list.length; i++)
+				{
+					cell = list[i] as MapCell;
+					if (cell.state != GameData.STATE_ROAD && cell.state != GameData.STATE_ROAD_EX)
+					{
+						continue;
+					}
+					if (cell.side == p_side)
+					{
+						continue;
+					}
+					if (this.checkBase(cell.id, p_side, false))
+					{
+						result.push({id: cell.id, x: cell.keyX, y: cell.keyY, z: cell.keyZ, score: -1});
+					}
+				}
+				break;
+			case GameData.COMMAND_ROAD: 
+				for (i = 0; i < list.length; i++)
+				{
+					cell = list[i] as MapCell;
+					if (cell.state != GameData.STATE_NONE && cell.state != GameData.STATE_HOSTAGE)
+					{
+						continue;
+					}
+					if (cell.state == GameData.STATE_HOSTAGE)
+					{
+						if (cell.side != p_side)
+						{
+							continue;
+						}
+					}
+					if (this.checkBase(cell.id, p_side, false))
+					{
+						result.push({id: cell.id, x: cell.keyX, y: cell.keyY, z: cell.keyZ, score: -1});
+					}
+				}
+				break;
+			case GameData.COMMAND_ROAD_EX: 
+				for (i = 0; i < list.length; i++)
+				{
+					cell = list[i] as MapCell;
+					if (cell.state != GameData.STATE_NONE && cell.state != GameData.STATE_HOSTAGE)
+					{
+						continue;
+					}
+					if (cell.state == GameData.STATE_HOSTAGE)
+					{
+						if (cell.side != p_side)
+						{
+							continue;
+						}
+					}
+					if (this.checkBase(cell.id, p_side, true))
+					{
+						result.push({id: cell.id, x: cell.keyX, y: cell.keyY, z: cell.keyZ, score: -1});
+					}
+				}
+				break;
+			default: 
+				;
+			}
+			for (i = 0; i < result.length; i++) {
+				var item:Object = result[i];
+				for (var j:int = 0; j < targetList.length; j++) {
+					var score:int = Math.abs(item.x - targetList[j].x) + Math.abs(item.y - targetList[j].y) + Math.abs(item.z - targetList[j].z);
+					if (item.score == -1 || (item.score > score)) {
+						item.score = score;
+					}
+				}
+			}
+			result.sort(function(p_obj0:Object, p_obj1:Object):int
+			{
+				if (p_obj0.score > p_obj1.score)
+				{
+					return 1;
+				}
+				if (p_obj0.score < p_obj1.score)
+				{
+					return -1;
+				}
+				return 0;
+			});
+			return result;
 		}
 	
 	}
@@ -878,19 +1083,28 @@ class SideAI
 		var command:int = Helper.selectFrom([GameData.COMMAND_ROAD, GameData.COMMAND_ROAD, GameData.COMMAND_ROAD, GameData.COMMAND_ROAD_EX, GameData.COMMAND_ATTACK, GameData.COMMAND_ATTACK]) as int;
 		this._cmdList.push(command);
 		command = this._cmdList.shift();
-		var list:Array = this._model.getMovableList(command, this._side);
+		var isAttack:Boolean = false;
+		var bestSide:int = this._model.getBestSide();
+		if (bestSide == 0 || Math.random() < 0.5) {
+			bestSide = this._side;
+		}
+		var list:Array = this._model.getAIList(command, this._side, bestSide);
 		if (list.length == 0)
 		{
-			this._cmdList.push(command);
+			if (this._cmdList.length < 100)
+			{
+				this._cmdList.push(command);
+			}
 			return;
 		}
-		var cellId:int = Helper.selectFrom(list) as int;
+	//	var cellId:int = Helper.selectFrom(list) as int;
+		var cellId:int = list[0].id;
 		var result:Boolean = this._model.command(cellId, this._side, command);
 		if (!result)
 		{
-			this._cmdList.push(command);
-			if (this._cmdList.length > 100) {
-				this._cmdList = [];
+			if (this._cmdList.length < 100)
+			{
+				this._cmdList.push(command);
 			}
 			return;
 		}

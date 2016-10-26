@@ -14,7 +14,7 @@
 , "cmds-00010", "Undo", "還原"
 , "cmds-00011", "Clear", "清空"
 , "cmds-00012", "Tips", "提示"
-, "cmds-00013", "Auto Play", "演示"
+, "cmds-00013", "Demo/Pause", "演示/暫停"
 , "lang-00001", "中", "中"
 , "lang-00002", "English", "English"
 , "text-00001", "Loading", "載入中"
@@ -49,21 +49,21 @@
 	]
 	, "view": {
 		"game_command_list": [
-  "sys:tips",	"cmds-00012"
-, "a:mov",		"cmds-00001"
-, "a:jmp",		"cmds-00002"
-, "a:atk",		"cmds-00003"
-, "b:mov",		"cmds-00004"
-, "b:jmp",		"cmds-00005"
-, "b:atk",		"cmds-00006"
-, "c:mov",		"cmds-00007"
-, "c:jmp",		"cmds-00008"
-, "c:atk",		"cmds-00009"
-, "sys:undo",	"cmds-00010"
-, "sys:clr",	"cmds-00011"
-, "sys:auto",	"cmds-00013"
-, "lang:zh",	"lang-00001"
-, "lang:en",	"lang-00002"
+  "sys:tips",	"cmds-00012",	1
+, "a:mov",		"cmds-00001",	1
+, "a:jmp",		"cmds-00002",	1
+, "a:atk",		"cmds-00003",	1
+, "b:mov",		"cmds-00004",	1
+, "b:jmp",		"cmds-00005",	1
+, "b:atk",		"cmds-00006",	1
+, "c:mov",		"cmds-00007",	1
+, "c:jmp",		"cmds-00008",	1
+, "c:atk",		"cmds-00009",	1
+, "sys:undo",	"cmds-00010",	1
+, "sys:clr",	"cmds-00011",	1
+, "sys:auto",	"cmds-00013",	1
+, "lang:zh",	"lang-00001",	0
+, "lang:en",	"lang-00002",	0
 		]
 	}
 }
