@@ -68,18 +68,20 @@ var data = {};
 /*
  * Test setting 2
  */
+/*
 data.cellRadius = 8;
 data.cellMargin = 1;
 data.mapRandom = true;
 data.demoSpeed = 0;
 data.demoCmd = [1, 1, 1, 1, 3, 3];
+*/
 
 /*
  * Test setting 3
  */
-//data.cellRadius = 16;
-//data.cellMargin = 1;
-//data.demoSpeed = 0;
+data.cellRadius = 16;
+data.cellMargin = 1;
+data.demoSpeed = 0;
 
 var valueStr = encodeObjToUrlParam( {data: JSON.stringify( data )} );
 paramElement.setAttribute( "value", valueStr );

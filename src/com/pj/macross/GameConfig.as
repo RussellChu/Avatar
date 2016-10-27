@@ -120,11 +120,16 @@ package com.pj.macross
 		
 		static public function getDemoSpeed():int  { return __demoSpeed; }
 		
-		static public function getDemoCmd():Array  {
-			if (!__demoCmd) {
-				return [GameData.COMMAND_ROAD, GameData.COMMAND_ROAD, GameData.COMMAND_ROAD, GameData.COMMAND_ROAD_EX, GameData.COMMAND_ATTACK, GameData.COMMAND_ATTACK];
+		static public function getDemoCmd():Array
+		{
+			if (__demoCmd)
+			{
+				if (__demoCmd.length > 0)
+				{
+					return __demoCmd;
+				}
 			}
-			return __demoCmd;
+			return [GameData.COMMAND_ROAD, GameData.COMMAND_ROAD, GameData.COMMAND_ROAD, GameData.COMMAND_ROAD_EX, GameData.COMMAND_ATTACK, GameData.COMMAND_ATTACK];
 		}
 		
 		static public function getScoreMax():int  { return __scoreMax; }
