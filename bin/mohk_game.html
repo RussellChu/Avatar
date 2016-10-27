@@ -1,5 +1,7 @@
 <html>
 <head>
+<title>Macross-Only-in-Hong-Kong</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 </head>
 <body style="margin:0;">
 </body>
@@ -16,14 +18,16 @@ var encodeObjToUrlParam = function ( p_obj ) {
 };
 var objElement = document.createElement( "object" );
 objElement.setAttribute( "type", "application/x-shockwave-flash" );
-//objElement.setAttribute( "data", "mohk_game.v.0.21.swf" );
-objElement.setAttribute( "data", "Avatar.swf" );
+objElement.setAttribute( "data", "mohk_game.v.1.0.swf" );
 objElement.setAttribute( "width", "100%" );
 objElement.setAttribute( "height", "100%" );
 var paramElement = document.createElement( "param" );
 paramElement.setAttribute( "name", "FlashVars" );
 
 var data = {};
+/*
+ * All setting
+ */
 //data.capId = "";
 //data.saveVer = 0;
 //data.cellRadius = 113;
@@ -47,21 +51,35 @@ var data = {};
 //data.mapHostageB = [];
 //data.mapHostageC = [];
 //data.demoSpeed = 0;
+//data.demoCmd = [1, 1, 1, 2, 3, 3];
 //data.scoreMax = 22;
-/*
-data.cellRadius = 113;
-data.cellMargin = 5;
-data.fontSize = 36;
-data.fontDisplay = true;
-data.foldAniSrcLoad = false;
-data.foldAniSrcWidth = 226;
-data.mapRandom = true;
-*/
 
+/*
+ * Test setting 1
+ */
+//data.cellRadius = 113;
+//data.cellMargin = 5;
+//data.fontSize = 36;
+//data.fontDisplay = true;
+//data.foldAniSrcLoad = false;
+//data.foldAniSrcWidth = 226;
+//data.mapRandom = true;
+
+/*
+ * Test setting 2
+ */
 data.cellRadius = 8;
 data.cellMargin = 1;
 data.mapRandom = true;
 data.demoSpeed = 0;
+data.demoCmd = [1, 1, 1, 1, 3, 3];
+
+/*
+ * Test setting 3
+ */
+//data.cellRadius = 16;
+//data.cellMargin = 1;
+//data.demoSpeed = 0;
 
 var valueStr = encodeObjToUrlParam( {data: JSON.stringify( data )} );
 paramElement.setAttribute( "value", valueStr );

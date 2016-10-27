@@ -34,6 +34,7 @@ package com.pj.macross
 		static public const KEY_CELL_BASE_B:String = "KEY_CELL_BASE_B";
 		static public const KEY_CELL_BASE_C:String = "KEY_CELL_BASE_C";
 		static public const KEY_CELL_OBSTACLE:String = "KEY_CELL_OBSTACLE";
+		static public const KEY_CELL_LIGHT:String = "KEY_CELL_LIGHT";
 		static public const KEY_CELL_ROAD_A:String = "KEY_CELL_ROAD_A";
 		static public const KEY_CELL_ROAD_B:String = "KEY_CELL_ROAD_B";
 		static public const KEY_CELL_ROAD_C:String = "KEY_CELL_ROAD_C";
@@ -120,6 +121,7 @@ package com.pj.macross
 				__loader.addCreate(KEY_CELL_BASE_B, new CellImage(CellImage.TYPE_BASE, width, height, GameConfig.getCellMargin(), new JColor(0, 1, 0, 1).value));
 				__loader.addCreate(KEY_CELL_BASE_C, new CellImage(CellImage.TYPE_BASE, width, height, GameConfig.getCellMargin(), new JColor(0.534, 0.534, 1, 1).value));
 				__loader.addCreate(KEY_CELL_OBSTACLE, new CellImage(CellImage.TYPE_BASE, width, height, GameConfig.getCellMargin(), new JColor(0.286, 0.0485, 0, 0.5).value));
+				__loader.addCreate(KEY_CELL_LIGHT, new CellImage(CellImage.TYPE_BASE, width, height, GameConfig.getCellMargin(), new JColor(1, 1, 1, 1).value));
 				__loader.addCreate(KEY_CELL_ROAD_A, new CellImage(CellImage.TYPE_ROAD_A, width, height, GameConfig.getCellMargin(), new JColor(1, 0, 0, 1).value));
 				__loader.addCreate(KEY_CELL_ROAD_B, new CellImage(CellImage.TYPE_ROAD_A, width, height, GameConfig.getCellMargin(), new JColor(0, 0.509, 0, 1).value));
 				__loader.addCreate(KEY_CELL_ROAD_C, new CellImage(CellImage.TYPE_ROAD_A, width, height, GameConfig.getCellMargin(), new JColor(0.209, 0.209, 1, 1).value));
@@ -200,7 +202,6 @@ class FoldAni implements ICreatable
 	static private const IS_LOAD_BMP:Boolean = true;
 	private var _creater:Creater = null;
 	private var _signal:JSignal = null;
-	private var _looper:JTimeLooper = null;
 	private var _list:Array = null;
 	
 	public function FoldAni()
@@ -401,7 +402,7 @@ class FoldAni implements ICreatable
 		var endSide:Number = 5.3;
 		var step:Number = 0.05;
 		
-		this._looper = new JTimeLooper(0, (endSide - startSide) / step, function(p_index:int):Boolean
+		new JTimeLooper(0, (endSide - startSide) / step, function(p_index:int):Boolean
 		{
 			addBitmap(startSide + p_index * step, startSide, endSide);
 			return true;
@@ -409,8 +410,7 @@ class FoldAni implements ICreatable
 		{
 		//	saveAll();
 			_creater.createReady();
-		});
-		this._looper.loop();
+		}).loop();
 		
 		return false;
 	}

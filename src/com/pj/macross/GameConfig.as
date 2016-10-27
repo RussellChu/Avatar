@@ -19,7 +19,7 @@ package com.pj.macross
 		static private var __foldAniSrcLoad:Boolean = true;
 		static private var __foldAniSrcWidth:int = 64;
 		static private var __mapRadius:int = 10;
-		static private var __mapRandom:Boolean = false;
+		static private var __mapRandom:Boolean = true;
 		
 		static private var __mapBaseA:Array = [0, 2, 3, 598, 625, 626];
 		static private var __mapBaseB:Array = [247, 274, 275, 585, 612, 613];
@@ -70,6 +70,8 @@ package com.pj.macross
 		
 		static private var __demoSpeed:int = 100;
 		
+		static private var __demoCmd:Array = null;
+		
 		static private var __scoreMax:int = 22;
 		
 		static public function getCapId():String  { return __capId; }
@@ -118,6 +120,13 @@ package com.pj.macross
 		
 		static public function getDemoSpeed():int  { return __demoSpeed; }
 		
+		static public function getDemoCmd():Array  {
+			if (!__demoCmd) {
+				return [GameData.COMMAND_ROAD, GameData.COMMAND_ROAD, GameData.COMMAND_ROAD, GameData.COMMAND_ROAD_EX, GameData.COMMAND_ATTACK, GameData.COMMAND_ATTACK];
+			}
+			return __demoCmd;
+		}
+		
 		static public function getScoreMax():int  { return __scoreMax; }
 		
 		static public function update(p_data:Object):void
@@ -145,6 +154,7 @@ package com.pj.macross
 			__mapHostageB = Helper.getValueArray(p_data, "mapHostageB", __mapHostageB);
 			__mapHostageC = Helper.getValueArray(p_data, "mapHostageC", __mapHostageC);
 			__demoSpeed = Helper.getValueInteger(p_data, "demoSpeed", __demoSpeed);
+			__demoCmd = Helper.getValueArray(p_data, "demoCmd", __demoCmd);
 			__scoreMax = Helper.getValueInteger(p_data, "scoreMax", __scoreMax);
 		}
 		

@@ -204,6 +204,7 @@ package com.pj.macross
 
 import com.pj.common.Helper;
 import com.pj.common.JTimer;
+import com.pj.common.JTweener;
 import com.pj.common.component.AbstractButton;
 import com.pj.common.component.BasicButton;
 import com.pj.common.component.BasicContainer;
@@ -314,6 +315,7 @@ class SkinStore
 	static public const TYPE_HOSTAGE_BG_2:int = 17;
 	static public const TYPE_OVER:int = 18;
 	static public const TYPE_DOWN:int = 19;
+	static public const TYPE_LIGHT:int = 20;
 	
 	static private var __map:Object = null;
 	
@@ -342,6 +344,7 @@ class SkinStore
 			__map[String(TYPE_HOSTAGE_BG_2)] = [];
 			__map[String(TYPE_OVER)] = [];
 			__map[String(TYPE_DOWN)] = [];
+			__map[String(TYPE_LIGHT)] = [];
 		}
 	}
 	
@@ -400,6 +403,9 @@ class SkinStore
 			break;
 		case TYPE_DOWN: 
 			assetKey = GameAsset.KEY_CELL_DOWN;
+			break;
+		case TYPE_LIGHT: 
+			assetKey = GameAsset.KEY_CELL_LIGHT;
 			break;
 		case TYPE_ROAD_EX_0: 
 			addFold = true;
@@ -1020,6 +1026,14 @@ class GameMapItem extends BasicObject
 		this._side = p_side;
 		this._state = p_state;
 		this.setSkin(this._face, p_state, p_side);
+		
+		this._front.show(SkinStore.TYPE_LIGHT);
+		new JTweener(1000, function (p_value:Number):void {
+			_front.instance.alpha = (1000 - p_value) * 0.001;
+		}, function ():void {
+			_front.show(SkinStore.TYPE_NONE);
+			_front.instance.alpha = 1;
+		}).run();
 	}
 	
 	public function setFlash(p_state:int, p_side:int):void

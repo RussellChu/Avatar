@@ -136,10 +136,7 @@ package com.pj
 				this._model.undo();
 				break;
 			case GameData.COMMAND_CLEAR: 
-				while (this._model.undo())
-				{
-				}
-				;
+				this._model.clear();
 				break;
 			case GameData.COMMAND_AUTO: 
 				this._model.autoPlay();

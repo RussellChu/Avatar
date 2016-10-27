@@ -72,45 +72,19 @@ package com.pj.macross
 		public function GameModel()
 		{
 			this._map = new MapCellCroup();
-			this._createResult = {obstage: [], hostageA: [], hostageB: [], hostageC: [], isReady: false};
 			this._aiA = new SideAI(GameData.SIDE_A, this);
 			this._aiB = new SideAI(GameData.SIDE_B, this);
 			this._aiC = new SideAI(GameData.SIDE_C, this);
 			
-			var mapInfo:Object = {};
-			var getMapInfo:Function = function(p_x:int, p_y:int, p_z:int):Object
-			{
-				var cellInfo:Object = mapInfo["" + p_x + ":" + p_y + ":" + p_z];
-				if (!cellInfo)
-				{
-					cellInfo = {isObstacle: 0, hostageSide: 0};
-					mapInfo["" + p_x + ":" + p_y + ":" + p_z] = cellInfo;
-				}
-				return cellInfo;
-			};
-			var setMapInfoHostage:Function = function(p_x:int, p_y:int, p_z:int, p_side:int):void
-			{
-				var cellInfo:Object = getMapInfo(p_x, p_y, p_z);
-				cellInfo.hostageSide = p_side;
-			};
-			var setMapInfoObstacle:Function = function(p_x:int, p_y:int, p_z:int, p_value:int):void
-			{
-				var cellInfo:Object = getMapInfo(p_x, p_y, p_z);
-				cellInfo.isObstacle = p_value;
-			};
-			
-			var i:int = 0;
-			var j:int = 0;
-			var k:int = 0;
-			
 			var id:int = 0;
-			var obstacleRemain:int = 10;
-			var hostageRemain:int = 20;
-			for (j = -(GameConfig.getMapRadius() - 1) * 2; j <= (GameConfig.getMapRadius() - 1) * 2; j++)
+			var x:int = 0;
+			var y:int = 0;
+			var z:int = 0;
+			for (var j:int = -(GameConfig.getMapRadius() - 1) * 2; j <= (GameConfig.getMapRadius() - 1) * 2; j++)
 			{
-				for (i = -(GameConfig.getMapRadius() - 1) * 2; i <= (GameConfig.getMapRadius() - 1) * 2; i++)
+				for (var i:int = -(GameConfig.getMapRadius() - 1) * 2; i <= (GameConfig.getMapRadius() - 1) * 2; i++)
 				{
-					k = i + j;
+					var k:int = i + j;
 					if (k < -(GameConfig.getMapRadius() - 1) * 2 || k > (GameConfig.getMapRadius() - 1) * 2)
 					{
 						continue;
@@ -166,144 +140,236 @@ package com.pj.macross
 					{
 						continue;
 					}
-					var x:int = i;
-					var y:int = j;
-					var z:int = -k;
+					x = i;
+					y = j;
+					z = -k;
 					var startX:int = (GameConfig.getMapRadius() - 1) * 2 + j;
 					var startY:int = (GameConfig.getMapRadius() - 1) * 3 + i * 2 + j;
 					this._map.addCell(id, x, y, z, startX, startY);
-					var key:String = "" + x + ":" + y + ":" + z;
-					if (GameConfig.getMapBaseA().indexOf(id) >= 0)
-					{
-						key = "";
-						this.addBase(GameData.SIDE_A, x, y, z);
-					}
-					else if (GameConfig.getMapBaseB().indexOf(id) >= 0)
-					{
-						key = "";
-						this.addBase(GameData.SIDE_B, x, y, z);
-					}
-					else if (GameConfig.getMapBaseC().indexOf(id) >= 0)
-					{
-						key = "";
-						this.addBase(GameData.SIDE_C, x, y, z);
-					}
-					else if (GameConfig.getMapObstacle().indexOf(id) >= 0)
-					{
-						key = "";
-						this.addObstacle(x, y, z);
-					}
-					else
-					{
-						if (!GameConfig.getMapRandom())
-						{
-							if (GameConfig.getMapHostageA().indexOf(id) >= 0)
-							{
-								this.addHostage(GameData.SIDE_A, x, y, z);
-							}
-							else if (GameConfig.getMapHostageB().indexOf(id) >= 0)
-							{
-								this.addHostage(GameData.SIDE_B, x, y, z);
-							}
-							else if (GameConfig.getMapHostageC().indexOf(id) >= 0)
-							{
-								this.addHostage(GameData.SIDE_C, x, y, z);
-							}
-							else if (GameConfig.getMapObstacleOut().indexOf(id) >= 0)
-							{
-								this.addObstacle(x, y, z);
-							}
-						}
-						else
-						{
-							// build rand map
-							var cellInfo:Object = getMapInfo(x, y, z);
-							var isObstacle:int = cellInfo.isObstacle;
-							var hostageSide:int = cellInfo.hostageSide;
-							if (isObstacle == 0 && hostageSide == 0)
-							{
-								if (Math.random() <= 10 / 100 && obstacleRemain > 0 && GameConfig.getMapObstacleClear().indexOf(id) < 0)
-								{
-									obstacleRemain--;
-									setMapInfoObstacle(x, y, z, 1);
-									setMapInfoObstacle(y, z, x, 1);
-									setMapInfoObstacle(z, x, y, 1);
-								}
-								else if ((Math.random() <= 20 / 100 && hostageRemain > 0 && GameConfig.getMapHostageClear().indexOf(id) < 0) || GameConfig.getMapHostageCenter().indexOf(id) >= 0)
-								{
-									hostageRemain--;
-									var select:Array = Helper.selectFrom([//
-									[GameData.SIDE_A, GameData.SIDE_B, GameData.SIDE_C]//
-									, [GameData.SIDE_B, GameData.SIDE_C, GameData.SIDE_A]//
-									, [GameData.SIDE_C, GameData.SIDE_A, GameData.SIDE_B]//
-									]) as Array;
-									setMapInfoHostage(x, y, z, select[0]);
-									setMapInfoHostage(y, z, x, select[1]);
-									setMapInfoHostage(z, x, y, select[2]);
-									
-									for (var m:int = 0; m < CHECK_BASE_LIST.length; m++)
-									{
-										var move:Object = CHECK_BASE_LIST[m];
-										var nextX:int = x + move.x;
-										var nextY:int = y + move.y;
-										var nextZ:int = z + move.z;
-										setMapInfoHostage(nextX, nextY, nextZ, -1);
-										nextX = y + move.x;
-										nextY = z + move.y;
-										nextZ = x + move.z;
-										setMapInfoHostage(nextX, nextY, nextZ, -1);
-										nextX = z + move.x;
-										nextY = x + move.y;
-										nextZ = y + move.z;
-										setMapInfoHostage(nextX, nextY, nextZ, -1);
-									}
-								}
-								else
-								{
-									setMapInfoHostage(x, y, z, -1);
-									setMapInfoHostage(y, z, x, -1);
-									setMapInfoHostage(z, x, y, -1);
-									setMapInfoObstacle(x, y, z, -1);
-									setMapInfoObstacle(y, z, x, -1);
-									setMapInfoObstacle(z, x, y, -1);
-								}
-							}
-							cellInfo = getMapInfo(x, y, z);
-							isObstacle = cellInfo.isObstacle;
-							hostageSide = cellInfo.hostageSide;
-							if (isObstacle > 0)
-							{
-								this._createResult.obstage.push(id);
-								this.addObstacle(x, y, z);
-							}
-							else if (hostageSide > 0)
-							{
-								if (hostageSide == GameData.SIDE_A)
-								{
-									this._createResult.hostageA.push(id);
-								}
-								if (hostageSide == GameData.SIDE_B)
-								{
-									this._createResult.hostageB.push(id);
-								}
-								if (hostageSide == GameData.SIDE_C)
-								{
-									this._createResult.hostageC.push(id);
-								}
-								this.addHostage(hostageSide, x, y, z);
-							}
-						}
-					}
+					
 					id++;
 				}
 			}
-			if (obstacleRemain == 0 && hostageRemain == -2 && GameConfig.getCapId() != "")
+			
+			this.loadSave();
+			
+			if (this._record.length > 0)
 			{
-				this._createResult.isReady = true;
+				for (var m:int = 0; m < this._record.length; m++)
+				{
+					var item:Array = this._record[m];
+					var state:int = item[0];
+					var side:int = item[1];
+					x = item[2];
+					y = item[3];
+					z = item[4];
+					var score:int = item[7];
+					this.setScore(side, score);
+					switch (state)
+					{
+					case GameData.STATE_BASE: 
+						this.addBase(side, x, y, z);
+						break;
+					case GameData.STATE_ROAD: 
+						this.addRoad(side, x, y, z);
+						break;
+					case GameData.STATE_ROAD_EX: 
+						this.addRoadEx(side, x, y, z);
+						break;
+					case GameData.STATE_OBSTACLE: 
+						this.addObstacle(x, y, z);
+						break;
+					case GameData.STATE_HOSTAGE: 
+						this.addHostage(side, x, y, z);
+						break;
+					}
+				}
 			}
 			else
 			{
-				this.loadSave();
+				this.buildMap();
+			}
+		}
+		
+		private function buildMap():void
+		{
+			this._record = [];
+			this._save.list = this._record;
+			
+			this.setScore(GameData.SIDE_A, 0);
+			this.setScore(GameData.SIDE_B, 0);
+			this.setScore(GameData.SIDE_C, 0);
+			
+			this._createResult = {obstage: [], hostageA: [], hostageB: [], hostageC: [], isReady: false};
+			var mapInfo:Object = {};
+			var getMapInfo:Function = function(p_x:int, p_y:int, p_z:int):Object
+			{
+				var cellInfo:Object = mapInfo["" + p_x + ":" + p_y + ":" + p_z];
+				if (!cellInfo)
+				{
+					cellInfo = {isObstacle: 0, hostageSide: 0};
+					mapInfo["" + p_x + ":" + p_y + ":" + p_z] = cellInfo;
+				}
+				return cellInfo;
+			};
+			var setMapInfoHostage:Function = function(p_x:int, p_y:int, p_z:int, p_side:int):void
+			{
+				var cellInfo:Object = getMapInfo(p_x, p_y, p_z);
+				cellInfo.hostageSide = p_side;
+			};
+			var setMapInfoObstacle:Function = function(p_x:int, p_y:int, p_z:int, p_value:int):void
+			{
+				var cellInfo:Object = getMapInfo(p_x, p_y, p_z);
+				cellInfo.isObstacle = p_value;
+			};
+			
+			var obstacleRemain:int = 10;
+			var hostageRemain:int = 20;
+			var list:Array = this._map.getList();
+			for (var i:int = 0; i < list.length; i++)
+			{
+				var cell:MapCell = list[i] as MapCell;
+				var x:int = cell.keyX;
+				var y:int = cell.keyY;
+				var z:int = cell.keyZ;
+				var id:int = cell.id;
+				var key:String = "" + x + ":" + y + ":" + z;
+				if (GameConfig.getMapBaseA().indexOf(id) >= 0)
+				{
+					key = "";
+					this.addBase(GameData.SIDE_A, x, y, z);
+					this.addRecord(GameData.STATE_BASE, GameData.SIDE_A, x, y, z, 0, 0, 0, 0);
+				}
+				else if (GameConfig.getMapBaseB().indexOf(id) >= 0)
+				{
+					key = "";
+					this.addBase(GameData.SIDE_B, x, y, z);
+					this.addRecord(GameData.STATE_BASE, GameData.SIDE_B, x, y, z, 0, 0, 0, 0);
+				}
+				else if (GameConfig.getMapBaseC().indexOf(id) >= 0)
+				{
+					key = "";
+					this.addBase(GameData.SIDE_C, x, y, z);
+					this.addRecord(GameData.STATE_BASE, GameData.SIDE_C, x, y, z, 0, 0, 0, 0);
+				}
+				else if (GameConfig.getMapObstacle().indexOf(id) >= 0)
+				{
+					key = "";
+					this.addObstacle(x, y, z);
+					this.addRecord(GameData.STATE_OBSTACLE, 0, x, y, z, 0, 0, 0, 0);
+				}
+				else
+				{
+					if (!GameConfig.getMapRandom())
+					{
+						if (GameConfig.getMapHostageA().indexOf(id) >= 0)
+						{
+							this.addHostage(GameData.SIDE_A, x, y, z);
+							this.addRecord(GameData.STATE_HOSTAGE, GameData.SIDE_A, x, y, z, 0, 0, 0, 0);
+						}
+						else if (GameConfig.getMapHostageB().indexOf(id) >= 0)
+						{
+							this.addHostage(GameData.SIDE_B, x, y, z);
+							this.addRecord(GameData.STATE_HOSTAGE, GameData.SIDE_B, x, y, z, 0, 0, 0, 0);
+						}
+						else if (GameConfig.getMapHostageC().indexOf(id) >= 0)
+						{
+							this.addHostage(GameData.SIDE_C, x, y, z);
+							this.addRecord(GameData.STATE_HOSTAGE, GameData.SIDE_C, x, y, z, 0, 0, 0, 0);
+						}
+						else if (GameConfig.getMapObstacleOut().indexOf(id) >= 0)
+						{
+							this.addObstacle(x, y, z);
+							this.addRecord(GameData.STATE_OBSTACLE, 0, x, y, z, 0, 0, 0, 0);
+						}
+					}
+					else
+					{
+						// build rand map
+						var cellInfo:Object = getMapInfo(x, y, z);
+						var isObstacle:int = cellInfo.isObstacle;
+						var hostageSide:int = cellInfo.hostageSide;
+						if (isObstacle == 0 && hostageSide == 0)
+						{
+							if (Math.random() <= 10 / 100 && obstacleRemain > 0 && GameConfig.getMapObstacleClear().indexOf(id) < 0)
+							{
+								obstacleRemain--;
+								setMapInfoObstacle(x, y, z, 1);
+								setMapInfoObstacle(y, z, x, 1);
+								setMapInfoObstacle(z, x, y, 1);
+							}
+							else if ((Math.random() <= 20 / 100 && hostageRemain > 0 && GameConfig.getMapHostageClear().indexOf(id) < 0) || GameConfig.getMapHostageCenter().indexOf(id) >= 0)
+							{
+								hostageRemain--;
+								var select:Array = Helper.selectFrom([//
+								[GameData.SIDE_A, GameData.SIDE_B, GameData.SIDE_C]//
+								, [GameData.SIDE_B, GameData.SIDE_C, GameData.SIDE_A]//
+								, [GameData.SIDE_C, GameData.SIDE_A, GameData.SIDE_B]//
+								]) as Array;
+								setMapInfoHostage(x, y, z, select[0]);
+								setMapInfoHostage(y, z, x, select[1]);
+								setMapInfoHostage(z, x, y, select[2]);
+								
+								for (var m:int = 0; m < CHECK_BASE_LIST.length; m++)
+								{
+									var move:Object = CHECK_BASE_LIST[m];
+									var nextX:int = x + move.x;
+									var nextY:int = y + move.y;
+									var nextZ:int = z + move.z;
+									setMapInfoHostage(nextX, nextY, nextZ, -1);
+									nextX = y + move.x;
+									nextY = z + move.y;
+									nextZ = x + move.z;
+									setMapInfoHostage(nextX, nextY, nextZ, -1);
+									nextX = z + move.x;
+									nextY = x + move.y;
+									nextZ = y + move.z;
+									setMapInfoHostage(nextX, nextY, nextZ, -1);
+								}
+							}
+							else
+							{
+								setMapInfoHostage(x, y, z, -1);
+								setMapInfoHostage(y, z, x, -1);
+								setMapInfoHostage(z, x, y, -1);
+								setMapInfoObstacle(x, y, z, -1);
+								setMapInfoObstacle(y, z, x, -1);
+								setMapInfoObstacle(z, x, y, -1);
+							}
+						}
+						
+						cellInfo = getMapInfo(x, y, z);
+						isObstacle = cellInfo.isObstacle;
+						hostageSide = cellInfo.hostageSide;
+						if (isObstacle > 0)
+						{
+							this._createResult.obstage.push(id);
+							this.addObstacle(x, y, z);
+							this.addRecord(GameData.STATE_OBSTACLE, 0, x, y, z, 0, 0, 0, 0);
+						}
+						else if (hostageSide > 0)
+						{
+							if (hostageSide == GameData.SIDE_A)
+							{
+								this._createResult.hostageA.push(id);
+							}
+							if (hostageSide == GameData.SIDE_B)
+							{
+								this._createResult.hostageB.push(id);
+							}
+							if (hostageSide == GameData.SIDE_C)
+							{
+								this._createResult.hostageC.push(id);
+							}
+							this.addHostage(hostageSide, x, y, z);
+							this.addRecord(GameData.STATE_HOSTAGE, hostageSide, x, y, z, 0, 0, 0, 0);
+						}
+						else
+						{
+							this.clearCell(x, y, z);
+						}
+					}
+				}
 			}
 		}
 		
@@ -343,35 +409,6 @@ package com.pj.macross
 				this._save.list = [];
 			}
 			this._record = this._save.list;
-			for (var i:int = 0; i < this._record.length; i++)
-			{
-				var item:Array = this._record[i];
-				var state:int = item[0];
-				var side:int = item[1];
-				var x:int = item[2];
-				var y:int = item[3];
-				var z:int = item[4];
-				var score:int = item[7];
-				this.setScore(side, score);
-				switch (state)
-				{
-				case GameData.STATE_BASE: 
-					this.addBase(side, x, y, z);
-					break;
-				case GameData.STATE_ROAD: 
-					this.addRoad(side, x, y, z);
-					break;
-				case GameData.STATE_ROAD_EX: 
-					this.addRoadEx(side, x, y, z);
-					break;
-				case GameData.STATE_OBSTACLE: 
-					this.addObstacle(x, y, z);
-					break;
-				case GameData.STATE_HOSTAGE: 
-					this.addHostage(side, x, y, z);
-					break;
-				}
-			}
 		}
 		
 		private function addRecord(p_state:int, p_side:int, p_x:int, p_y:int, p_z:int, p_preState:int, p_preSide:int, p_score:int, p_preScore:int):void
@@ -640,10 +677,16 @@ package com.pj.macross
 		public function start():void
 		{
 			GameController.i.signal.dispatch({list: this._map.getList()}, EVENT_LOAD_COMPLETE);
-			GameController.i.signal.dispatch(this._createResult, EVENT_CREATE_RESULT);
+			//	GameController.i.signal.dispatch(this._createResult, EVENT_CREATE_RESULT);
 			GameController.i.signal.dispatch({side: GameData.SIDE_A, score: this.getScore(GameData.SIDE_A)}, EVENT_SCORE_UPDATE);
 			GameController.i.signal.dispatch({side: GameData.SIDE_B, score: this.getScore(GameData.SIDE_B)}, EVENT_SCORE_UPDATE);
 			GameController.i.signal.dispatch({side: GameData.SIDE_C, score: this.getScore(GameData.SIDE_C)}, EVENT_SCORE_UPDATE);
+		}
+		
+		public function clear():void
+		{
+			this.buildMap();
+			this.start();
 		}
 		
 		public function getCellByKey(p_keyX:int, p_keyY:int, p_keyZ:int):MapCell
@@ -734,15 +777,15 @@ package com.pj.macross
 		{
 			if (this._record.length == 0)
 			{
-				this.setScore(GameData.SIDE_A, 0);
-				this.setScore(GameData.SIDE_B, 0);
-				this.setScore(GameData.SIDE_C, 0);
-				GameController.i.signal.dispatch({side: GameData.SIDE_A, score: 0}, EVENT_SCORE_UPDATE);
-				GameController.i.signal.dispatch({side: GameData.SIDE_B, score: 0}, EVENT_SCORE_UPDATE);
-				GameController.i.signal.dispatch({side: GameData.SIDE_C, score: 0}, EVENT_SCORE_UPDATE);
 				return false;
 			}
 			var item:Array = this._record.pop();
+			var state:int = item[0];
+			if (state == GameData.STATE_HOSTAGE || state == GameData.STATE_OBSTACLE || state == GameData.STATE_BASE)
+			{
+				this._record.push(item);
+				return false;
+			}
 			var preState:int = item[5];
 			var preSide:int = item[6];
 			var x:int = item[2];
@@ -784,6 +827,15 @@ package com.pj.macross
 				return;
 			}
 			this._autoDelta = 0;
+			
+			if (this._autoState == 0)
+			{
+				this._aiA.addCmd();
+				this._aiB.addCmd();
+				this._aiC.addCmd();
+			}
+			this._autoState = (this._autoState + 1) % 3;
+			
 			var side:int = Helper.selectFrom([GameData.SIDE_A, GameData.SIDE_B, GameData.SIDE_C]) as int;
 			switch (side)
 			{
@@ -892,6 +944,12 @@ package com.pj.macross
 		
 		public function getAIList(p_command:int, p_side:int, p_atkSide:int):Array
 		{
+			var result:Array = [];
+			if (p_side == 0)
+			{
+				return result;
+			}
+			
 			var targetList:Array = [];
 			var cellList:Array = this._map.getList();
 			var cell:MapCell = null;
@@ -905,8 +963,7 @@ package com.pj.macross
 				}
 			}
 			
-			var result:Array = [];
-			if (p_side == 0)
+			if (targetList.length == 0)
 			{
 				return result;
 			}
@@ -991,7 +1048,9 @@ package com.pj.macross
 					}
 				}
 			}
-			result.sort(function(p_obj0:Object, p_obj1:Object):int
+			var filterList:Array = result;
+			result = [];
+			filterList.sort(function(p_obj0:Object, p_obj1:Object):int
 			{
 				if (p_obj0.score > p_obj1.score)
 				{
@@ -1003,23 +1062,23 @@ package com.pj.macross
 				}
 				return 0;
 			});
-			var filterList:Array = [];
-			for (i = 0; i < result.length; i++)
+			for (i = 0; i < filterList.length; i++)
 			{
-				item = result[i];
-				if (item.score > result[0].score)
+				item = filterList[i];
+				if (item.score > filterList[0].score)
 				{
 					break;
 				}
-				filterList.push(item);
+				result.push(item);
 			}
-			return filterList;
+			return result;
 		}
 	
 	}
 }
 
 import com.pj.common.Helper;
+import com.pj.macross.GameConfig;
 import com.pj.macross.GameData;
 import com.pj.macross.GameModel;
 import com.pj.macross.structure.MapCell;
@@ -1099,9 +1158,9 @@ class SideAI
 		this._cmdListMov = [];
 	}
 	
-	public function doAct():void
+	public function addCmd():void
 	{
-		var command:int = Helper.selectFrom([GameData.COMMAND_ROAD, GameData.COMMAND_ROAD, GameData.COMMAND_ROAD, GameData.COMMAND_ROAD_EX, GameData.COMMAND_ATTACK, GameData.COMMAND_ATTACK]) as int;
+		var command:int = Helper.selectFrom(GameConfig.getDemoCmd()) as int;
 		if (command == GameData.COMMAND_ATTACK && this._cmdListAtk.length < 100)
 		{
 			this._cmdListAtk.push(command);
@@ -1114,7 +1173,10 @@ class SideAI
 		{
 			this._cmdListMov.push(command);
 		}
-		
+	}
+	
+	public function doAct():void
+	{
 		var finalCmd:int = 0;
 		var finalId:int = 0;
 		var finalScore:int = 0;
@@ -1139,6 +1201,33 @@ class SideAI
 				atkId = (Helper.selectFrom(list) as Object).id as int;
 				atkScore = list[0].score;
 			}
+			else if (bestSide != this._side)
+			{
+				list = this._model.getAIList(GameData.COMMAND_ATTACK, this._side, this._side);
+				if (list.length > 0)
+				{
+					atkId = (Helper.selectFrom(list) as Object).id as int;
+					atkScore = list[0].score;
+				}
+				else
+				{
+					var remainSide:int = GameData.SIDE_A;
+					if (this._side == GameData.SIDE_A || bestSide == GameData.SIDE_A)
+					{
+						remainSide = GameData.SIDE_B;
+						if (this._side == GameData.SIDE_B || bestSide == GameData.SIDE_B)
+						{
+							remainSide = GameData.SIDE_C;
+						}
+					}
+					list = this._model.getAIList(GameData.COMMAND_ATTACK, this._side, remainSide);
+					if (list.length > 0)
+					{
+						atkId = (Helper.selectFrom(list) as Object).id as int;
+						atkScore = list[0].score;
+					}
+				}
+			}
 		}
 		if (this._cmdListJmp.length > 0)
 		{
@@ -1158,19 +1247,19 @@ class SideAI
 				movScore = list[0].score;
 			}
 		}
-		if (finalCmd == 0 || movScore < finalScore)
+		if (movId != -1 && (finalCmd == 0 || movScore < finalScore))
 		{
 			finalCmd = GameData.COMMAND_ROAD;
 			finalId = movId;
 			finalScore = movScore;
 		}
-		if (finalCmd == 0 || (jmpScore != -1 && jmpScore < finalScore))
+		if (jmpId != -1 && (finalCmd == 0 || (jmpScore != -1 && jmpScore < finalScore)))
 		{
 			finalCmd = GameData.COMMAND_ROAD_EX;
 			finalId = jmpId;
 			finalScore = jmpScore;
 		}
-		if (finalCmd == 0 || (atkScore != -1 && atkScore < finalScore))
+		if (atkId != -1 && (finalCmd == 0 || (atkScore != -1 && atkScore < finalScore)))
 		{
 			finalCmd = GameData.COMMAND_ATTACK;
 			finalId = atkId;
