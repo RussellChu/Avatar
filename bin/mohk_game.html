@@ -46,6 +46,8 @@ var data = {};
 //data.mapHostageA = [];
 //data.mapHostageB = [];
 //data.mapHostageC = [];
+//data.demoSpeed = 0;
+//data.scoreMax = 22;
 /*
 data.cellRadius = 113;
 data.cellMargin = 5;
@@ -56,9 +58,10 @@ data.foldAniSrcWidth = 226;
 data.mapRandom = true;
 */
 
-data.cellRadius = 16;
+data.cellRadius = 8;
 data.cellMargin = 1;
 data.mapRandom = true;
+data.demoSpeed = 0;
 
 var valueStr = encodeObjToUrlParam( {data: JSON.stringify( data )} );
 paramElement.setAttribute( "value", valueStr );

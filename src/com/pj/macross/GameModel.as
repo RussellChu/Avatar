@@ -323,7 +323,6 @@ package com.pj.macross
 		private function setScore(p_side:int, p_score:int):void
 		{
 			this.getScore(p_side);
-			trace("setScore of " + p_side + " >> " + p_score);
 			this._score[p_side] = p_score;
 		}
 		
@@ -780,7 +779,8 @@ package com.pj.macross
 		private function onAutoPlayTime(p_delta:Number):void
 		{
 			this._autoDelta += p_delta;
-			if (this._autoDelta < 100) {
+			if (this._autoDelta < GameConfig.getDemoSpeed())
+			{
 				return;
 			}
 			this._autoDelta = 0;
@@ -804,7 +804,7 @@ package com.pj.macross
 			if (!this._timer)
 			{
 				this._timer = new JTimer(this.onAutoPlayTime);
-			//	this.getSearchList(5);
+					//	this.getSearchList(5);
 			}
 			if (this._timer.state())
 			{
@@ -865,26 +865,26 @@ package com.pj.macross
 						list.push(distList[i][j]);
 					}
 				}
-				for (i = 0; i < list.length; i++)
-				{
-					trace("" + list[i].x + ", " + list[i].y + ", " + list[i].z);
-				}
 				this._aiCheckList = list;
 			}
 			return this._aiCheckList;
 		}
 		
-		public function getBestSide():int {
+		public function getBestSide():int
+		{
 			var scoreA:int = this.getScore(GameData.SIDE_A);
 			var scoreB:int = this.getScore(GameData.SIDE_B);
 			var scoreC:int = this.getScore(GameData.SIDE_C);
-			if (scoreA > scoreB && scoreA > scoreC) {
+			if (scoreA < GameConfig.getScoreMax() && (scoreA > scoreB || scoreB >= GameConfig.getScoreMax()) && (scoreA > scoreC || scoreC >= GameConfig.getScoreMax()))
+			{
 				return GameData.SIDE_A;
 			}
-			if (scoreB > scoreC && scoreB > scoreA) {
+			if (scoreB < GameConfig.getScoreMax() && (scoreB > scoreC || scoreC >= GameConfig.getScoreMax()) && (scoreB > scoreA || scoreA >= GameConfig.getScoreMax()))
+			{
 				return GameData.SIDE_B;
 			}
-			if (scoreC > scoreA && scoreC > scoreB) {
+			if (scoreC < GameConfig.getScoreMax() && (scoreC > scoreA || scoreA >= GameConfig.getScoreMax()) && (scoreC > scoreB || scoreB >= GameConfig.getScoreMax()))
+			{
 				return GameData.SIDE_C;
 			}
 			return 0;
@@ -926,9 +926,9 @@ package com.pj.macross
 					{
 						continue;
 					}
-					if (this.checkBase(cell.id, p_side, false))
+					if (this.checkBase(cell.id, p_side, false) && (p_side == p_atkSide || cell.side == p_atkSide))
 					{
-						result.push({id: cell.id, x: cell.keyX, y: cell.keyY, z: cell.keyZ, score: -1});
+						result.push({id: cell.id, x: cell.keyX, y: cell.keyY, z: cell.keyZ, side: cell.side, score: -1});
 					}
 				}
 				break;
@@ -949,7 +949,7 @@ package com.pj.macross
 					}
 					if (this.checkBase(cell.id, p_side, false))
 					{
-						result.push({id: cell.id, x: cell.keyX, y: cell.keyY, z: cell.keyZ, score: -1});
+						result.push({id: cell.id, x: cell.keyX, y: cell.keyY, z: cell.keyZ, side: cell.side, score: -1});
 					}
 				}
 				break;
@@ -970,18 +970,23 @@ package com.pj.macross
 					}
 					if (this.checkBase(cell.id, p_side, true))
 					{
-						result.push({id: cell.id, x: cell.keyX, y: cell.keyY, z: cell.keyZ, score: -1});
+						result.push({id: cell.id, x: cell.keyX, y: cell.keyY, z: cell.keyZ, side: cell.side, score: -1});
 					}
 				}
 				break;
 			default: 
 				;
 			}
-			for (i = 0; i < result.length; i++) {
-				var item:Object = result[i];
-				for (var j:int = 0; j < targetList.length; j++) {
+			
+			var item:Object = null;
+			for (i = 0; i < result.length; i++)
+			{
+				item = result[i];
+				for (var j:int = 0; j < targetList.length; j++)
+				{
 					var score:int = Math.abs(item.x - targetList[j].x) + Math.abs(item.y - targetList[j].y) + Math.abs(item.z - targetList[j].z);
-					if (item.score == -1 || (item.score > score)) {
+					if (item.score == -1 || (item.score > score))
+					{
 						item.score = score;
 					}
 				}
@@ -998,7 +1003,17 @@ package com.pj.macross
 				}
 				return 0;
 			});
-			return result;
+			var filterList:Array = [];
+			for (i = 0; i < result.length; i++)
+			{
+				item = result[i];
+				if (item.score > result[0].score)
+				{
+					break;
+				}
+				filterList.push(item);
+			}
+			return filterList;
 		}
 	
 	}
@@ -1070,44 +1085,116 @@ class SideAI
 	private var _model:GameModel = null;
 	private var _side:int = 0;
 	private var _cmdList:Array = null;
+	private var _cmdListAtk:Array = null;
+	private var _cmdListJmp:Array = null;
+	private var _cmdListMov:Array = null;
 	
 	public function SideAI(p_side:int, p_model:GameModel)
 	{
 		this._model = p_model;
 		this._side = p_side;
 		this._cmdList = [];
+		this._cmdListAtk = [];
+		this._cmdListJmp = [];
+		this._cmdListMov = [];
 	}
 	
 	public function doAct():void
 	{
 		var command:int = Helper.selectFrom([GameData.COMMAND_ROAD, GameData.COMMAND_ROAD, GameData.COMMAND_ROAD, GameData.COMMAND_ROAD_EX, GameData.COMMAND_ATTACK, GameData.COMMAND_ATTACK]) as int;
-		this._cmdList.push(command);
-		command = this._cmdList.shift();
-		var isAttack:Boolean = false;
+		if (command == GameData.COMMAND_ATTACK && this._cmdListAtk.length < 100)
+		{
+			this._cmdListAtk.push(command);
+		}
+		else if (command == GameData.COMMAND_ROAD_EX && this._cmdListJmp.length < 100)
+		{
+			this._cmdListJmp.push(command);
+		}
+		else if (command == GameData.COMMAND_ROAD && this._cmdListMov.length < 100)
+		{
+			this._cmdListMov.push(command);
+		}
+		
+		var finalCmd:int = 0;
+		var finalId:int = 0;
+		var finalScore:int = 0;
+		var atkId:int = -1;
+		var atkScore:int = -1;
+		var jmpId:int = -1;
+		var jmpScore:int = -1;
+		var movId:int = -1;
+		var movScore:int = -1;
 		var bestSide:int = this._model.getBestSide();
-		if (bestSide == 0 || Math.random() < 0.5) {
+		if (bestSide == 0 || Math.random() < 0)
+		{
 			bestSide = this._side;
 		}
-		var list:Array = this._model.getAIList(command, this._side, bestSide);
-		if (list.length == 0)
+		var list:Array = null;
+		var targetList:Array = [];
+		if (this._cmdListAtk.length > 0)
 		{
-			if (this._cmdList.length < 100)
+			list = this._model.getAIList(GameData.COMMAND_ATTACK, this._side, bestSide);
+			if (list.length > 0)
 			{
-				this._cmdList.push(command);
+				atkId = (Helper.selectFrom(list) as Object).id as int;
+				atkScore = list[0].score;
 			}
+		}
+		if (this._cmdListJmp.length > 0)
+		{
+			list = this._model.getAIList(GameData.COMMAND_ROAD_EX, this._side, bestSide);
+			if (list.length > 0)
+			{
+				jmpId = (Helper.selectFrom(list) as Object).id as int;
+				jmpScore = list[0].score;
+			}
+		}
+		if (this._cmdListMov.length > 0)
+		{
+			list = this._model.getAIList(GameData.COMMAND_ROAD, this._side, bestSide);
+			if (list.length > 0)
+			{
+				movId = (Helper.selectFrom(list) as Object).id as int;
+				movScore = list[0].score;
+			}
+		}
+		if (finalCmd == 0 || movScore < finalScore)
+		{
+			finalCmd = GameData.COMMAND_ROAD;
+			finalId = movId;
+			finalScore = movScore;
+		}
+		if (finalCmd == 0 || (jmpScore != -1 && jmpScore < finalScore))
+		{
+			finalCmd = GameData.COMMAND_ROAD_EX;
+			finalId = jmpId;
+			finalScore = jmpScore;
+		}
+		if (finalCmd == 0 || (atkScore != -1 && atkScore < finalScore))
+		{
+			finalCmd = GameData.COMMAND_ATTACK;
+			finalId = atkId;
+			finalScore = atkScore;
+		}
+		
+		if (finalCmd == GameData.COMMAND_ATTACK)
+		{
+			this._cmdListAtk.pop();
+		}
+		else if (finalCmd == GameData.COMMAND_ROAD)
+		{
+			this._cmdListMov.pop();
+		}
+		else if (finalCmd == GameData.COMMAND_ROAD_EX)
+		{
+			this._cmdListJmp.pop();
+		}
+		else
+		{
 			return;
 		}
-	//	var cellId:int = Helper.selectFrom(list) as int;
-		var cellId:int = list[0].id;
-		var result:Boolean = this._model.command(cellId, this._side, command);
-		if (!result)
-		{
-			if (this._cmdList.length < 100)
-			{
-				this._cmdList.push(command);
-			}
-			return;
-		}
+		
+		this._model.command(finalId, this._side, finalCmd);
 	}
 
 }

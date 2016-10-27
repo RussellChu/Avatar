@@ -68,6 +68,10 @@ package com.pj.macross
 		static private var __mapHostageB:Array = [41, 44, 87, 92, 129, 143, 166, 202, 279, 287, 294, 359, 385, 396, 417, 434, 481, 497, 528, 684, 686, 722];
 		static private var __mapHostageC:Array = [11, 14, 32, 55, 79, 122, 145, 153, 182, 258, 324, 339, 364, 459, 505, 522, 537, 589, 631, 654, 729, 752];
 		
+		static private var __demoSpeed:int = 100;
+		
+		static private var __scoreMax:int = 22;
+		
 		static public function getCapId():String  { return __capId; }
 		
 		static public function getSaveVer():int  { return __saveVer; }
@@ -112,6 +116,10 @@ package com.pj.macross
 		
 		static public function getMapHostageC():Array  { return __mapHostageC; }
 		
+		static public function getDemoSpeed():int  { return __demoSpeed; }
+		
+		static public function getScoreMax():int  { return __scoreMax; }
+		
 		static public function update(p_data:Object):void
 		{
 			__capId = Helper.getValueString(p_data, "capId", __capId);
@@ -136,6 +144,8 @@ package com.pj.macross
 			__mapHostageA = Helper.getValueArray(p_data, "mapHostageA", __mapHostageA);
 			__mapHostageB = Helper.getValueArray(p_data, "mapHostageB", __mapHostageB);
 			__mapHostageC = Helper.getValueArray(p_data, "mapHostageC", __mapHostageC);
+			__demoSpeed = Helper.getValueInteger(p_data, "demoSpeed", __demoSpeed);
+			__scoreMax = Helper.getValueInteger(p_data, "scoreMax", __scoreMax);
 		}
 		
 		public function GameConfig()

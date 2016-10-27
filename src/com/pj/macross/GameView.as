@@ -1208,7 +1208,7 @@ class GameMap extends ButtonGroup
 		var target:DisplayObject = p_evt.target as DisplayObject;
 		var key:String = target.name;
 		var item:GameMapItem = this.findItem(key);
-		trace(key);
+	//	trace(key);
 		if (!item)
 		{
 			return;
