@@ -15,6 +15,7 @@
 , "cmds-00011", "New Game", "新遊戲"
 , "cmds-00012", "Tips", "提示"
 , "cmds-00013", "Demo/Pause", "演示/暫停"
+, "cmds-00014", "Print Screen", "Cap圖"
 , "lang-00001", "中", "中"
 , "lang-00002", "English", "English"
 , "text-00001", "Loading", "載入中"
@@ -62,6 +63,7 @@
 , "sys:undo",	"cmds-00010",	1
 , "sys:clr",	"cmds-00011",	1
 , "sys:auto",	"cmds-00013",	1
+, "sys:prtScn",	"cmds-00014",	0
 , "lang:zh",	"lang-00001",	0
 , "lang:en",	"lang-00002",	0
 		]

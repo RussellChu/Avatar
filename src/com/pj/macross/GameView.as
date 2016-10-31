@@ -161,6 +161,9 @@ package com.pj.macross
 				this._tips.showMsg(TipsBoard.MSG_CMD_AUTO);
 				GameController.i.signal.dispatch({command: cmdCode}, EVENT_CMD_CLICK);
 				break;
+			case GameData.COMMAND_PRINT: 
+				this._slider.saveCapture(GameConfig.getCapId());
+				break;
 			default: 
 				GameController.i.signal.dispatch({command: cmdCode}, EVENT_CMD_CLICK);
 			}
@@ -1455,6 +1458,9 @@ class GameCommand extends BasicObject
 			break;
 		case "sys:auto": 
 			data = {cmd: GameData.COMMAND_AUTO};
+			break;
+		case "sys:prtScn": 
+			data = {cmd: GameData.COMMAND_PRINT};
 			break;
 		default: 
 			return;

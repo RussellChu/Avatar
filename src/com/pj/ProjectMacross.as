@@ -30,6 +30,14 @@ package com.pj
 		public function ProjectMacross(p_inst:Sprite = null, p_param:Object = null)
 		{
 			GameConfig.update(p_param);
+			//var data:Object = {};
+			//data.cellRadius = 113;
+			//data.cellMargin = 5;
+			//data.mapHostageCenter = [];
+			//data.mapHostageA = [];
+			//data.mapHostageB = [];
+			//data.mapHostageC = [];
+			//GameConfig.update(data);
 			super(null, p_inst);
 		}
 		

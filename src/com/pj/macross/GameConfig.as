@@ -19,7 +19,7 @@ package com.pj.macross
 		static private var __foldAniSrcLoad:Boolean = true;
 		static private var __foldAniSrcWidth:int = 64;
 		static private var __mapRadius:int = 10;
-		static private var __mapRandom:Boolean = true;
+		static private var __mapRandom:Boolean = false;
 		
 		static private var __mapBaseA:Array = [0, 2, 3, 598, 625, 626];
 		static private var __mapBaseB:Array = [247, 274, 275, 585, 612, 613];
