@@ -31,6 +31,9 @@ package com.pj
 		{
 			GameConfig.update(p_param);
 			//var data:Object = {};
+			//data.fontColor = 0x000000;
+			//data.fontDisplay = true;
+			//data.fontSize = 36;
 			//data.cellRadius = 113;
 			//data.cellMargin = 5;
 			//data.mapHostageCenter = [];
