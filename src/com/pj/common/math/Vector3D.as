@@ -36,7 +36,7 @@ package com.pj.common.math
 			return this;
 		}
 		
-		public function lengthStr():Number
+		public function lengthSqr():Number
 		{
 			return this.x * this.x + this.y * this.y + this.z * this.z;
 		}
@@ -44,10 +44,10 @@ package com.pj.common.math
 		public function normal():Vector3D
 		{
 			var result:Vector3D = new Vector3D();
-			var lenStr:Number = this.lengthStr();
-			if (lenStr > 0)
+			var lenSqr:Number = this.lengthSqr();
+			if (lenSqr > 0)
 			{
-				var factor:Number = 1 / Math.sqrt(lenStr);
+				var factor:Number = 1 / Math.sqrt(lenSqr);
 				result.x = this.x * factor;
 				result.y = this.y * factor;
 				result.z = this.z * factor;

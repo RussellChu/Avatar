@@ -20,6 +20,8 @@ package com.pj.macross
 		static public const KEY_S07:String = "s07";
 		static public const KEY_S08:String = "s08";
 		static public const KEY_GALAXY:String = "galaxy";
+		static public const KEY_FIRE_ANI:String = "fireAni";
+		static public const KEY_FIRE_MC:String = "fireMc";
 		static public const KEY_FOLD:String = "fold";
 		static public const KEY_FOLD_IMG:String = "foldImg";
 		static public const KEY_FOLD_ANI:String = "foldAni";
@@ -94,6 +96,8 @@ package com.pj.macross
 				__loader.addObject(KEY_S07, new BMP_S07());
 				__loader.addObject(KEY_S08, new BMP_S08());
 				__loader.addCreate(KEY_GALAXY, new Galaxy());
+				__loader.addCreate(KEY_FIRE_ANI, new FireAni());
+				__loader.addShared(KEY_FIRE_MC, FireMc);
 				__loader.addObject(KEY_FOLD_IMG, new BMP_FOLD());
 				__loader.addCreate(KEY_FOLD_ANI, new FoldAni());
 				__loader.addShared(KEY_FOLD_MC, FoldMc);
@@ -153,6 +157,7 @@ import com.pj.common.component.BasicObject;
 import com.pj.common.component.JBmp;
 import com.pj.common.component.Quad;
 import com.pj.common.math.JMath;
+import com.pj.common.math.Vector3D;
 import com.pj.macross.GameAsset;
 import com.pj.macross.GameConfig;
 import com.pj.macross.GameData;
@@ -195,6 +200,170 @@ class CreatableBitmap extends Bitmap implements ICreatable
 		return this._signal;
 	}
 
+}
+
+class FireAni implements ICreatable
+{
+	
+	static private const FRAME_NUM:int = 50;
+	static private const PART_NUM:int = 100;
+	
+	private var _creater:Creater = null;
+	private var _signal:JSignal = null;
+	private var _list:Array = null;
+	private var _ballList:Array = null;
+	
+	public function FireAni()
+	{
+		super();
+		this._creater = new Creater(this);
+		this._signal = new JSignal();
+	}
+	
+	public function get creater():Creater
+	{
+		return this._creater;
+	}
+	
+	private function get radius():Number {
+		return GameConfig.getCellRadius() * 2;
+	}
+	
+	public function onCreate():Boolean
+	{
+		this._ballList = [];
+		this._list = [];
+		
+		var ball:Object = null;
+		var pos:Vector3D = null;
+		var vec:Vector3D = null;
+		var i:int = 0;
+		for (i = 0; i < PART_NUM; i++)
+		{
+			ball = {};
+			var vecSrc:Object = JMath.randSphereSurface();
+			pos = new Vector3D();
+			vec = new Vector3D(vecSrc.x, vecSrc.y, vecSrc.z);
+			vec.multiplyEql(1 + Math.random());
+			ball.pos = pos;
+			ball.vec = vec;
+			this._ballList.push(ball);
+		}
+		
+		for (var j:int = 0; j < FRAME_NUM; j++)
+		{
+			for (i = 0; i < this._ballList.length; i++)
+			{
+				ball = this._ballList[i];
+				pos = ball.pos;
+				vec = ball.vec;
+				pos.addEql(vec);
+					//	vec.addEql(new Vector3D(0, 0.1, 0));
+			}
+			var bmp:BitmapData = new BitmapData(this.radius * 2, this.radius * 2, true, 0);
+			bmp.lock();
+			for (i = 0; i < this._ballList.length; i++)
+			{
+				ball = this._ballList[i];
+				pos = ball.pos;
+				var len:Number = Math.sqrt(pos.lengthSqr());
+				var alpha:Number = 0;
+				if (len < this.radius)
+				{
+					alpha = 1 - len / this.radius;
+				}
+				alpha *= (1 - j / FRAME_NUM);
+				bmp.setPixel32(pos.x +this.radius, pos.y + this.radius, new JColor(1, Math.random(), 1, alpha).value);
+			}
+			bmp.unlock();
+			this._list.push(bmp);
+		}
+		
+		return true;
+	}
+	
+	public function getFrameId(p_count:Number, p_delta:Number):Number
+	{
+		var count:Number = p_count + 0.01 * p_delta;
+		if (int(count) > this._list.length)
+		{
+			count -= this._list.length;
+		}
+		return count;
+	}
+	
+	public function getFrame(p_id:int):BitmapData
+	{
+		if (this._list.length == 0)
+		{
+			return null;
+		}
+		
+		return this._list[p_id % this._list.length] as BitmapData;
+	}
+	
+	public function get signal():JSignal
+	{
+		return this._signal;
+	}
+
+}
+
+class FireMc extends BasicObject
+{
+	private var _count:Number = 0;
+	private var _img:Bitmap = null;
+	private var _timer:JTimer = null;
+	
+	public function FireMc(p_data:Object = null)
+	{
+		super();
+	}
+	
+	override public function dispose():void
+	{
+		Helper.dispose(this._timer);
+		this._img = null;
+		this._timer = null;
+		
+		super.dispose();
+	}
+	
+	override protected function init():void
+	{
+		super.init();
+		
+		this.container.scaleX = GameConfig.getCellRadius() * 2 / GameConfig.getFoldAniSrcWidth();
+		this.container.scaleY = this.container.scaleX;
+		
+		this._timer = new JTimer(this.onTime);
+		this._timer.start();
+	}
+	
+	private function onTime(p_delta:Number):void
+	{
+		var src:FireAni = GameAsset.loader.getAsset(GameAsset.KEY_FIRE_ANI) as FireAni;
+		var bmp:BitmapData = src.getFrame(int(this._count));
+		this._count = src.getFrameId(this._count, p_delta);
+		
+		if (!this._img)
+		{
+			this._img = new Bitmap(bmp);
+			this.container.removeChildren();
+			this.container.addChild(this._img);
+		}
+		else
+		{
+			this._img.bitmapData = bmp;
+		}
+		this._img.x = -this._img.width * 0.5;
+		this._img.y = -this._img.height * 0.5;
+	}
+	
+	private function get container():Sprite
+	{
+		return (this.instance as Sprite);
+	}
 }
 
 class FoldAni implements ICreatable
@@ -408,7 +577,7 @@ class FoldAni implements ICreatable
 			return true;
 		}, function():void
 		{
-		//	saveAll();
+			//	saveAll();
 			_creater.createReady();
 		}).loop();
 		
@@ -418,9 +587,9 @@ class FoldAni implements ICreatable
 	public function getFrameId(p_count:Number, p_delta:Number):Number
 	{
 		var count:Number = p_count + 0.01 * p_delta;
-		if (int(count) > this._list.length)
+		if (int(count) > 90)
 		{
-			count -= this._list.length;
+			count -= 90;
 		}
 		return count;
 	}
@@ -432,18 +601,13 @@ class FoldAni implements ICreatable
 			return null;
 		}
 		
-		return this._list[p_id % this._list.length] as BitmapData;
+		if (p_id <= 65) {
+			return this._list[p_id] as BitmapData;
+		}
 		
-		var realId:int = p_id / 2;
-		if (realId >= this._list.length)
-		{
-			return this._list[this._list.length - 1] as BitmapData;
-		}
-		if (realId < 0)
-		{
-			return this._list[0] as BitmapData;
-		}
-		return this._list[realId] as BitmapData;
+		var fire:FireAni = GameAsset.loader.getAsset(GameAsset.KEY_FIRE_ANI) as FireAni;
+		
+		return fire.getFrame(p_id - 66);
 	}
 	
 	public function get signal():JSignal
@@ -457,9 +621,10 @@ class FoldMc extends BasicObject
 {
 	private var _count:Number = 0;
 	private var _img:Bitmap = null;
+	private var _img2:Bitmap = null;
 	private var _timer:JTimer = null;
 	
-	public function FoldMc(p_data:Object)
+	public function FoldMc(p_data:Object = null)
 	{
 		super();
 	}
@@ -468,6 +633,7 @@ class FoldMc extends BasicObject
 	{
 		Helper.dispose(this._timer);
 		this._img = null;
+		this._img2 = null;
 		this._timer = null;
 		
 		super.dispose();
