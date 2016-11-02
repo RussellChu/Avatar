@@ -21,7 +21,7 @@ package com.pj
 		override protected function init():void
 		{
 			super.init();
-			var bg:Quad = new Quad(500, 500, 0);
+			var bg:Quad = new Quad(Fire.RADIUS * 2, Fire.RADIUS * 2, 0);
 			this.addChild(bg);
 			
 			var mov:Fire = new Fire();
@@ -42,9 +42,9 @@ import flash.display.Sprite;
 
 class Fire extends BasicObject
 {
-	static private const FRAME_NUM:int = 50;
-	static private const PART_NUM:int = 1000;
-	static private const RADIUS:int = 100;
+	static private const FRAME_NUM:int = 100;
+	static private const PART_NUM:int = 3000;
+	static public const RADIUS:int = 400;
 	
 	private var _ballList:Array = null;
 	private var _bmpList:Array = null;
@@ -86,22 +86,28 @@ class Fire extends BasicObject
 				pos = ball.pos;
 				vec = ball.vec;
 				pos.addEql(vec);
+				vec.addEql(new Vector3D(0, 0.1, 0));
 			}
-			var buffer:JBmp = new JBmp(RADIUS * 2, RADIUS * 2);
+			
+			var bmp:BitmapData = new BitmapData(RADIUS * 2, RADIUS * 2, true, 0);
+			bmp.lock();
 			for (i = 0; i < this._ballList.length; i++)
 			{
 				ball = this._ballList[i];
 				pos = ball.pos;
 				var len:Number = Math.sqrt(pos.lengthSqr());
-				var alpha:Number = 0;
-				if (len < RADIUS) {
-					alpha = 1 - len / RADIUS;
+				var alpha:Number = 1;
+				if (len < RADIUS)
+				{
+				//	alpha = 1 - len / RADIUS;
 				}
 				alpha *= (1 - j / FRAME_NUM);
-				buffer.addLight(pos.x + RADIUS, pos.y + RADIUS, alpha, 1, Math.random(), 1);
-			//	bmp.setPixel32(pos.x + RADIUS, pos.y + RADIUS, new JColor(1, Math.random(), 1, alpha).value);
+				var colorSrc:uint = bmp.getPixel32(pos.x + RADIUS, pos.y + RADIUS);
+				var color:JColor = JColor.createColorByHex(colorSrc);
+				color.addLight(1, 1, Math.random(), alpha);
+				bmp.setPixel32(pos.x + RADIUS, pos.y + 200, color.value);
 			}
-			var bmp:BitmapData = buffer.getBmp();
+			bmp.unlock();
 			this._bmpList.push(bmp);
 		}
 		
