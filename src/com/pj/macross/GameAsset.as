@@ -225,7 +225,8 @@ class FireAni implements ICreatable
 		return this._creater;
 	}
 	
-	private function get radius():Number {
+	private function get radius():Number
+	{
 		return GameConfig.getFoldAniSrcWidth();
 	}
 	
@@ -268,7 +269,8 @@ class FireAni implements ICreatable
 				pos = ball.pos;
 				var len:Number = Math.sqrt(pos.lengthSqr());
 				var alpha:Number = 0;
-				if (len < this.radius) {
+				if (len < this.radius)
+				{
 					alpha = 1 - len / this.radius;
 				}
 				alpha *= (1 - j / FRAME_NUM);
@@ -603,7 +605,8 @@ class FoldAni implements ICreatable
 			return null;
 		}
 		
-		if (p_id <= 65) {
+		if (p_id <= 65)
+		{
 			return this._list[p_id] as BitmapData;
 		}
 		
@@ -1052,15 +1055,7 @@ class Galaxy extends CreatableBitmap
 			srcRadius = srcRadius / 2;
 		}
 		
-		var circle:BitmapData = new BitmapData(radius * 2, radius * 2, true, 0);
-		for (x = 0; x < radius * 2; x++)
-		{
-			for (y = 0; y < radius * 2; y++)
-			{
-				p = c0.getData(x, y);
-				circle.setPixel32(x, y, new JColor(p.r, p.g, p.b, p.a).value);
-			}
-		}
+		var circle:BitmapData = c0.getBmp();
 		
 		var bmp:BitmapData = this.bitmapData;
 		for (j = 0; j < blur; j++)

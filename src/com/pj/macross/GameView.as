@@ -1031,9 +1031,11 @@ class GameMapItem extends BasicObject
 		this.setSkin(this._face, p_state, p_side);
 		
 		this._front.show(SkinStore.TYPE_LIGHT);
-		new JTweener(1000, function (p_value:Number):void {
+		new JTweener(1000, function(p_value:Number):void
+		{
 			_front.instance.alpha = (1000 - p_value) * 0.001;
-		}, function ():void {
+		}, function():void
+		{
 			_front.show(SkinStore.TYPE_NONE);
 			_front.instance.alpha = 1;
 		}).run();
@@ -1225,7 +1227,7 @@ class GameMap extends ButtonGroup
 		var target:DisplayObject = p_evt.target as DisplayObject;
 		var key:String = target.name;
 		var item:GameMapItem = this.findItem(key);
-	//	trace(key);
+		//	trace(key);
 		if (!item)
 		{
 			return;
@@ -1386,7 +1388,8 @@ class GameCommand extends BasicObject
 			var key:String = p_result[0];
 			var lang:String = p_result[1];
 			var state:int = p_result[2];
-			if (state == 0) {
+			if (state == 0)
+			{
 				return;
 			}
 			var cmd:String = key;
