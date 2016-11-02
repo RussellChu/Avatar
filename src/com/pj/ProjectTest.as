@@ -2,6 +2,7 @@ package com.pj
 {
 	import com.pj.common.JColor;
 	import com.pj.common.component.BasicContainer;
+	import com.pj.common.component.Quad;
 	import flash.display.Bitmap;
 	import flash.display.Sprite;
 	
@@ -20,6 +21,9 @@ package com.pj
 		override protected function init():void
 		{
 			super.init();
+			var bg:Quad = new Quad(500, 500, 0);
+			this.addChild(bg);
+			
 			var mov:Fire = new Fire();
 			this.addChild(mov);
 		}
@@ -29,6 +33,7 @@ package com.pj
 import com.pj.common.JColor;
 import com.pj.common.JTimer;
 import com.pj.common.component.BasicObject;
+import com.pj.common.component.JBmp;
 import com.pj.common.math.JMath;
 import com.pj.common.math.Vector3D;
 import flash.display.Bitmap;
@@ -38,7 +43,7 @@ import flash.display.Sprite;
 class Fire extends BasicObject
 {
 	static private const FRAME_NUM:int = 50;
-	static private const PART_NUM:int = 100;
+	static private const PART_NUM:int = 1000;
 	static private const RADIUS:int = 100;
 	
 	private var _ballList:Array = null;
@@ -67,7 +72,7 @@ class Fire extends BasicObject
 			var vecSrc:Object = JMath.randSphereSurface();
 			pos = new Vector3D();
 			vec = new Vector3D(vecSrc.x, vecSrc.y, vecSrc.z);
-			vec.multiplyEql(1 + Math.random());
+			vec.multiplyEql(1 + Math.random() * 3);
 			ball.pos = pos;
 			ball.vec = vec;
 			this._ballList.push(ball);
@@ -81,10 +86,8 @@ class Fire extends BasicObject
 				pos = ball.pos;
 				vec = ball.vec;
 				pos.addEql(vec);
-			//	vec.addEql(new Vector3D(0, 0.1, 0));
 			}
-			var bmp:BitmapData = new BitmapData(RADIUS * 2, RADIUS * 2, true, 0);
-			bmp.lock();
+			var buffer:JBmp = new JBmp(RADIUS * 2, RADIUS * 2);
 			for (i = 0; i < this._ballList.length; i++)
 			{
 				ball = this._ballList[i];
@@ -95,9 +98,10 @@ class Fire extends BasicObject
 					alpha = 1 - len / RADIUS;
 				}
 				alpha *= (1 - j / FRAME_NUM);
-				bmp.setPixel32(pos.x + RADIUS, pos.y + RADIUS, new JColor(Math.random(), 0, Math.random(), alpha).value);
+				buffer.addLight(pos.x + RADIUS, pos.y + RADIUS, alpha, 1, Math.random(), 1);
+			//	bmp.setPixel32(pos.x + RADIUS, pos.y + RADIUS, new JColor(1, Math.random(), 1, alpha).value);
 			}
-			bmp.unlock();
+			var bmp:BitmapData = buffer.getBmp();
 			this._bmpList.push(bmp);
 		}
 		

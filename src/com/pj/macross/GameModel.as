@@ -195,6 +195,7 @@ package com.pj.macross
 		{
 			this._record = [];
 			this._save.list = this._record;
+			this._map.clear();
 			
 			this.setScore(GameData.SIDE_A, 0);
 			this.setScore(GameData.SIDE_B, 0);
@@ -1111,6 +1112,16 @@ class MapCellCroup
 		}
 		this._map[key] = cell;
 		this._mapId[p_id] = cell;
+	}
+	
+	public function clear():void
+	{
+		for (var i:int = 0; i < this._list.length; i++)
+		{
+			var cell:MapCell = this._list[i] as MapCell;
+			cell.side = 0;
+			cell.state = 0;
+		}
 	}
 	
 	public function getCellById(p_id:int):MapCell

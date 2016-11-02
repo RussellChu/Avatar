@@ -205,8 +205,8 @@ class CreatableBitmap extends Bitmap implements ICreatable
 class FireAni implements ICreatable
 {
 	
-	static private const FRAME_NUM:int = 50;
-	static private const PART_NUM:int = 100;
+	static private const FRAME_NUM:int = 30;
+	static private const PART_NUM:int = 200;
 	
 	private var _creater:Creater = null;
 	private var _signal:JSignal = null;
@@ -226,7 +226,7 @@ class FireAni implements ICreatable
 	}
 	
 	private function get radius():Number {
-		return GameConfig.getCellRadius() * 2;
+		return GameConfig.getFoldAniSrcWidth();
 	}
 	
 	public function onCreate():Boolean
@@ -244,7 +244,7 @@ class FireAni implements ICreatable
 			var vecSrc:Object = JMath.randSphereSurface();
 			pos = new Vector3D();
 			vec = new Vector3D(vecSrc.x, vecSrc.y, vecSrc.z);
-			vec.multiplyEql(1 + Math.random());
+			vec.multiplyEql(3 + Math.random() * 3);
 			ball.pos = pos;
 			ball.vec = vec;
 			this._ballList.push(ball);
@@ -258,8 +258,8 @@ class FireAni implements ICreatable
 				pos = ball.pos;
 				vec = ball.vec;
 				pos.addEql(vec);
-					//	vec.addEql(new Vector3D(0, 0.1, 0));
 			}
+			
 			var bmp:BitmapData = new BitmapData(this.radius * 2, this.radius * 2, true, 0);
 			bmp.lock();
 			for (i = 0; i < this._ballList.length; i++)
@@ -268,12 +268,14 @@ class FireAni implements ICreatable
 				pos = ball.pos;
 				var len:Number = Math.sqrt(pos.lengthSqr());
 				var alpha:Number = 0;
-				if (len < this.radius)
-				{
+				if (len < this.radius) {
 					alpha = 1 - len / this.radius;
 				}
 				alpha *= (1 - j / FRAME_NUM);
-				bmp.setPixel32(pos.x +this.radius, pos.y + this.radius, new JColor(1, Math.random(), 1, alpha).value);
+				var colorSrc:uint = bmp.getPixel32(pos.x + this.radius, pos.y + this.radius);
+				var color:JColor = JColor.createColorByHex(colorSrc);
+				color.addLight(1, 1, Math.random(), alpha);
+				bmp.setPixel32(pos.x + this.radius, pos.y + this.radius, color.value);
 			}
 			bmp.unlock();
 			this._list.push(bmp);

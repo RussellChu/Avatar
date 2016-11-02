@@ -1,7 +1,9 @@
 package com.pj.common.component
 {
 	import com.pj.common.IDisposable;
+	import com.pj.common.JColor;
 	import flash.display.BitmapData;
+	import flash.utils.ByteArray;
 	
 	/**
 	 * ...
@@ -35,6 +37,13 @@ package com.pj.common.component
 			data.b += p_b;
 		}
 		
+		public function addLight(p_x:int, p_y:int, p_a:Number, p_r:Number, p_g:Number, p_b:Number):void
+		{
+			var data:Object = this.getData(p_x, p_y);
+			var key:String = p_x + ":" + p_y;
+			this._data[key] = JColor.addLight(data.r, data.g, data.b, data.a, p_r, p_g, p_b, p_a);
+		}
+		
 		public function mul(p_x:int, p_y:int, p_m:Number):void
 		{
 			var data:Object = this.getData(p_x, p_y);
@@ -42,16 +51,6 @@ package com.pj.common.component
 			data.r *= p_m;
 			data.g *= p_m;
 			data.b *= p_m;
-		}
-		
-		public function sharp(p_x:int, p_y:int):void
-		{
-			var data:Object = this.getData(p_x, p_y);
-			var r:Number = 1;
-			data.a = (-1 * r * (data.a / 255) * (data.a / 255) * (data.a / 255) + r * (data.a / 255) * (data.a / 255) + (data.a / 255)) * 255;
-			data.r = (-1 * r * (data.r / 255) * (data.r / 255) * (data.r / 255) + r * (data.r / 255) * (data.r / 255) + (data.r / 255)) * 255;
-			data.g = (-1 * r * (data.g / 255) * (data.g / 255) * (data.g / 255) + r * (data.g / 255) * (data.g / 255) + (data.g / 255)) * 255;
-			data.b = (-1 * r * (data.b / 255) * (data.b / 255) * (data.b / 255) + r * (data.b / 255) * (data.b / 255) + (data.b / 255)) * 255;
 		}
 		
 		public function getData(p_x:int, p_y:int):Object
@@ -67,6 +66,7 @@ package com.pj.common.component
 		public function getBmp():BitmapData
 		{
 			var bmp:BitmapData = new BitmapData(this._width, this._height, true, 0);
+			bmp.lock();
 			for (var i:int = 0; i < this._width; i++)
 			{
 				for (var j:int = 0; j < this._height; j++)
@@ -77,30 +77,10 @@ package com.pj.common.component
 						continue;
 					}
 					var data:Object = this._data[key];
-					var colorA:uint = (data.a > 0 ? data.a : 0);
-					var colorR:uint = (data.r > 0 ? data.r : 0);
-					var colorG:uint = (data.g > 0 ? data.g : 0);
-					var colorB:uint = (data.b > 0 ? data.b : 0);
-					if (colorA > 255)
-					{
-						colorA = 255;
-					}
-					if (colorR > 255)
-					{
-						colorR = 255;
-					}
-					if (colorG > 255)
-					{
-						colorG = 255;
-					}
-					if (colorB > 255)
-					{
-						colorB = 255;
-					}
-					var color:uint = (colorA << 24) + (colorR << 16) + (colorG << 8) + colorB;
-					bmp.setPixel32(i, j, color);
+					bmp.setPixel32(i, j, new JColor(data.r, data.g, data.b, data.a).value);
 				}
 			}
+			bmp.unlock();
 			return bmp;
 		}
 		
