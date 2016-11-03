@@ -2,6 +2,7 @@ package com.pj.macross
 {
 	import com.pj.common.Helper;
 	import com.pj.common.component.BasicContainer;
+	import com.pj.common.component.BasicObject;
 	import com.pj.common.component.JBackground;
 	import com.pj.common.component.Slider;
 	import flash.display.Bitmap;
@@ -16,6 +17,7 @@ package com.pj.macross
 		static public const EVENT_MAP_CLICK:String = "EVENT_MAP_CLICK";
 		
 		private var _bg:JBackground = null;
+		private var _meteor:BasicObject = null;
 		private var _map:GameMap = null;
 		private var _mark:MarkBoard = null;
 		private var _slider:Slider = null;
@@ -32,10 +34,12 @@ package com.pj.macross
 		override public function dispose():void
 		{
 			Helper.dispose(this._bg);
+			Helper.dispose(this._meteor);
 			Helper.dispose(this._map);
 			Helper.dispose(this._mark);
 			Helper.dispose(this._slider);
 			this._bg = null;
+			this._meteor = null;
 			this._map = null;
 			this._mark = null;
 			this._slider = null;
@@ -48,6 +52,9 @@ package com.pj.macross
 			
 			this._bg = new JBackground((GameAsset.loader.getAsset(GameAsset.KEY_GALAXY) as Bitmap).bitmapData);
 			this.addChild(this._bg);
+			
+			this._meteor = GameAsset.loader.getAsset(GameAsset.KEY_METEOR) as BasicObject;
+			this.addChild(this._meteor);
 			
 			this._map = new GameMap();
 			this._map.signal.add(this.onMapClick, GameMap.ACTION_CLICK);
@@ -121,6 +128,9 @@ package com.pj.macross
 			
 			posX = (p_width - this._tips.width) * 0.5;
 			this._tips.instance.x = posX;
+			
+			this._meteor.instance.x = p_width * 0.5;
+			this._meteor.instance.y = p_height * 0.5;
 		}
 		
 		private function onCmdClick(p_result:Object):void

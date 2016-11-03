@@ -38,8 +38,8 @@ package
 				data = JSON.parse(dataStr);
 			}
 			var paramStr:String = "";
-			this._project = new ProjectTest(this);
-			//this._project = new ProjectMacross(this, data);
+			//this._project = new ProjectTest(this);
+			this._project = new ProjectMacross(this, data);
 			this.stage.addEventListener(Event.RESIZE, this.onResize);
 		}
 		

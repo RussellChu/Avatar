@@ -20,6 +20,8 @@ package com.pj.macross
 		static public const KEY_S07:String = "s07";
 		static public const KEY_S08:String = "s08";
 		static public const KEY_GALAXY:String = "galaxy";
+		static public const KEY_METEOR:String = "meteor";
+		
 		static public const KEY_FIRE_ANI:String = "fireAni";
 		static public const KEY_FIRE_MC:String = "fireMc";
 		static public const KEY_FOLD:String = "fold";
@@ -96,6 +98,7 @@ package com.pj.macross
 				__loader.addObject(KEY_S07, new BMP_S07());
 				__loader.addObject(KEY_S08, new BMP_S08());
 				__loader.addCreate(KEY_GALAXY, new Galaxy());
+				__loader.addShared(KEY_METEOR, Meteor);
 				__loader.addCreate(KEY_FIRE_ANI, new FireAni());
 				__loader.addShared(KEY_FIRE_MC, FireMc);
 				__loader.addObject(KEY_FOLD_IMG, new BMP_FOLD());
@@ -997,93 +1000,189 @@ class Galaxy extends CreatableBitmap
 	
 	override public function onCreate():Boolean
 	{
-		var blur:int = 5;
-		var radius:int = 2;
-		var star:int = 0.002 * FULL_WIDTH * FULL_HEIGHT;
-		var step:int = 2;
-		var i:int = 0;
-		var j:int = 0;
-		var x:int = 0;
-		var y:int = 0;
-		
-		var srcRadius:int = radius;
-		for (i = 0; i < step; i++)
+		if (false)
 		{
-			srcRadius *= 2;
-		}
-		
-		var c0:JBmp = new JBmp(srcRadius * 2, srcRadius * 2);
-		var p:Object = null;
-		var p2:Object = null;
-		for (x = 0; x < srcRadius * 2; x++)
-		{
-			for (y = 0; y < srcRadius * 2; y++)
+			var blur:int = 5;
+			var radius:int = 2;
+			var star:int = 0.002 * FULL_WIDTH * FULL_HEIGHT;
+			var step:int = 2;
+			var i:int = 0;
+			var j:int = 0;
+			var x:int = 0;
+			var y:int = 0;
+			
+			var srcRadius:int = radius;
+			for (i = 0; i < step; i++)
 			{
-				var r:Number = srcRadius * srcRadius - (x - srcRadius) * (x - srcRadius) - (y - srcRadius) * (y - srcRadius);
-				if (r < 0)
-				{
-					continue;
-				}
-				var c:Number = Math.sqrt(r) / srcRadius;
-				p = c0.getData(x, y);
-				p.r = 1;
-				p.g = 1;
-				p.b = 1;
-				p.a = c * c * c * c;
+				srcRadius *= 2;
 			}
-		}
-		
-		var c1:JBmp = null;
-		for (i = 0; i < step; i++)
-		{
-			c1 = new JBmp(srcRadius, srcRadius);
+			
+			var c0:JBmp = new JBmp(srcRadius * 2, srcRadius * 2);
+			var p:Object = null;
+			var p2:Object = null;
 			for (x = 0; x < srcRadius * 2; x++)
 			{
 				for (y = 0; y < srcRadius * 2; y++)
 				{
-					var x2:int = x / 2;
-					var y2:int = y / 2;
+					var r:Number = srcRadius * srcRadius - (x - srcRadius) * (x - srcRadius) - (y - srcRadius) * (y - srcRadius);
+					if (r < 0)
+					{
+						continue;
+					}
+					var c:Number = Math.sqrt(r) / srcRadius;
 					p = c0.getData(x, y);
-					p2 = c1.getData(x2, y2);
-					p2.r += p.r * 0.25;
-					p2.g += p.g * 0.25;
-					p2.b += p.b * 0.25;
-					p2.a += p.a * 0.25;
+					p.r = 1;
+					p.g = 1;
+					p.b = 1;
+					p.a = c * c * c * c;
 				}
 			}
-			c0 = c1;
-			srcRadius = srcRadius / 2;
-		}
-		
-		var circle:BitmapData = c0.getBmp();
-		
-		var bmp:BitmapData = this.bitmapData;
-		for (j = 0; j < blur; j++)
-		{
-			bmp.lock();
-			for (i = 0; i < star; i++)
+			
+			var c1:JBmp = null;
+			for (i = 0; i < step; i++)
 			{
-				x = Math.random() * FULL_WIDTH;
-				y = Math.random() * FULL_HEIGHT;
-				var ct:ColorTransform = new ColorTransform(Math.random(), Math.random(), 1, Math.random());
-				var mx:Matrix = new Matrix();
-				mx.translate(x, y);
-				bmp.draw(circle, mx, ct);
-			}
-			bmp.unlock();
-			if (j == blur - 1)
-			{
-				break;
+				c1 = new JBmp(srcRadius, srcRadius);
+				for (x = 0; x < srcRadius * 2; x++)
+				{
+					for (y = 0; y < srcRadius * 2; y++)
+					{
+						var x2:int = x / 2;
+						var y2:int = y / 2;
+						p = c0.getData(x, y);
+						p2 = c1.getData(x2, y2);
+						p2.r += p.r * 0.25;
+						p2.g += p.g * 0.25;
+						p2.b += p.b * 0.25;
+						p2.a += p.a * 0.25;
+					}
+				}
+				c0 = c1;
+				srcRadius = srcRadius / 2;
 			}
 			
-			var bmp2:BitmapData = new BitmapData(FULL_WIDTH, FULL_HEIGHT, true, 0);
-			bmp2.applyFilter(bmp, new Rectangle(0, 0, bmp.width, bmp.height), new Point(0, 0), new BlurFilter(4, 4, BitmapFilterQuality.HIGH));
-			bmp = bmp2;
+			var circle:BitmapData = c0.getBmp();
+			
+			var bmp:BitmapData = this.bitmapData;
+			for (j = 0; j < blur; j++)
+			{
+				bmp.lock();
+				for (i = 0; i < star; i++)
+				{
+					x = Math.random() * FULL_WIDTH;
+					y = Math.random() * FULL_HEIGHT;
+					var ct:ColorTransform = new ColorTransform(Math.random(), Math.random(), 1, Math.random());
+					var mx:Matrix = new Matrix();
+					mx.translate(x, y);
+					bmp.draw(circle, mx, ct);
+				}
+				bmp.unlock();
+				if (j == blur - 1)
+				{
+					break;
+				}
+				
+				var bmp2:BitmapData = new BitmapData(FULL_WIDTH, FULL_HEIGHT, true, 0);
+				bmp2.applyFilter(bmp, new Rectangle(0, 0, bmp.width, bmp.height), new Point(0, 0), new BlurFilter(4, 4, BitmapFilterQuality.HIGH));
+				bmp = bmp2;
+			}
+			
+			this.bitmapData = bmp;
+		}
+		return true;
+	}
+
+}
+
+class Meteor extends BasicObject
+{
+	static public const RADIUS:int = 1000;
+	static public const AMOUNT:int = 500;
+	
+	private var _ballList:Array = null;
+	private var _timer:JTimer = null;
+	private var _img:Bitmap = null;
+	
+	public function Meteor(p_data:Object = null)
+	{
+		super();
+	}
+	
+	override protected function init():void
+	{
+		this._ballList = [];
+		
+		this._img = new Bitmap(new BitmapData(RADIUS * 2, RADIUS * 2, true, 0));
+		this._img.x = -RADIUS;
+		this._img.y = -RADIUS;
+		this.container.addChild(this._img);
+		
+		this._timer = new JTimer(this.onTime);
+		this._timer.start();
+	}
+	
+	private function get container():Sprite
+	{
+		return (this.instance) as Sprite;
+	}
+	
+	private function onTime(p_delta:Number):void
+	{
+		var i:int = 0;
+		for (i = 0; i < 5; i++)
+		{
+			var ball:Object = {};
+			var vecSrc:Object = JMath.randSphereSurface();
+			if (vecSrc.z < 0)
+			{
+				continue;
+			}
+			
+			var pos:Vector3D = new Vector3D();
+			var vec:Vector3D = new Vector3D(vecSrc.x, vecSrc.y, vecSrc.z);
+			vec.multiplyEql(1 + Math.random() * 3);
+			ball.pos = pos;
+			ball.vec = vec;
+			this._ballList.push(ball);
 		}
 		
-		this.bitmapData = bmp;
+		while (this._ballList.length > AMOUNT)
+		{
+			this._ballList.shift();
+		}
 		
-		return true;
+		for (i = 0; i < this._ballList.length; i++)
+		{
+			ball = this._ballList[i];
+			pos = ball.pos;
+			vec = ball.vec;
+			pos.addEql(vec);
+		}
+		
+		var bmp0:BitmapData = this._img.bitmapData;
+		var bmp:BitmapData = new BitmapData(RADIUS * 2, RADIUS * 2, true, 0);
+		bmp.lock();
+		var ct:ColorTransform = new ColorTransform(0.9, 0.9, 0.9, 0.9);
+		bmp.draw(bmp0, null, ct);
+		for (i = 0; i < this._ballList.length; i++)
+		{
+			ball = this._ballList[i];
+			pos = ball.pos;
+			var r:int = 1;
+			for (var x:int = -r; x <= r; x++)
+			{
+				for (var y:int = -r; y <= r; y++)
+				{
+					var colorSrc:uint = bmp.getPixel32(pos.x + RADIUS + x, pos.y + RADIUS + y);
+					var color:JColor = JColor.createColorByHex(colorSrc);
+					var a2:Number = 1 - Math.sqrt(x * x + y * y) / r;
+					a2 *= 1 - (i + AMOUNT - this._ballList.length) / AMOUNT;
+					color.addLight(Math.random() * 0.5 + 0.5, Math.random(), 1, a2);
+					bmp.setPixel32(pos.x + RADIUS + x, pos.y + RADIUS + y, color.value);
+				}
+			}
+		}
+		bmp.unlock();
+		this._img.bitmapData = bmp;
 	}
 
 }
