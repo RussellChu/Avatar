@@ -1144,6 +1144,10 @@ class Meteor extends BasicObject
 			var pos:Vector3D = new Vector3D();
 			var vec:Vector3D = new Vector3D(vecSrc.x, vecSrc.y, vecSrc.z);
 			vec.multiplyEql(minSpeed + Math.random() * (maxSpeed - minSpeed));
+			if (Math.random() > 0.5) {
+				pos = new Vector3D(Math.random() * RADIUS * 2 - RADIUS, Math.random() * RADIUS * 2 - RADIUS, Math.random() * RADIUS * 2 - RADIUS);
+				vec = new Vector3D();
+			}
 			ball.pos = pos;
 			ball.vec = vec;
 			this._ballList.push(ball);
