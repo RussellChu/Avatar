@@ -470,6 +470,7 @@ class SliderCtrlX extends SliderCtrl implements IMoveHandler
 		super.resize(p_width, p_height, p_ratio);
 		(this._ctrlBar as Quad).resize(this._heightBar, this._width);
 		(this._ctrlBg as Quad).resize(this._heightBg, this._width);
+		// to do, debug
 	}
 	
 	override public function setWheelStep(p_value:int):void

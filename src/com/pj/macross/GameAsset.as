@@ -1096,7 +1096,6 @@ class Galaxy extends CreatableBitmap
 class Meteor extends BasicObject
 {
 	static public const RADIUS:int = 1000;
-	static public const AMOUNT:int = 500;
 	
 	private var _ballList:Array = null;
 	private var _timer:JTimer = null;
@@ -1127,8 +1126,13 @@ class Meteor extends BasicObject
 	
 	private function onTime(p_delta:Number):void
 	{
+		var birthNum:int = 10;
+		var maxNum:int = birthNum * 100;
+		var minSpeed:Number = 1;
+		var maxSpeed:Number = minSpeed + 5;
+		
 		var i:int = 0;
-		for (i = 0; i < 5; i++)
+		for (i = 0; i < birthNum; i++)
 		{
 			var ball:Object = {};
 			var vecSrc:Object = JMath.randSphereSurface();
@@ -1139,13 +1143,13 @@ class Meteor extends BasicObject
 			
 			var pos:Vector3D = new Vector3D();
 			var vec:Vector3D = new Vector3D(vecSrc.x, vecSrc.y, vecSrc.z);
-			vec.multiplyEql(1 + Math.random() * 3);
+			vec.multiplyEql(minSpeed + Math.random() * (maxSpeed - minSpeed));
 			ball.pos = pos;
 			ball.vec = vec;
 			this._ballList.push(ball);
 		}
 		
-		while (this._ballList.length > AMOUNT)
+		while (this._ballList.length > maxNum)
 		{
 			this._ballList.shift();
 		}
@@ -1175,7 +1179,7 @@ class Meteor extends BasicObject
 					var colorSrc:uint = bmp.getPixel32(pos.x + RADIUS + x, pos.y + RADIUS + y);
 					var color:JColor = JColor.createColorByHex(colorSrc);
 					var a2:Number = 1 - Math.sqrt(x * x + y * y) / r;
-					a2 *= 1 - (i + AMOUNT - this._ballList.length) / AMOUNT;
+					a2 *= 1 - (i + maxNum - this._ballList.length) / maxNum;
 					color.addLight(Math.random() * 0.5 + 0.5, Math.random(), 1, a2);
 					bmp.setPixel32(pos.x + RADIUS + x, pos.y + RADIUS + y, color.value);
 				}

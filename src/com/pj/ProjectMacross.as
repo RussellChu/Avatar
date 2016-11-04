@@ -30,6 +30,7 @@ package com.pj
 		public function ProjectMacross(p_inst:Sprite = null, p_param:Object = null)
 		{
 			GameConfig.update(p_param);
+			
 			//var data:Object = {};
 			//data.fontColor = 0x000000;
 			//data.fontDisplay = true;
@@ -41,6 +42,12 @@ package com.pj
 			//data.mapHostageB = [];
 			//data.mapHostageC = [];
 			//GameConfig.update(data);
+			
+			//var data:Object = {};
+			//data.cellRadius = 16;
+			//data.cellMargin = 1;
+			//GameConfig.update(data);
+			
 			super(null, p_inst);
 		}
 		
