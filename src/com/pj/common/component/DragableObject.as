@@ -66,6 +66,10 @@ package com.pj.common.component
 			this.slideTo(0, 0, true);
 		}
 		
+		public function get position():Vector2D {
+			return new Vector2D(this._target.instance.x, this._target.instance.y);
+		}
+		
 		private function onDraggerBtnMove(e:Event):void
 		{
 			if (this._state == 0)
