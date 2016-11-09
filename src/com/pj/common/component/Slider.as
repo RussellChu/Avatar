@@ -207,8 +207,6 @@ package com.pj.common.component
 				this._borderHeight = 0;
 			}
 			
-			this._content.resize(this._borderWidth - CTRL_WIDTH, this._borderHeight - CTRL_WIDTH);
-			
 			var ratioX:Number = 1;
 			if (this._contentWidth > 0)
 			{
@@ -239,7 +237,7 @@ package com.pj.common.component
 			this._ctrlY.resize(CTRL_WIDTH, ctrlWidthY, ratioY);
 			this._ctrlY.instance.x = this._borderWidth - CTRL_WIDTH;
 			
-			this._content.slideTo(-this._ctrlX.posX * this._contentMoveXMax / this._ctrlMoveXMax, -this._ctrlY.posY * this._contentMoveYMax / this._ctrlMoveYMax, true);
+			this._content.resize(this._borderWidth - CTRL_WIDTH, this._borderHeight - CTRL_WIDTH);
 		}
 		
 		public function set active(p_value:Boolean):void
@@ -402,11 +400,13 @@ class SliderCtrl extends BasicObject implements IMoveHandler
 		this._heightBg = p_height;
 	}
 	
-	public function get posX():int {
+	public function get posX():int
+	{
 		return this._dragable.position.x;
 	}
 	
-	public function get posY():int {
+	public function get posY():int
+	{
 		return this._dragable.position.y;
 	}
 	
@@ -480,7 +480,7 @@ class SliderCtrlX extends SliderCtrl implements IMoveHandler
 		super.resize(p_width, p_height, p_ratio);
 		(this._ctrlBar as Quad).resize(this._heightBar, this._width);
 		(this._ctrlBg as Quad).resize(this._heightBg, this._width);
-		this._dragable.slideToX(this._dragable.position.x);
+		//	this._dragable.slideToX(currRatio * this._heightBg);
 	}
 	
 	override public function setWheelStep(p_value:int):void
@@ -538,7 +538,7 @@ class SliderCtrlY extends SliderCtrl implements IMoveHandler
 		super.resize(p_width, p_height, p_ratio);
 		(this._ctrlBar as Quad).resize(this._width, this._heightBar);
 		(this._ctrlBg as Quad).resize(this._width, this._heightBg);
-		this._dragable.slideToY(this._dragable.position.y);
+		//	this._dragable.slideToY(currRatio * this._heightBg);
 	}
 	
 	override public function setWheelStep(p_value:int):void

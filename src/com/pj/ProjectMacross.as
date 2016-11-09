@@ -159,6 +159,9 @@ package com.pj
 			case GameData.COMMAND_AUTO: 
 				this._model.autoPlay();
 				break;
+			case GameData.COMMAND_PLAY: 
+				// to do
+				break;
 			default: 
 				;
 			}

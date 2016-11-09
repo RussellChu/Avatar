@@ -124,22 +124,26 @@ package com.pj.common.component
 			bmp.draw(this._content.instance);
 			return bmp;
 		}
-
+		
 		private function onMouseMove(p_evt:Event):void
 		{
 			var posX:int = this.container.mouseX;
 			var posY:int = this.container.mouseY;
 			
-			if (posX < 0) {
+			if (posX < 0)
+			{
 				return;
 			}
-			if (posX > this._borderWidth) {
+			if (posX > this._borderWidth)
+			{
 				return;
 			}
-			if (posY < 0) {
+			if (posY < 0)
+			{
 				return;
 			}
-			if (posY > this._borderHeight) {
+			if (posY > this._borderHeight)
+			{
 				return;
 			}
 			
@@ -176,6 +180,8 @@ package com.pj.common.component
 			this._borderHeight = p_height;
 			this._mask.width = this._borderWidth;
 			this._mask.height = this._borderHeight;
+			
+			this._dragable.slideTo(this._content.instance.x, this._content.instance.y, false, true);
 		}
 		
 		public function set active(p_value:Boolean):void

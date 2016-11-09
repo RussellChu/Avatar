@@ -19,6 +19,8 @@ package com.pj.macross
 		static public const KEY_S06:String = "s06";
 		static public const KEY_S07:String = "s07";
 		static public const KEY_S08:String = "s08";
+		static public const KEY_GALAXY_ANI:String = "galaxyAni";
+		static public const KEY_GALAXY_MC:String = "galaxyMc";
 		static public const KEY_GALAXY:String = "galaxy";
 		static public const KEY_METEOR:String = "meteor";
 		
@@ -97,7 +99,9 @@ package com.pj.macross
 				__loader.addObject(KEY_S06, new BMP_S06());
 				__loader.addObject(KEY_S07, new BMP_S07());
 				__loader.addObject(KEY_S08, new BMP_S08());
-				__loader.addCreate(KEY_GALAXY, new Galaxy());
+				__loader.addCreate(KEY_GALAXY_ANI, new GalaxyAni(1024, 512));
+				__loader.addShared(KEY_GALAXY_MC, GalaxyMc);
+				__loader.addShared(KEY_GALAXY, Galaxy);
 				__loader.addShared(KEY_METEOR, Meteor);
 				__loader.addCreate(KEY_FIRE_ANI, new FireAni());
 				__loader.addShared(KEY_FIRE_MC, FireMc);
@@ -156,8 +160,8 @@ import com.pj.common.JColor;
 import com.pj.common.JSignal;
 import com.pj.common.JTimeLooper;
 import com.pj.common.JTimer;
+import com.pj.common.component.BasicContainer;
 import com.pj.common.component.BasicObject;
-import com.pj.common.component.JBmp;
 import com.pj.common.component.Quad;
 import com.pj.common.math.JMath;
 import com.pj.common.math.Vector3D;
@@ -167,12 +171,8 @@ import com.pj.macross.GameData;
 import flash.display.Bitmap;
 import flash.display.BitmapData;
 import flash.display.Sprite;
-import flash.filters.BitmapFilterQuality;
-import flash.filters.BlurFilter;
 import flash.geom.ColorTransform;
 import flash.geom.Matrix;
-import flash.geom.Point;
-import flash.geom.Rectangle;
 import flash.net.FileReference;
 import flash.utils.ByteArray;
 
@@ -207,7 +207,6 @@ class CreatableBitmap extends Bitmap implements ICreatable
 
 class FireAni implements ICreatable
 {
-	
 	static private const FRAME_NUM:int = 30;
 	static private const PART_NUM:int = 200;
 	
@@ -988,107 +987,384 @@ class CellImage extends CreatableBitmap
 
 }
 
-class Galaxy extends CreatableBitmap
+
+/*
+   class GalaxyAni implements ICreatable
+   {
+   static private const FRAME_NUM:int = 30;
+   static private const PART_NUM:int = 200;
+
+   private var _creater:Creater = null;
+   private var _signal:JSignal = null;
+   private var _list:Array = null;
+   private var _ballList:Array = null;
+
+   public function GalaxyAni()
+   {
+   super();
+   this._creater = new Creater(this);
+   this._signal = new JSignal();
+   }
+
+   public function get creater():Creater
+   {
+   return this._creater;
+   }
+
+   private function get radius():Number
+   {
+   return GameConfig.getFoldAniSrcWidth();
+   }
+
+   public function onCreate():Boolean
+   {
+   this._ballList = [];
+   this._list = [];
+
+   var ball:Object = null;
+   var pos:Vector3D = null;
+   var vec:Vector3D = null;
+   var i:int = 0;
+   for (i = 0; i < PART_NUM; i++)
+   {
+   ball = {};
+   var vecSrc:Object = JMath.randSphereSurface();
+   pos = new Vector3D();
+   vec = new Vector3D(vecSrc.x, vecSrc.y, vecSrc.z);
+   vec.multiplyEql(3 + Math.random() * 3);
+   ball.pos = pos;
+   ball.vec = vec;
+   this._ballList.push(ball);
+   }
+
+   for (var j:int = 0; j < FRAME_NUM; j++)
+   {
+   for (i = 0; i < this._ballList.length; i++)
+   {
+   ball = this._ballList[i];
+   pos = ball.pos;
+   vec = ball.vec;
+   pos.addEql(vec);
+   }
+
+   var bmp:BitmapData = new BitmapData(this.radius * 2, this.radius * 2, true, 0);
+   bmp.lock();
+   for (i = 0; i < this._ballList.length; i++)
+   {
+   ball = this._ballList[i];
+   pos = ball.pos;
+   var len:Number = Math.sqrt(pos.lengthSqr());
+   var alpha:Number = 0;
+   if (len < this.radius)
+   {
+   alpha = 1 - len / this.radius;
+   }
+   alpha *= (1 - j / FRAME_NUM);
+   var colorSrc:uint = bmp.getPixel32(pos.x + this.radius, pos.y + this.radius);
+   var color:JColor = JColor.createColorByHex(colorSrc);
+   color.addLight(1, 1, Math.random(), alpha);
+   bmp.setPixel32(pos.x + this.radius, pos.y + this.radius, color.value);
+   }
+   bmp.unlock();
+   this._list.push(bmp);
+   }
+
+   return true;
+   }
+
+   public function getFrameId(p_count:Number, p_delta:Number):Number
+   {
+   var count:Number = p_count + 0.01 * p_delta;
+   if (int(count) > this._list.length)
+   {
+   count -= this._list.length;
+   }
+   return count;
+   }
+
+   public function getFrame(p_id:int):BitmapData
+   {
+   if (this._list.length == 0)
+   {
+   return null;
+   }
+
+   return this._list[p_id % this._list.length] as BitmapData;
+   }
+
+   public function get signal():JSignal
+   {
+   return this._signal;
+   }
+
+   }
+ */
+
+class GalaxyAni implements ICreatable
 {
-	static private const FULL_WIDTH:int = 500;
-	static private const FULL_HEIGHT:int = 500;
+	static private const IMG_NUM:int = 8;
+	static private const STAR_NUM:int = 256;
 	
-	public function Galaxy()
+	private var _creater:Creater = null;
+	private var _signal:JSignal = null;
+	
+	private var _width:int = 0;
+	private var _height:int = 0;
+	private var _list:Array = null;
+	private var _timer:JTimer = null;
+	
+	public function GalaxyAni(p_width:int, p_height:int)
 	{
-		super(FULL_WIDTH, FULL_HEIGHT, true, new JColor(0, 0, 0.2, 1).value);
+		this._width = p_width;
+		this._height = p_height;
+		this._creater = new Creater(this);
+		this._signal = new JSignal();
 	}
 	
-	override public function onCreate():Boolean
+	public function get creater():Creater
 	{
-		if (false)
+		return this._creater;
+	}
+	
+	public function get signal():JSignal
+	{
+		return this._signal;
+	}
+	
+	public function get imageNum():int
+	{
+		return IMG_NUM;
+	}
+	
+	public function get width():int
+	{
+		return this._width;
+	}
+	
+	public function get height():int
+	{
+		return this._height;
+	}
+	
+	public function getImage(p_id:int):BitmapData
+	{
+		if (p_id >= 0 && p_id < this._list.length)
 		{
-			var blur:int = 5;
-			var radius:int = 2;
-			var star:int = 0.002 * FULL_WIDTH * FULL_HEIGHT;
-			var step:int = 2;
-			var i:int = 0;
-			var j:int = 0;
-			var x:int = 0;
-			var y:int = 0;
-			
-			var srcRadius:int = radius;
-			for (i = 0; i < step; i++)
-			{
-				srcRadius *= 2;
-			}
-			
-			var c0:JBmp = new JBmp(srcRadius * 2, srcRadius * 2);
-			var p:Object = null;
-			var p2:Object = null;
-			for (x = 0; x < srcRadius * 2; x++)
-			{
-				for (y = 0; y < srcRadius * 2; y++)
-				{
-					var r:Number = srcRadius * srcRadius - (x - srcRadius) * (x - srcRadius) - (y - srcRadius) * (y - srcRadius);
-					if (r < 0)
-					{
-						continue;
-					}
-					var c:Number = Math.sqrt(r) / srcRadius;
-					p = c0.getData(x, y);
-					p.r = 1;
-					p.g = 1;
-					p.b = 1;
-					p.a = c * c * c * c;
-				}
-			}
-			
-			var c1:JBmp = null;
-			for (i = 0; i < step; i++)
-			{
-				c1 = new JBmp(srcRadius, srcRadius);
-				for (x = 0; x < srcRadius * 2; x++)
-				{
-					for (y = 0; y < srcRadius * 2; y++)
-					{
-						var x2:int = x / 2;
-						var y2:int = y / 2;
-						p = c0.getData(x, y);
-						p2 = c1.getData(x2, y2);
-						p2.r += p.r * 0.25;
-						p2.g += p.g * 0.25;
-						p2.b += p.b * 0.25;
-						p2.a += p.a * 0.25;
-					}
-				}
-				c0 = c1;
-				srcRadius = srcRadius / 2;
-			}
-			
-			var circle:BitmapData = c0.getBmp();
-			
-			var bmp:BitmapData = this.bitmapData;
-			for (j = 0; j < blur; j++)
-			{
-				bmp.lock();
-				for (i = 0; i < star; i++)
-				{
-					x = Math.random() * FULL_WIDTH;
-					y = Math.random() * FULL_HEIGHT;
-					var ct:ColorTransform = new ColorTransform(Math.random(), Math.random(), 1, Math.random());
-					var mx:Matrix = new Matrix();
-					mx.translate(x, y);
-					bmp.draw(circle, mx, ct);
-				}
-				bmp.unlock();
-				if (j == blur - 1)
-				{
-					break;
-				}
-				
-				var bmp2:BitmapData = new BitmapData(FULL_WIDTH, FULL_HEIGHT, true, 0);
-				bmp2.applyFilter(bmp, new Rectangle(0, 0, bmp.width, bmp.height), new Point(0, 0), new BlurFilter(4, 4, BitmapFilterQuality.HIGH));
-				bmp = bmp2;
-			}
-			
-			this.bitmapData = bmp;
+			return this._list[p_id].bmp;
 		}
+		
+		return null;
+	}
+	
+	public function onCreate():Boolean
+	{
+		var i:int = 0;
+		var j:int = 0;
+		var k:int = 0;
+		var m:int = 0;
+		
+		var bmp:BitmapData = new BitmapData(this._width, this._height, true, 0);
+		var bmp2:BitmapData = null;
+		var alphaList:Array = [];
+		var alphaSum:Number = 0;
+		for (i = 0; i < IMG_NUM; i++)
+		{
+			var v:Number = Math.random();
+			alphaList.push(v);
+			alphaSum += v;
+		}
+		
+		this._list = [];
+		for (i = 0; i < IMG_NUM; i++)
+		{
+			bmp2 = new BitmapData(this._width, this._height, true, 0);
+			bmp2.lock();
+			this._list.push({bmp: bmp2});
+		}
+		
+		for (k = 0; k < STAR_NUM; k++)
+		{
+			var numA:Number = int(-12 + Math.random() * 16);
+			var numR:Number = int(5 + Math.random() * 5);
+			var numM:Number = Math.random();
+			var addX:int = (this._width - numR * 2) * Math.random();
+			var addY:int = (this._height - numR * 2) * Math.random();
+			
+			var colorList:Array = [];
+			for (i = 0; i < this._list.length; i++)
+			{
+				colorList.push({r: 0.7 + Math.random() * 0.3, g: 0.4 + Math.random() * 0.6, b: 1, a: Math.random()});
+			}
+			
+			for (i = 0; i < numR * 2; i++)
+			{
+				for (j = 0; j < numR * 2; j++)
+				{
+					var x:Number = Math.sqrt((i - numR) * (i - numR) + (j - numR) * (j - numR)) / numR;
+					var x2:Number = x;
+					x2 *= 1.5;
+					var a0:Number = Math.abs(i - numR);
+					var a1:Number = Math.abs(j - numR);
+					x *= 2;
+					if (a0 > a1)
+					{
+						x *= (1 - a1 / a0 * 0.8);
+					}
+					else if (a0 < a1)
+					{
+						x *= (1 - a0 / a1 * 0.8);
+					}
+					else
+					{
+						x *= 0.2;
+					}
+					if (x > 1)
+					{
+						x = 1;
+					}
+					if (x2 > 1)
+					{
+						x2 = 1;
+					}
+					var z:Number = (2 * x * x * x - 3 * x * x + 1) * (1 + numA * (x * x * (1 - x) * (1 - x)));
+					z *= 0.7;
+					var z2:Number = (2 * x2 * x2 * x2 - 3 * x2 * x2 + 1) * (1 + numA * (x2 * x2 * (1 - x2) * (1 - x2)));
+					if (z2 > z)
+					{
+						z = z2;
+					}
+					
+					var colorSrc:uint = bmp.getPixel32(i + addX, j + addY);
+					var color:JColor = JColor.createColorByHex(colorSrc);
+					color.addLight(1, 1, 1, z * numM);
+					bmp.setPixel32(i + addX, j + addY, color.value);
+					
+					for (m = 0; m < this._list.length; m++)
+					{
+						var color2:JColor = new JColor(color.r * colorList[m].r, color.g * colorList[m].g, color.b * colorList[m].b, color.a * colorList[m].a);
+						bmp2 = this._list[m].bmp;
+						bmp2.setPixel32(i + addX, j + addY, color2.value);
+					}
+				}
+			}
+		}
+		bmp.unlock();
+		for (i = 0; i < this._list.length; i++)
+		{
+			bmp2 = this._list[i].bmp;
+			bmp2.unlock();
+		}
+		
 		return true;
+	}
+
+}
+
+class GalaxyMc extends BasicObject
+{
+	private var _list:Array = null;
+	private var _timer:JTimer = null;
+	
+	public function GalaxyMc()
+	{
+		super();
+	}
+	
+	override protected function init():void
+	{
+		var i:int = 0;
+		
+		var src:GalaxyAni = GameAsset.loader.getAsset(GameAsset.KEY_GALAXY_ANI) as GalaxyAni;
+		
+		var bg:Quad = new Quad(src.width, src.height, 0x000044);
+		this.container.addChild(bg.instance);
+		
+		var alphaList:Array = [];
+		var alphaSum:Number = 0;
+		for (i = 0; i < src.imageNum; i++)
+		{
+			var v:Number = Math.random();
+			alphaList.push(v);
+			alphaSum += v;
+		}
+		this._list = [];
+		for (i = 0; i < src.imageNum; i++)
+		{
+			this._list.push({img: null, bmp: src.getImage(i), sum: Math.random() * 2 - 1, delta: Math.random() * 0.001, max: 4 * alphaList[i] / alphaSum});
+		}
+		
+		for (i = 0; i < this._list.length; i++)
+		{
+			var bmp:BitmapData = this._list[i].bmp;
+			var img:Bitmap = new Bitmap(bmp);
+			this._list[i].img = img;
+			img.alpha = Math.abs(this._list[i].sum) * this._list[i].max;
+			this.container.addChild(img);
+		}
+		
+		this._timer = new JTimer(this.onTime);
+		this._timer.start();
+	}
+	
+	private function onTime(p_delta:Number):void
+	{
+		for (var i:int = 0; i < this._list.length; i++)
+		{
+			var img:Bitmap = this._list[i].img;
+			this._list[i].sum += this._list[i].delta * p_delta;
+			if (this._list[i].sum > 1)
+			{
+				this._list[i].sum -= 2;
+			}
+			img.alpha = Math.abs(this._list[i].sum) * this._list[i].max;
+		}
+	}
+	
+	private function get container():Sprite
+	{
+		return (this.instance) as Sprite;
+	}
+
+}
+
+class Galaxy extends BasicContainer
+{
+	private var _xCount:int = 0;
+	private var _yCount:int = 0;
+	
+	public function Galaxy(p_data:Object)
+	{
+		super();
+	}
+	
+	override public function resize(p_width:int, p_height:int):void
+	{
+		var i:int = 0;
+		var src:GalaxyAni = GameAsset.loader.getAsset(GameAsset.KEY_GALAXY_ANI) as GalaxyAni;
+		var img:GalaxyMc = null;
+		var sp:Sprite = this.instance as Sprite;
+		while (p_width > this._xCount * src.width)
+		{
+			for (i = 0; i < this._yCount; i++)
+			{
+				img = new GalaxyMc();
+				img.instance.x = this._xCount * src.width;
+				img.instance.y = i * src.height;
+				this.addChild(img);
+			}
+			this._xCount++;
+		}
+		while (p_height > this._yCount * src.height)
+		{
+			for (i = 0; i < this._xCount; i++)
+			{
+				img = new GalaxyMc();
+				img.instance.x = i * src.width;
+				img.instance.y = this._yCount * src.height;
+				this.addChild(img);
+			}
+			this._yCount++;
+		}
 	}
 
 }
@@ -1144,7 +1420,8 @@ class Meteor extends BasicObject
 			var pos:Vector3D = new Vector3D();
 			var vec:Vector3D = new Vector3D(vecSrc.x, vecSrc.y, vecSrc.z);
 			vec.multiplyEql(minSpeed + Math.random() * (maxSpeed - minSpeed));
-			if (Math.random() > 0.5) {
+			if (Math.random() > 0.5)
+			{
 				pos = new Vector3D(Math.random() * RADIUS * 2 - RADIUS, Math.random() * RADIUS * 2 - RADIUS, Math.random() * RADIUS * 2 - RADIUS);
 				vec = new Vector3D();
 			}

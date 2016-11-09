@@ -66,7 +66,8 @@ package com.pj.common.component
 			this.slideTo(0, 0, true);
 		}
 		
-		public function get position():Vector2D {
+		public function get position():Vector2D
+		{
 			return new Vector2D(this._target.instance.x, this._target.instance.y);
 		}
 		
@@ -96,7 +97,7 @@ package com.pj.common.component
 			this.slideTo(this._target.instance.x + p_mX, this._target.instance.y + p_mY, p_isUpdate);
 		}
 		
-		public function slideTo(p_posX:int, p_posY:int, p_isUpdate:Boolean = false):void
+		public function slideTo(p_posX:int, p_posY:int, p_isUpdate:Boolean = false, p_forceCheck:Boolean = false):void
 		{
 			var fromVtr:Vector2D = new Vector2D(this._target.instance.x, this._target.instance.y);
 			var toVtr:Vector2D = new Vector2D(p_posX, p_posY);
@@ -105,7 +106,7 @@ package com.pj.common.component
 			{
 				resultVtr = this._moveChecker.checkMove(fromVtr, toVtr);
 			}
-			if (fromVtr.x == resultVtr.x && fromVtr.y == resultVtr.y)
+			if (fromVtr.x == resultVtr.x && fromVtr.y == resultVtr.y && !p_forceCheck)
 			{
 				return;
 			}

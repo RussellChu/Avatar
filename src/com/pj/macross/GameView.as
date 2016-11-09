@@ -3,9 +3,7 @@ package com.pj.macross
 	import com.pj.common.Helper;
 	import com.pj.common.component.BasicContainer;
 	import com.pj.common.component.BasicObject;
-	import com.pj.common.component.JBackground;
 	import com.pj.common.component.Slider;
-	import flash.display.Bitmap;
 	
 	/**
 	 * ...
@@ -16,7 +14,9 @@ package com.pj.macross
 		static public const EVENT_CMD_CLICK:String = "EVENT_CMD_CLICK";
 		static public const EVENT_MAP_CLICK:String = "EVENT_MAP_CLICK";
 		
-		private var _bg:JBackground = null;
+		private var _bg:BasicContainer = null;
+		private var _cmd:GameCommand = null;
+		private var _cmdPlay:GameCommandPlay = null;
 		private var _meteor:BasicObject = null;
 		private var _map:GameMap = null;
 		private var _mark:MarkBoard = null;
@@ -34,11 +34,15 @@ package com.pj.macross
 		override public function dispose():void
 		{
 			Helper.dispose(this._bg);
+			Helper.dispose(this._cmd);
+			Helper.dispose(this._cmdPlay);
 			Helper.dispose(this._meteor);
 			Helper.dispose(this._map);
 			Helper.dispose(this._mark);
 			Helper.dispose(this._slider);
 			this._bg = null;
+			this._cmd = null;
+			this._cmdPlay = null;
 			this._meteor = null;
 			this._map = null;
 			this._mark = null;
@@ -50,11 +54,11 @@ package com.pj.macross
 		{
 			super.init();
 			
-			this._bg = new JBackground((GameAsset.loader.getAsset(GameAsset.KEY_GALAXY) as Bitmap).bitmapData);
+			this._bg = GameAsset.loader.getAsset(GameAsset.KEY_GALAXY) as BasicContainer;
 			this.addChild(this._bg);
 			
-			this._meteor = GameAsset.loader.getAsset(GameAsset.KEY_METEOR) as BasicObject;
-			this.addChild(this._meteor);
+			//this._meteor = GameAsset.loader.getAsset(GameAsset.KEY_METEOR) as BasicObject;
+			//this.addChild(this._meteor);
 			
 			this._map = new GameMap();
 			this._map.signal.add(this.onMapClick, GameMap.ACTION_CLICK);
@@ -77,9 +81,14 @@ package com.pj.macross
 				this.addChild(this._slider);
 				this.addChild(this._mark);
 				
-				var cmd:GameCommand = new GameCommand();
-				cmd.signal.add(this.onCmdClick, GameCommand.ACTION_CLICK);
-				this.addChild(cmd);
+				this._cmd = new GameCommand();
+				this._cmd.signal.add(this.onCmdClick, GameCommand.ACTION_CLICK);
+				this.addChild(this._cmd);
+				
+				this._cmdPlay = new GameCommandPlay();
+				this._cmdPlay.signal.add(this.onCmdClick, GameCommand.ACTION_CLICK);
+				this._cmdPlay.instance.visible = false;
+				this.addChild(this._cmdPlay);
 				
 				this._tips = new TipsBoard();
 				this.addChild(this._tips);
@@ -128,9 +137,9 @@ package com.pj.macross
 			
 			posX = (p_width - this._tips.width) * 0.5;
 			this._tips.instance.x = posX;
-			
-			this._meteor.instance.x = p_width * 0.5;
-			this._meteor.instance.y = p_height * 0.5;
+		
+			//this._meteor.instance.x = p_width * 0.5;
+			//this._meteor.instance.y = p_height * 0.5;
 		}
 		
 		private function onCmdClick(p_result:Object):void
@@ -169,6 +178,10 @@ package com.pj.macross
 				break;
 			case GameData.COMMAND_AUTO: 
 				this._tips.showMsg(TipsBoard.MSG_CMD_AUTO);
+				GameController.i.signal.dispatch({command: cmdCode}, EVENT_CMD_CLICK);
+				break;
+			case GameData.COMMAND_PLAY: 
+				this._tips.showMsg(TipsBoard.MSG_CMD_PLAY);
 				GameController.i.signal.dispatch({command: cmdCode}, EVENT_CMD_CLICK);
 				break;
 			case GameData.COMMAND_PRINT: 
@@ -582,6 +595,7 @@ class TipsBoard extends JText
 	static public const MSG_CMD_ATK:int = 5;
 	static public const MSG_CMD_TIPS:int = 6;
 	static public const MSG_CMD_AUTO:int = 7;
+	static public const MSG_CMD_PLAY:int = 8;
 	
 	public function TipsBoard()
 	{
@@ -621,6 +635,9 @@ class TipsBoard extends JText
 			break;
 		case MSG_CMD_AUTO: 
 			this.text = GameLang.i.getValue("tips-00006");
+			break;
+		case MSG_CMD_PLAY: 
+			this.text = GameLang.i.getValue("tips-00007");
 			break;
 		case MSG_CMD_TIPS: 
 			var list:Array = [//
@@ -1326,6 +1343,108 @@ class GameMap extends ButtonGroup
 
 }
 
+class GameCommandPlay extends BasicObject
+{
+	static public const ACTION_CLICK:String = "GameCommand.ACTION_CLICK";
+	
+	private var _listBtn:ButtonList = null;
+	
+	public function GameCommandPlay()
+	{
+		super();
+	}
+	
+	override public function dispose():void
+	{
+		Helper.dispose(this._listBtn);
+		this._listBtn = null;
+		
+		super.dispose();
+	}
+	
+	override protected function init():void
+	{
+		super.init();
+	}
+	
+	override public function reset():void
+	{
+		super.reset();
+		
+		this._listBtn = new ButtonList(//
+		(GameAsset.loader.getAssetOfGroup(GameAsset.KEY_IMAGE, "cmdListIdleA") as Bitmap).bitmapData//
+		, (GameAsset.loader.getAssetOfGroup(GameAsset.KEY_IMAGE, "cmdListIdleB") as Bitmap).bitmapData//
+		, (GameAsset.loader.getAssetOfGroup(GameAsset.KEY_IMAGE, "cmdListIdleC") as Bitmap).bitmapData//
+		, (GameAsset.loader.getAssetOfGroup(GameAsset.KEY_IMAGE, "cmdListIdleD") as Bitmap).bitmapData//
+		, (GameAsset.loader.getAssetOfGroup(GameAsset.KEY_IMAGE, "cmdListOverA") as Bitmap).bitmapData//
+		, (GameAsset.loader.getAssetOfGroup(GameAsset.KEY_IMAGE, "cmdListOverB") as Bitmap).bitmapData//
+		, (GameAsset.loader.getAssetOfGroup(GameAsset.KEY_IMAGE, "cmdListOverC") as Bitmap).bitmapData//
+		, (GameAsset.loader.getAssetOfGroup(GameAsset.KEY_IMAGE, "cmdListOverD") as Bitmap).bitmapData//
+		);
+		this.loadListBtn();
+		this._listBtn.signal.add(this.onCmdClick);
+		this.container.addChild(this._listBtn.instance);
+		
+		GameController.i.signal.add(this.onLangUpdate, GameLang.EVENT_LANG_UPDATE);
+	}
+	
+	private function loadListBtn():void
+	{
+		var list:Array = [//
+		{cmd: "a:mov", lang: "cmds-00001"}//
+		, {cmd: "a:jmp", lang: "cmds-00002"}//
+		, {cmd: "a:atk", lang: "cmds-00003"}//
+		, {cmd: "sys:pass", lang: "cmds-00016"}//
+		, {cmd: "sys:close", lang: "cmds-00017"}//
+		];
+		for (var i:int = 0; i < list.length; i++)
+		{
+			this._listBtn.add(list[i].cmd, list[i].lang, {cmd: list[i].cmd});
+		}
+		this._listBtn.updateLang();
+	}
+	
+	private function get container():Sprite
+	{
+		return (this.instance as Sprite);
+	}
+	
+	private function onCmdClick(p_result:Object):void
+	{
+		var data:Object = {};
+		var cmd:String = p_result.cmd as String;
+		var cmdCode:int = 0;
+		var cmdSide:int = 0;
+		switch (cmd)
+		{
+		case "a:mov": 
+			data = {cmd: GameData.COMMAND_ROAD, side: GameData.SIDE_A};
+			break;
+		case "a:jmp": 
+			data = {cmd: GameData.COMMAND_ROAD_EX, side: GameData.SIDE_A};
+			break;
+		case "a:atk": 
+			data = {cmd: GameData.COMMAND_ATTACK, side: GameData.SIDE_A};
+			break;
+		case "sys:close": 
+			data = {cmd: GameData.COMMAND_CLOSE};
+			break;
+		case "sys:pass": 
+			data = {cmd: GameData.COMMAND_PASS};
+			break;
+		default: 
+			return;
+		}
+		this.signal.dispatch(data, ACTION_CLICK);
+	}
+	
+	private function onLangUpdate(p_result:Object):void
+	{
+		this._listBtn.updateLang();
+	}
+
+}
+
 class GameCommand extends BasicObject
 {
 	static public const ACTION_CLICK:String = "GameCommand.ACTION_CLICK";
@@ -1470,6 +1589,9 @@ class GameCommand extends BasicObject
 			data = {cmd: GameData.COMMAND_TIPS};
 			break;
 		case "sys:auto": 
+			data = {cmd: GameData.COMMAND_AUTO};
+			break;
+		case "sys:play": 
 			data = {cmd: GameData.COMMAND_AUTO};
 			break;
 		case "sys:prtScn": 

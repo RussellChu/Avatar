@@ -32,7 +32,10 @@ package com.pj.macross
 		static public const COMMAND_TIPS:int = 8;
 		static public const COMMAND_OPEN:int = 9;
 		static public const COMMAND_AUTO:int = 10;
-		static public const COMMAND_PRINT:int = 11;
+		static public const COMMAND_PLAY:int = 11;
+		static public const COMMAND_PRINT:int = 12;
+		static public const COMMAND_CLOSE:int = 13;
+		static public const COMMAND_PASS:int = 14;
 		
 		public function GameData()
 		{
