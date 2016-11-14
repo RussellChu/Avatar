@@ -2,9 +2,9 @@
 	  "data": "some data ++"
 	, "lang": [
   "", "", ""
-, "cmds-00001", "R: Move", "紅：移動"
-, "cmds-00002", "R: Fold", "紅：跳躍"
-, "cmds-00003", "R: Atk ", "紅：攻擊"
+, "cmds-00001", "R: Move", "紅：移動{0}"
+, "cmds-00002", "R: Fold", "紅：跳躍{0}"
+, "cmds-00003", "R: Atk ", "紅：攻擊{0}"
 , "cmds-00004", "G: Move", "綠：移動"
 , "cmds-00005", "G: Fold", "綠：跳躍"
 , "cmds-00006", "G: Atk ", "綠：攻擊"
@@ -66,7 +66,7 @@
 , "c:atk",		"cmds-00009",	1
 , "sys:undo",	"cmds-00010",	1
 , "sys:clr",	"cmds-00011",	1
-, "sys:play",	"cmds-00015",	0
+, "sys:play",	"cmds-00015",	1
 , "sys:auto",	"cmds-00013",	1
 , "sys:prtScn",	"cmds-00014",	0
 , "lang:zh",	"lang-00001",	0

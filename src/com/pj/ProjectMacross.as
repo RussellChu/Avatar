@@ -101,6 +101,10 @@ package com.pj
 			this._view.updateMap(id, side, state);
 		}
 		
+		private function onModelEvent_CmdUpdate(p_result:Object):void {
+			this._view.updateCmd(p_result.side, p_result.cmd.atk, p_result.cmd.jmp, p_result.cmd.mov);
+		}
+		
 		private function onModelEvent_CreateResult(p_result:Object):void
 		{
 			var isReady:Boolean = p_result.isReady;
@@ -119,6 +123,11 @@ package com.pj
 			var list:Array = p_result.list as Array;
 			this._view.createMap(list);
 			this._loading.leave();
+		}
+		
+		private function onModelEvent_PlayState(p_result:Object):void
+		{
+			this._view.changeCmd(p_result.state);
 		}
 		
 		private function onModelEvent_ScoreUpdate(p_result:Object):void
@@ -159,8 +168,11 @@ package com.pj
 			case GameData.COMMAND_AUTO: 
 				this._model.autoPlay();
 				break;
+			case GameData.COMMAND_CLOSE: 
+				this._model.playGame(false);
+				break;
 			case GameData.COMMAND_PLAY: 
-				// to do
+				this._model.playGame(true);
 				break;
 			default: 
 				;
@@ -190,8 +202,10 @@ package com.pj
 			this._assetReady = true;
 			
 			GameController.i.signal.add(this.onModelEvent_CellUpdate, GameModel.EVENT_CELL_UPDATE);
+			GameController.i.signal.add(this.onModelEvent_CmdUpdate, GameModel.EVENT_CMD_UPDATE);
 			GameController.i.signal.add(this.onModelEvent_CreateResult, GameModel.EVENT_CREATE_RESULT);
 			GameController.i.signal.add(this.onModelEvent_LoadComplete, GameModel.EVENT_LOAD_COMPLETE);
+			GameController.i.signal.add(this.onModelEvent_PlayState, GameModel.EVENT_PLAY_STATE);
 			GameController.i.signal.add(this.onModelEvent_ScoreUpdate, GameModel.EVENT_SCORE_UPDATE);
 			GameController.i.signal.add(this.onViewEvent_CmdClick, GameView.EVENT_CMD_CLICK);
 			GameController.i.signal.add(this.onViewEvent_MapClick, GameView.EVENT_MAP_CLICK);

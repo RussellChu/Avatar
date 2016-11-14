@@ -106,6 +106,28 @@ package com.pj.macross
 			}
 		}
 		
+		public function changeCmd(p_state:int):void
+		{
+			if (p_state == 0)
+			{
+				this._cmdPlay.instance.visible = false;
+				this._cmd.instance.visible = true;
+				return;
+			}
+			this._cmdPlay.instance.visible = true;
+			this._cmd.instance.visible = false;
+			this._cmdPlay.openList();
+		}
+		
+		public function updateCmd(p_side:int, p_atk:int, p_jmp:int, p_mov:int):void
+		{
+			if (p_side != GameData.SIDE_A)
+			{
+				return;
+			}
+			this._cmdPlay.updateCmd(p_atk, p_jmp, p_mov);
+		}
+		
 		public function updateMap(p_id:String, p_side:int, p_state:int):void
 		{
 			this._map.setCell(p_id, p_side, p_state);
@@ -180,6 +202,8 @@ package com.pj.macross
 				this._tips.showMsg(TipsBoard.MSG_CMD_AUTO);
 				GameController.i.signal.dispatch({command: cmdCode}, EVENT_CMD_CLICK);
 				break;
+			case GameData.COMMAND_CLOSE: 
+				GameController.i.signal.dispatch({command: cmdCode}, EVENT_CMD_CLICK);
 			case GameData.COMMAND_PLAY: 
 				this._tips.showMsg(TipsBoard.MSG_CMD_PLAY);
 				GameController.i.signal.dispatch({command: cmdCode}, EVENT_CMD_CLICK);
@@ -819,7 +843,7 @@ class ButtonList extends BasicObject
 		return (this.instance as Sprite);
 	}
 	
-	public function add(p_key:String, p_lang:String, p_data:Object):void
+	public function add(p_key:String, p_lang:String, p_langData:Array, p_data:Object):void
 	{
 		var skin:SimpleSkin = new SimpleSkin();
 		if (!this._lastBtn)
@@ -859,16 +883,36 @@ class ButtonList extends BasicObject
 		tf.instance.y = this._lastBtn.instance.y;
 		this.container.addChild(tf.instance);
 		
-		this._txtMap[p_key] = {tf: tf, lang: p_lang};
+		this._txtMap[p_key] = {tf: tf, lang: p_lang, langData: p_langData};
+	}
+	
+	public function setLangByKey(p_key:String, p_lang:String, p_langData:Array):void
+	{
+		var item:Object = this._txtMap[p_key];
+		if (!item)
+		{
+			return;
+		}
+		
+		item.lang = p_lang;
+		item.langData = p_langData;
+		
+		var tf:JText = item.tf as JText;
+		var lang:String = item.lang as String;
+		var langData:Array = item.langData as Array;
+		var str:String = GameLang.i.getValue(lang, langData);
+		tf.text = str;
 	}
 	
 	public function updateLang():void
 	{
 		for (var key:String in this._txtMap)
 		{
-			var tf:JText = this._txtMap[key].tf as JText;
-			var lang:String = this._txtMap[key].lang as String;
-			var str:String = GameLang.i.getValue(lang);
+			var item:Object = this._txtMap[key];
+			var tf:JText = item.tf as JText;
+			var lang:String = item.lang as String;
+			var langData:Array = item.langData as Array;
+			var str:String = GameLang.i.getValue(lang, langData);
 			tf.text = str;
 		}
 	}
@@ -1347,6 +1391,7 @@ class GameCommandPlay extends BasicObject
 {
 	static public const ACTION_CLICK:String = "GameCommand.ACTION_CLICK";
 	
+	private var _btn:BasicButton = null;
 	private var _listBtn:ButtonList = null;
 	
 	public function GameCommandPlay()
@@ -1356,7 +1401,9 @@ class GameCommandPlay extends BasicObject
 	
 	override public function dispose():void
 	{
+		Helper.dispose(this._btn);
 		Helper.dispose(this._listBtn);
+		this._btn = null;
 		this._listBtn = null;
 		
 		super.dispose();
@@ -1371,6 +1418,15 @@ class GameCommandPlay extends BasicObject
 	{
 		super.reset();
 		
+		var skin:SimpleSkin = new SimpleSkin();
+		skin.addSkin(BasicButton.SKIN_DOWN, new BasicImage((GameAsset.loader.getAssetOfGroup(GameAsset.KEY_IMAGE, "cmdOver") as Bitmap).bitmapData));
+		skin.addSkin(BasicButton.SKIN_IDLE, new BasicImage((GameAsset.loader.getAssetOfGroup(GameAsset.KEY_IMAGE, "cmdIdle") as Bitmap).bitmapData));
+		skin.addSkin(BasicButton.SKIN_OVER, new BasicImage((GameAsset.loader.getAssetOfGroup(GameAsset.KEY_IMAGE, "cmdOver") as Bitmap).bitmapData));
+		this._btn = new BasicButton(skin, null, true);
+		this._btn.signal.add(this.onEnterClick, BasicButton.ACTION_VALUE_CHANGE);
+		
+		this.container.addChild(this._btn.instance);
+		
 		this._listBtn = new ButtonList(//
 		(GameAsset.loader.getAssetOfGroup(GameAsset.KEY_IMAGE, "cmdListIdleA") as Bitmap).bitmapData//
 		, (GameAsset.loader.getAssetOfGroup(GameAsset.KEY_IMAGE, "cmdListIdleB") as Bitmap).bitmapData//
@@ -1381,6 +1437,8 @@ class GameCommandPlay extends BasicObject
 		, (GameAsset.loader.getAssetOfGroup(GameAsset.KEY_IMAGE, "cmdListOverC") as Bitmap).bitmapData//
 		, (GameAsset.loader.getAssetOfGroup(GameAsset.KEY_IMAGE, "cmdListOverD") as Bitmap).bitmapData//
 		);
+		this._listBtn.instance.x = this._btn.instance.x;
+		this._listBtn.instance.y = this._btn.instance.y + this._btn.instance.height;
 		this.loadListBtn();
 		this._listBtn.signal.add(this.onCmdClick);
 		this.container.addChild(this._listBtn.instance);
@@ -1399,7 +1457,7 @@ class GameCommandPlay extends BasicObject
 		];
 		for (var i:int = 0; i < list.length; i++)
 		{
-			this._listBtn.add(list[i].cmd, list[i].lang, {cmd: list[i].cmd});
+			this._listBtn.add(list[i].cmd, list[i].lang, [""], {cmd: list[i].cmd});
 		}
 		this._listBtn.updateLang();
 	}
@@ -1441,6 +1499,39 @@ class GameCommandPlay extends BasicObject
 	private function onLangUpdate(p_result:Object):void
 	{
 		this._listBtn.updateLang();
+	}
+	
+	public function updateCmd(p_atk:int, p_jmp:int, p_mov:int):void
+	{
+		this._listBtn.setLangByKey("a:atk", "cmds-00003", [" (" + p_atk + ")"]);
+		this._listBtn.setLangByKey("a:jmp", "cmds-00002", [" (" + p_jmp + ")"]);
+		this._listBtn.setLangByKey("a:mov", "cmds-00001", [" (" + p_mov + ")"]);
+	}
+	
+	private function updateEnter(p_value:Boolean):void
+	{
+		var data:Object = {};
+		this._listBtn.instance.visible = p_value;
+		if (p_value)
+		{
+			data = {cmd: GameData.COMMAND_OPEN};
+		}
+		else
+		{
+			data = {cmd: GameData.COMMAND_TIPS};
+		}
+		this.signal.dispatch(data, ACTION_CLICK);
+	}
+	
+	private function onEnterClick(p_result:Object):void
+	{
+		this.updateEnter(this._btn.value);
+	}
+	
+	public function openList():void
+	{
+		this._btn.value = true;
+		this.updateEnter(this._btn.value);
 	}
 
 }
@@ -1522,7 +1613,7 @@ class GameCommand extends BasicObject
 				return;
 			}
 			var cmd:String = key;
-			_listBtn.add(key, lang, {cmd: cmd});
+			_listBtn.add(key, lang, [""], {cmd: cmd});
 		});
 		this._listBtn.updateLang();
 	}

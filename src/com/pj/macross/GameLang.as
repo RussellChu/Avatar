@@ -45,7 +45,7 @@ package com.pj.macross
 			return this._lang;
 		}
 		
-		public function getValue(p_key:String):String
+		public function getValue(p_key:String, p_data:Array = null):String
 		{
 			if (!this._map[this._lang])
 			{
@@ -55,7 +55,16 @@ package com.pj.macross
 			{
 				return "";
 			}
-			return this._map[this._lang][p_key];
+			var str:String = this._map[this._lang][p_key];
+			if (p_data)
+			{
+				for (var i:int = 0; i < p_data.length; i++)
+				{
+					var c:String = p_data[i] as String;
+					str = str.split("{" + i + "}").join(c);
+				}
+			}
+			return str;
 		}
 		
 		private function onLoadLang(p_result:Object):void

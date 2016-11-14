@@ -17,8 +17,10 @@ package com.pj.macross
 	public class GameModel
 	{
 		static public const EVENT_CELL_UPDATE:String = "GameModel.EVENT_CELL_UPDATE";
+		static public const EVENT_CMD_UPDATE:String = "GameModel.EVENT_CMD_UPDATE";
 		static public const EVENT_CREATE_RESULT:String = "GameModel.EVENT_CREATE_RESULT";
 		static public const EVENT_LOAD_COMPLETE:String = "GameModel.EVENT_LOAD_COMPLETE";
+		static public const EVENT_PLAY_STATE:String = "GameModel.EVENT_PLAY_STATE";
 		static public const EVENT_SCORE_UPDATE:String = "GameModel.EVENT_SCORE_UPDATE";
 		
 		static private const CHECK_BASE_LIST:Array = [//
@@ -68,6 +70,8 @@ package com.pj.macross
 		private var _timer:JTimer = null;
 		private var _autoDelta:Number = 0;
 		private var _autoState:int = 0;
+		private var _playMode:int = 0;
+		private var _waitPlayer:Boolean = false;
 		
 		public function GameModel()
 		{
@@ -828,8 +832,14 @@ package com.pj.macross
 				return;
 			}
 			this._autoDelta -= GameConfig.getDemoSpeed();
-			if ( this._autoDelta > GameConfig.getDemoSpeed() ) {
+			if (this._autoDelta > GameConfig.getDemoSpeed())
+			{
 				this._autoDelta = 0;
+			}
+			
+			if (this._waitPlayer)
+			{
+				return;
 			}
 			
 			if (this._autoState == 0)
@@ -844,6 +854,12 @@ package com.pj.macross
 			switch (side)
 			{
 			case GameData.SIDE_A: 
+				if (this._playMode == 1)
+				{
+					this._waitPlayer = true;
+					GameController.i.signal.dispatch({side: side, cmd: this._aiA.cmd}, EVENT_CMD_UPDATE);
+					return;
+				}
 				this._aiA.doAct();
 				break;
 			case GameData.SIDE_B: 
@@ -857,10 +873,10 @@ package com.pj.macross
 		
 		public function autoPlay():void
 		{
+			this._playMode = 0;
 			if (!this._timer)
 			{
 				this._timer = new JTimer(this.onAutoPlayTime);
-					//	this.getSearchList(5);
 			}
 			if (this._timer.state())
 			{
@@ -869,6 +885,29 @@ package com.pj.macross
 			else
 			{
 				this._timer.start();
+			}
+		}
+		
+		public function playGame(p_value:Boolean):void
+		{
+			this._playMode = 1;
+			if (!this._timer)
+			{
+				this._timer = new JTimer(this.onAutoPlayTime);
+			}
+			if (this._timer.state())
+			{
+				if (!p_value) {
+				this._timer.stop();
+				GameController.i.signal.dispatch({state: 0}, EVENT_PLAY_STATE);
+				}
+			}
+			else
+			{
+				if (p_value) {
+				this._timer.start();
+				GameController.i.signal.dispatch({state: 1}, EVENT_PLAY_STATE);
+				}
 			}
 		}
 		
@@ -1170,6 +1209,15 @@ class SideAI
 		this._cmdListAtk = [];
 		this._cmdListJmp = [];
 		this._cmdListMov = [];
+	}
+	
+	public function get cmd():Object
+	{
+		return {//
+			atk: this._cmdListAtk.length//
+			, jmp: this._cmdListJmp.length//
+			, mov: this._cmdListMov.length//
+		};
 	}
 	
 	public function addCmd():void
