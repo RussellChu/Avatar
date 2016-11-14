@@ -215,7 +215,7 @@ package com.pj.macross
 				}
 				else if (this._cmdCode == GameData.COMMAND_ATTACK)
 				{
-					this._cmdCode = GameData.COMMAND_ROAD;
+					this._cmdSide = 0;
 				}
 				GameController.i.signal.dispatch({side: this._cmdSide, command: this._cmdCode}, EVENT_CMD_CLICK);
 			}
@@ -1592,7 +1592,7 @@ class GameCommand extends BasicObject
 			data = {cmd: GameData.COMMAND_AUTO};
 			break;
 		case "sys:play": 
-			data = {cmd: GameData.COMMAND_AUTO};
+			data = {cmd: GameData.COMMAND_PLAY};
 			break;
 		case "sys:prtScn": 
 			data = {cmd: GameData.COMMAND_PRINT};

@@ -827,7 +827,10 @@ package com.pj.macross
 			{
 				return;
 			}
-			this._autoDelta = 0;
+			this._autoDelta -= GameConfig.getDemoSpeed();
+			if ( this._autoDelta > GameConfig.getDemoSpeed() ) {
+				this._autoDelta = 0;
+			}
 			
 			if (this._autoState == 0)
 			{

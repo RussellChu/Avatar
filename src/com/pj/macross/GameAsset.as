@@ -125,7 +125,7 @@ package com.pj.macross
 				
 				var width:int = GameConfig.getCellRadius() * 2 + 0.5;
 				var height:int = GameConfig.getCellRadius() * 1.732 + 0.5;
-				__loader.addCreate(KEY_CELL_BLANK, new CellImage(CellImage.TYPE_BASE, width, height, GameConfig.getCellMargin(), new JColor(0.5, 0.5, 0.5, 0.5).value));
+				__loader.addCreate(KEY_CELL_BLANK, new CellImage(CellImage.TYPE_BASE, width, height, GameConfig.getCellMargin(), new JColor(0.3, 0.3, 0.5, 0.2).value));
 				__loader.addCreate(KEY_CELL_DOWN, new CellImage(CellImage.TYPE_BASE, width, height, GameConfig.getCellMargin(), new JColor(0, 1, 1, 0.5).value));
 				__loader.addCreate(KEY_CELL_OVER, new CellImage(CellImage.TYPE_BASE, width, height, GameConfig.getCellMargin(), new JColor(1, 1, 0, 0.5).value));
 				__loader.addCreate(KEY_CELL_BASE_A, new CellImage(CellImage.TYPE_BASE, width, height, GameConfig.getCellMargin(), new JColor(1, 0.411, 0.411, 1).value));
@@ -1103,7 +1103,7 @@ class CellImage extends CreatableBitmap
 class GalaxyAni implements ICreatable
 {
 	static private const IMG_NUM:int = 8;
-	static private const STAR_NUM:int = 256;
+	static private const STAR_NUM:int = 1024;
 	
 	private var _creater:Creater = null;
 	private var _signal:JSignal = null;
@@ -1185,7 +1185,7 @@ class GalaxyAni implements ICreatable
 		for (k = 0; k < STAR_NUM; k++)
 		{
 			var numA:Number = int(-12 + Math.random() * 16);
-			var numR:Number = int(5 + Math.random() * 5);
+			var numR:Number = int(1 + Math.random() * 5);
 			var numM:Number = Math.random();
 			var addX:int = (this._width - numR * 2) * Math.random();
 			var addY:int = (this._height - numR * 2) * Math.random();
@@ -1276,7 +1276,7 @@ class GalaxyMc extends BasicObject
 		
 		var src:GalaxyAni = GameAsset.loader.getAsset(GameAsset.KEY_GALAXY_ANI) as GalaxyAni;
 		
-		var bg:Quad = new Quad(src.width, src.height, 0x000044);
+		var bg:Quad = new Quad(src.width, src.height, 0x000020);
 		this.container.addChild(bg.instance);
 		
 		var alphaList:Array = [];
