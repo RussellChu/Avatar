@@ -601,6 +601,42 @@ package com.pj.macross
 		
 		public function command(p_id:int, p_side:int, p_command:int):Boolean
 		{
+			if (this._playMode == 1)
+			{
+				if (p_side == GameData.SIDE_A)
+				{
+					if (!this._waitPlayer)
+					{
+						return false;
+					}
+					
+					var cmdMap:Object = this._aiA.cmd;
+					switch (p_command)
+					{
+					case GameData.COMMAND_ATTACK: 
+						if (cmdMap.atk <= 0)
+						{
+							return false;
+						}
+						break;
+					case GameData.COMMAND_ROAD: 
+						if (cmdMap.mov <= 0)
+						{
+							return false;
+						}
+						break;
+					case GameData.COMMAND_ROAD_EX: 
+						if (cmdMap.jmp <= 0)
+						{
+							return false;
+						}
+						break;
+					default: 
+						;
+					}
+				}
+			}
+			
 			var cell:MapCell = this._map.getCellById(p_id);
 			if (!cell)
 			{
@@ -632,10 +668,7 @@ package com.pj.macross
 					return false;
 				}
 				this.addRoad(p_side, cell.keyX, cell.keyY, cell.keyZ);
-				this.addRecord(cell.state, cell.side, cell.keyX, cell.keyY, cell.keyZ, preState, preSide, score, preScore);
-				GameController.i.signal.dispatch({id: cell.id, side: cell.side, state: cell.state}, EVENT_CELL_UPDATE);
-				GameController.i.signal.dispatch({side: cell.side, score: score}, EVENT_SCORE_UPDATE);
-				return true;
+				break;
 			case GameData.COMMAND_ROAD: 
 				if (cell.state != GameData.STATE_NONE && cell.state != GameData.STATE_HOSTAGE)
 				{
@@ -651,10 +684,7 @@ package com.pj.macross
 					this.setScore(p_side, score);
 				}
 				this.addRoad(p_side, cell.keyX, cell.keyY, cell.keyZ);
-				this.addRecord(cell.state, cell.side, cell.keyX, cell.keyY, cell.keyZ, preState, preSide, score, preScore);
-				GameController.i.signal.dispatch({id: cell.id, side: cell.side, state: cell.state}, EVENT_CELL_UPDATE);
-				GameController.i.signal.dispatch({side: cell.side, score: score}, EVENT_SCORE_UPDATE);
-				return true;
+				break;
 			case GameData.COMMAND_ROAD_EX: 
 				if (cell.state != GameData.STATE_NONE && cell.state != GameData.STATE_HOSTAGE)
 				{
@@ -670,13 +700,20 @@ package com.pj.macross
 					this.setScore(p_side, score);
 				}
 				this.addRoadEx(p_side, cell.keyX, cell.keyY, cell.keyZ);
-				this.addRecord(cell.state, cell.side, cell.keyX, cell.keyY, cell.keyZ, preState, preSide, score, preScore);
-				GameController.i.signal.dispatch({id: cell.id, side: cell.side, state: cell.state}, EVENT_CELL_UPDATE);
-				GameController.i.signal.dispatch({side: cell.side, score: score}, EVENT_SCORE_UPDATE);
-				return true;
+				break;
 			default: 
 				return false;
 			}
+			
+			this.addRecord(cell.state, cell.side, cell.keyX, cell.keyY, cell.keyZ, preState, preSide, score, preScore);
+			GameController.i.signal.dispatch({id: cell.id, side: cell.side, state: cell.state}, EVENT_CELL_UPDATE);
+			GameController.i.signal.dispatch({side: cell.side, score: score}, EVENT_SCORE_UPDATE);
+			if (this._playMode == 1 && p_side == GameData.SIDE_A)
+			{
+				this._aiA.useAct(p_command);
+				GameController.i.signal.dispatch({side: p_side, cmd: this._aiA.cmd}, EVENT_CMD_UPDATE);
+			}
+			return true;
 		}
 		
 		public function start():void
@@ -850,24 +887,35 @@ package com.pj.macross
 			}
 			this._autoState = (this._autoState + 1) % 3;
 			
+			var isDoAct:Boolean = false;
 			var side:int = Helper.selectFrom([GameData.SIDE_A, GameData.SIDE_B, GameData.SIDE_C]) as int;
 			switch (side)
 			{
 			case GameData.SIDE_A: 
 				if (this._playMode == 1)
 				{
+					var cmdMap:Object = this._aiA.cmd;
+					var cmdNum:int = cmdMap.atk + cmdMap.jmp + cmdMap.mov;
+					if (cmdNum == 0)
+					{
+						break;
+					}
 					this._waitPlayer = true;
 					GameController.i.signal.dispatch({side: side, cmd: this._aiA.cmd}, EVENT_CMD_UPDATE);
 					return;
 				}
-				this._aiA.doAct();
+				isDoAct = this._aiA.doAct();
 				break;
 			case GameData.SIDE_B: 
-				this._aiB.doAct();
+				isDoAct = this._aiB.doAct();
 				break;
 			case GameData.SIDE_C: 
-				this._aiC.doAct();
+				isDoAct = this._aiC.doAct();
 				break;
+			}
+			if (!isDoAct)
+			{
+				this._autoDelta += GameConfig.getDemoSpeed();
 			}
 		}
 		
@@ -897,18 +945,26 @@ package com.pj.macross
 			}
 			if (this._timer.state())
 			{
-				if (!p_value) {
-				this._timer.stop();
-				GameController.i.signal.dispatch({state: 0}, EVENT_PLAY_STATE);
+				if (!p_value)
+				{
+					this._timer.stop();
+					GameController.i.signal.dispatch({state: 0}, EVENT_PLAY_STATE);
 				}
 			}
 			else
 			{
-				if (p_value) {
-				this._timer.start();
-				GameController.i.signal.dispatch({state: 1}, EVENT_PLAY_STATE);
+				if (p_value)
+				{
+					this._timer.start();
+					GameController.i.signal.dispatch({state: 1}, EVENT_PLAY_STATE);
 				}
 			}
+		}
+		
+		public function playPass():void
+		{
+			this._waitPlayer = false;
+			GameController.i.signal.dispatch({side: GameData.SIDE_A, cmd: {atk: 0, jmp: 0, mov: 0}}, EVENT_CMD_UPDATE);
 		}
 		
 		private function get aiCheckList():Array
@@ -1223,21 +1279,39 @@ class SideAI
 	public function addCmd():void
 	{
 		var command:int = Helper.selectFrom(GameConfig.getDemoCmd()) as int;
-		if (command == GameData.COMMAND_ATTACK && this._cmdListAtk.length < 100)
+		if (command == GameData.COMMAND_ATTACK && this._cmdListAtk.length < GameConfig.getCmdStore())
 		{
 			this._cmdListAtk.push(command);
 		}
-		else if (command == GameData.COMMAND_ROAD_EX && this._cmdListJmp.length < 100)
+		else if (command == GameData.COMMAND_ROAD_EX && this._cmdListJmp.length < GameConfig.getCmdStore())
 		{
 			this._cmdListJmp.push(command);
 		}
-		else if (command == GameData.COMMAND_ROAD && this._cmdListMov.length < 100)
+		else if (command == GameData.COMMAND_ROAD && this._cmdListMov.length < GameConfig.getCmdStore())
 		{
 			this._cmdListMov.push(command);
 		}
 	}
 	
-	public function doAct():void
+	public function useAct(p_cmd:int):void
+	{
+		switch (p_cmd)
+		{
+		case GameData.COMMAND_ATTACK: 
+			this._cmdListAtk.pop();
+			break;
+		case GameData.COMMAND_ROAD_EX: 
+			this._cmdListJmp.pop();
+			break;
+		case GameData.COMMAND_ROAD: 
+			this._cmdListMov.pop();
+			break;
+		default: 
+			;
+		}
+	}
+	
+	public function doAct():Boolean
 	{
 		var finalCmd:int = 0;
 		var finalId:int = 0;
@@ -1342,10 +1416,11 @@ class SideAI
 		}
 		else
 		{
-			return;
+			return false;
 		}
 		
 		this._model.command(finalId, this._side, finalCmd);
+		return true;
 	}
 
 }

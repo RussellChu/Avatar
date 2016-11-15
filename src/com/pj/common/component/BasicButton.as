@@ -14,6 +14,7 @@ package com.pj.common.component
 		static public const SKIN_IDLE:int = 0;
 		static public const SKIN_DOWN:int = 1;
 		static public const SKIN_OVER:int = 2;
+		static public const SKIN_DISABLE:int = 3;
 		
 		protected var _isMouseDown:Boolean = false;
 		protected var _isMouseOver:Boolean = false;
@@ -57,6 +58,16 @@ package com.pj.common.component
 			this._isMouseOver = false;
 			this._skin.reset();
 			this.skin = SKIN_IDLE;
+		}
+		
+		override public function set enable(p_value:Boolean):void {
+			super.enable = p_value;
+			if (!this._enable) {
+				this.reset();
+				this.skin = SKIN_DISABLE;
+			} else {
+				this.skin = SKIN_IDLE;
+			}
 		}
 		
 		public function get id():int
@@ -105,6 +116,10 @@ package com.pj.common.component
 		
 		override protected function onMouseClick(p_evt:MouseEvent):void
 		{
+			if (!this._enable) {
+				return;
+			}
+			
 			if (this._toggle)
 			{
 				this._value = !this._value;
@@ -115,6 +130,10 @@ package com.pj.common.component
 		
 		override protected function onMouseDown(p_evt:MouseEvent):void
 		{
+			if (!this._enable) {
+				return;
+			}
+			
 			this._isMouseDown = true;
 			this.skin = SKIN_DOWN;
 			super.onMouseDown(p_evt);
@@ -122,6 +141,10 @@ package com.pj.common.component
 		
 		override protected function onMouseOver(p_evt:MouseEvent):void
 		{
+			if (!this._enable) {
+				return;
+			}
+			
 			this._isMouseOver = true;
 			if (this._isMouseDown)
 			{
@@ -136,6 +159,10 @@ package com.pj.common.component
 		
 		override protected function onMouseUp(p_evt:MouseEvent):void
 		{
+			if (!this._enable) {
+				return;
+			}
+			
 			this._isMouseDown = false;
 			if (this._isMouseOver)
 			{
@@ -157,6 +184,10 @@ package com.pj.common.component
 		
 		override protected function onMouseRollOut(p_evt:MouseEvent):void
 		{
+			if (!this._enable) {
+				return;
+			}
+			
 			this._isMouseDown = false;
 			this._isMouseOver = false;
 			if (this._value)

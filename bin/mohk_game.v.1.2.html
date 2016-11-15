@@ -6,6 +6,10 @@
 <body style="margin:0;">
 </body>
 <script>
+/*
+Copyright (c) 2016, Kira！聲間飛行- Macross Only in Hong Kong
+All rights reserved.
+*/
 var encodeObjToUrlParam = function ( p_obj ) {
 	var str = "";
 	for (var key in p_obj) {
@@ -18,8 +22,7 @@ var encodeObjToUrlParam = function ( p_obj ) {
 };
 var objElement = document.createElement( "object" );
 objElement.setAttribute( "type", "application/x-shockwave-flash" );
-//objElement.setAttribute( "data", "mohk_game.v.1.1.swf" );
-objElement.setAttribute( "data", "Avatar.swf" );
+objElement.setAttribute( "data", "mohk_game.v.1.2.swf" );
 objElement.setAttribute( "width", "100%" );
 objElement.setAttribute( "height", "100%" );
 var paramElement = document.createElement( "param" );
@@ -51,6 +54,7 @@ var data = {};
 //data.mapHostageA = [];
 //data.mapHostageB = [];
 //data.mapHostageC = [];
+//data.cmdStore = 100;
 //data.demoSpeed = 0;
 //data.demoCmd = [1, 1, 1, 2, 3, 3];
 //data.scoreMax = 22;
@@ -78,11 +82,13 @@ data.demoCmd = [1, 1, 1, 1, 3, 3];
 */
 
 /*
- * Test setting 3
+ * production setting
  */
 data.cellRadius = 16;
 data.cellMargin = 2;
-data.demoSpeed = 800;
+data.fontSize = 8;
+data.cmdStore = 10;
+data.demoSpeed = 1000;
 
 var valueStr = encodeObjToUrlParam( {data: JSON.stringify( data )} );
 paramElement.setAttribute( "value", valueStr );

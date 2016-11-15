@@ -17,6 +17,7 @@ package com.pj.common.component
 		static public const ACTION_UP:String = 'up';
 		
 		protected var _data:Object = null;
+		protected var _enable:Boolean = false;
 		
 		public function AbstractButton(p_data:Object = null)
 		{
@@ -38,6 +39,7 @@ package com.pj.common.component
 		override protected function init():void
 		{
 			super.init();
+			this._enable = true;
 			this.container.mouseChildren = false;
 			this.container.addEventListener(MouseEvent.CLICK, this.onMouseClick);
 			this.container.addEventListener(MouseEvent.MOUSE_DOWN, this.onMouseDown);
@@ -64,6 +66,10 @@ package com.pj.common.component
 		public function get data():Object
 		{
 			return this._data;
+		}
+		
+		public function set enable(p_value:Boolean):void {
+			this._enable = p_value;
 		}
 		
 		protected function onMouseClick(p_evt:MouseEvent):void

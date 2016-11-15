@@ -159,9 +159,10 @@ package com.pj.macross
 			
 			posX = (p_width - this._tips.width) * 0.5;
 			this._tips.instance.x = posX;
-		
+			
 			//this._meteor.instance.x = p_width * 0.5;
 			//this._meteor.instance.y = p_height * 0.5;
+			this._mark.instance.x = p_width - this._mark.instance.width - 50;
 		}
 		
 		private function onCmdClick(p_result:Object):void
@@ -204,8 +205,14 @@ package com.pj.macross
 				break;
 			case GameData.COMMAND_CLOSE: 
 				GameController.i.signal.dispatch({command: cmdCode}, EVENT_CMD_CLICK);
+				break;
 			case GameData.COMMAND_PLAY: 
 				this._tips.showMsg(TipsBoard.MSG_CMD_PLAY);
+				GameController.i.signal.dispatch({command: cmdCode}, EVENT_CMD_CLICK);
+				break;
+			case GameData.COMMAND_PASS: 
+				this._cmdSide = 0;
+				GameController.i.signal.dispatch({side: this._cmdSide, command: this._cmdCode}, EVENT_CMD_CLICK);
 				GameController.i.signal.dispatch({command: cmdCode}, EVENT_CMD_CLICK);
 				break;
 			case GameData.COMMAND_PRINT: 
@@ -569,20 +576,20 @@ class MarkBoard extends BasicObject
 		this._tf1 = new JText(GameConfig.getFontSize() * 2, 0xffff00, JText.ALIGN_CENTER, 0, 0, logo1.instance.height);
 		this._tf2 = new JText(GameConfig.getFontSize() * 2, 0xffff00, JText.ALIGN_CENTER, 0, 0, logo2.instance.height);
 		
+		this.setScore(GameData.SIDE_A, 0);
+		this.setScore(GameData.SIDE_B, 0);
+		this.setScore(GameData.SIDE_C, 0);
+		
 		this._tf0.instance.x = logo0.instance.x + logo0.instance.width * 0.5;
 		this._tf1.instance.x = logo1.instance.x + logo1.instance.width * 0.5;
 		this._tf2.instance.x = logo2.instance.x + logo2.instance.width * 0.5;
 		this._tf0.instance.y = logo0.instance.y - logo0.instance.height * 0.5;
-		this._tf1.instance.y = logo1.instance.y - logo0.instance.height * 0.5;
-		this._tf2.instance.y = logo2.instance.y - logo0.instance.height * 0.5;
+		this._tf1.instance.y = logo1.instance.y - logo1.instance.height * 0.5;
+		this._tf2.instance.y = logo2.instance.y - logo2.instance.height * 0.5;
 		
 		container.addChild(this._tf0.instance);
 		container.addChild(this._tf1.instance);
 		container.addChild(this._tf2.instance);
-		
-		this.setScore(GameData.SIDE_A, 0);
-		this.setScore(GameData.SIDE_B, 0);
-		this.setScore(GameData.SIDE_C, 0);
 	}
 	
 	override public function reset():void
@@ -673,8 +680,9 @@ class TipsBoard extends JText
 			, "tips-10005"//
 			, "tips-10006"//
 			, "tips-10007"//
+			, "tips-10008"//
 			];
-			if (new Date().time > new Date(2016, 10, 31).time && new Date().time < new Date(2016, 11, 27).time)
+			if (new Date().time > new Date(2016, 11, 19).time)
 			{
 				list.push("tips-20000");
 				list.push("tips-20001");
@@ -685,18 +693,20 @@ class TipsBoard extends JText
 				list.push("tips-20006");
 				list.push("tips-20007");
 				list.push("tips-20008");
+				list.push("tips-20009");
+				list.push("tips-20010");
 			}
-			else if (new Date().time < new Date(2016, 11, 28).time)
+			if (new Date().time > new Date(2016, 11, 27).time && new Date().time < new Date(2016, 11, 28).time)
 			{
-				list.push("tips-10008");
+				list.push("tips-10090");
 			}
 			else if (new Date().time < new Date(2017, 11, 28).time)
 			{
-				list.push("tips-10009");
+				list.push("tips-10091");
 			}
 			else
 			{
-				list.push("tips-10010");
+				list.push("tips-10092");
 			}
 			this.text = GameLang.i.getValue(Helper.selectFrom(list) as String);
 			break;
@@ -848,6 +858,7 @@ class ButtonList extends BasicObject
 		var skin:SimpleSkin = new SimpleSkin();
 		if (!this._lastBtn)
 		{
+			skin.addSkin(BasicButton.SKIN_DISABLE, new BasicImage(this._bmpIdleD));
 			skin.addSkin(BasicButton.SKIN_DOWN, new BasicImage(this._bmpOverD));
 			skin.addSkin(BasicButton.SKIN_IDLE, new BasicImage(this._bmpIdleD));
 			skin.addSkin(BasicButton.SKIN_OVER, new BasicImage(this._bmpOverD));
@@ -856,12 +867,14 @@ class ButtonList extends BasicObject
 		{
 			if (this._count == 1)
 			{
+				skin.addSkin(BasicButton.SKIN_DISABLE, new BasicImage(this._bmpIdleA));
 				skin.addSkin(BasicButton.SKIN_DOWN, new BasicImage(this._bmpOverA));
 				skin.addSkin(BasicButton.SKIN_IDLE, new BasicImage(this._bmpIdleA));
 				skin.addSkin(BasicButton.SKIN_OVER, new BasicImage(this._bmpOverA));
 			}
 			else
 			{
+				skin.addSkin(BasicButton.SKIN_DISABLE, new BasicImage(this._bmpIdleB));
 				skin.addSkin(BasicButton.SKIN_DOWN, new BasicImage(this._bmpOverB));
 				skin.addSkin(BasicButton.SKIN_IDLE, new BasicImage(this._bmpIdleB));
 				skin.addSkin(BasicButton.SKIN_OVER, new BasicImage(this._bmpOverB));
@@ -869,6 +882,7 @@ class ButtonList extends BasicObject
 			this._lastBtn.reloadSkin(skin);
 			
 			skin = new SimpleSkin();
+			skin.addSkin(BasicButton.SKIN_DISABLE, new BasicImage(this._bmpIdleC));
 			skin.addSkin(BasicButton.SKIN_DOWN, new BasicImage(this._bmpOverC));
 			skin.addSkin(BasicButton.SKIN_IDLE, new BasicImage(this._bmpIdleC));
 			skin.addSkin(BasicButton.SKIN_OVER, new BasicImage(this._bmpOverC));
@@ -883,7 +897,7 @@ class ButtonList extends BasicObject
 		tf.instance.y = this._lastBtn.instance.y;
 		this.container.addChild(tf.instance);
 		
-		this._txtMap[p_key] = {tf: tf, lang: p_lang, langData: p_langData};
+		this._txtMap[p_key] = {btn: this._lastBtn, tf: tf, lang: p_lang, langData: p_langData};
 	}
 	
 	public function setLangByKey(p_key:String, p_lang:String, p_langData:Array):void
@@ -902,6 +916,27 @@ class ButtonList extends BasicObject
 		var langData:Array = item.langData as Array;
 		var str:String = GameLang.i.getValue(lang, langData);
 		tf.text = str;
+	}
+	
+	public function setEnable(p_key:String, p_value:Boolean):void
+	{
+		var item:Object = this._txtMap[p_key];
+		if (!item)
+		{
+			return;
+		}
+		var btn:BasicButton = item.btn as BasicButton;
+		btn.enable = p_value;
+		
+		var tf:JText = item.tf as JText;
+		if (p_value)
+		{
+			tf.color = 0;
+		}
+		else
+		{
+			tf.color = 0x6d6d6d;
+		}
 	}
 	
 	public function updateLang():void
@@ -1449,15 +1484,16 @@ class GameCommandPlay extends BasicObject
 	private function loadListBtn():void
 	{
 		var list:Array = [//
-		{cmd: "a:mov", lang: "cmds-00001"}//
-		, {cmd: "a:jmp", lang: "cmds-00002"}//
-		, {cmd: "a:atk", lang: "cmds-00003"}//
-		, {cmd: "sys:pass", lang: "cmds-00016"}//
-		, {cmd: "sys:close", lang: "cmds-00017"}//
+		{cmd: "a:mov", lang: "cmds-00001", enable: false}//
+		, {cmd: "a:jmp", lang: "cmds-00002", enable: false}//
+		, {cmd: "a:atk", lang: "cmds-00003", enable: false}//
+		, {cmd: "sys:pass", lang: "cmds-00016", enable: true}//
+		, {cmd: "sys:close", lang: "cmds-00017", enable: true}//
 		];
 		for (var i:int = 0; i < list.length; i++)
 		{
 			this._listBtn.add(list[i].cmd, list[i].lang, [""], {cmd: list[i].cmd});
+			this._listBtn.setEnable(list[i].cmd, list[i].enable);
 		}
 		this._listBtn.updateLang();
 	}
@@ -1506,6 +1542,10 @@ class GameCommandPlay extends BasicObject
 		this._listBtn.setLangByKey("a:atk", "cmds-00003", [" (" + p_atk + ")"]);
 		this._listBtn.setLangByKey("a:jmp", "cmds-00002", [" (" + p_jmp + ")"]);
 		this._listBtn.setLangByKey("a:mov", "cmds-00001", [" (" + p_mov + ")"]);
+		
+		this._listBtn.setEnable("a:atk", p_atk > 0);
+		this._listBtn.setEnable("a:jmp", p_jmp > 0);
+		this._listBtn.setEnable("a:mov", p_mov > 0);
 	}
 	
 	private function updateEnter(p_value:Boolean):void

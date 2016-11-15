@@ -78,6 +78,11 @@ package com.pj.common.component
 			return this._width;
 		}
 		
+		public function set color(p_color:uint):void {
+			this._color = p_color;
+			this._txt.textColor = this._color;
+		}
+		
 		public function set text(p_text:String):void
 		{
 			this._txt.text = p_text;

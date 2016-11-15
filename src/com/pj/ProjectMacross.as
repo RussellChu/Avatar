@@ -101,7 +101,8 @@ package com.pj
 			this._view.updateMap(id, side, state);
 		}
 		
-		private function onModelEvent_CmdUpdate(p_result:Object):void {
+		private function onModelEvent_CmdUpdate(p_result:Object):void
+		{
 			this._view.updateCmd(p_result.side, p_result.cmd.atk, p_result.cmd.jmp, p_result.cmd.mov);
 		}
 		
@@ -170,6 +171,9 @@ package com.pj
 				break;
 			case GameData.COMMAND_CLOSE: 
 				this._model.playGame(false);
+				break;
+			case GameData.COMMAND_PASS: 
+				this._model.playPass();
 				break;
 			case GameData.COMMAND_PLAY: 
 				this._model.playGame(true);
