@@ -1194,12 +1194,7 @@ class GameMapItem extends BasicObject
 			return;
 		}
 		
-		this._flashValue += 0.001 * p_delta;
-		if (this._flashValue > 1)
-		{
-			this._flashValue -= 2;
-		}
-		
+		this._flashValue = (this._flashValue + 1 + 0.001 * p_delta) % 2 - 1;
 		this._flash.instance.alpha = Math.abs(this._flashValue);
 	}
 	

@@ -290,12 +290,7 @@ class FireAni implements ICreatable
 	
 	public function getFrameId(p_count:Number, p_delta:Number):Number
 	{
-		var count:Number = p_count + 0.01 * p_delta;
-		if (int(count) > this._list.length)
-		{
-			count -= this._list.length;
-		}
-		return count;
+		return (p_count + 0.01 * p_delta) % this._list.length;
 	}
 	
 	public function getFrame(p_id:int):BitmapData
@@ -592,12 +587,7 @@ class FoldAni implements ICreatable
 	
 	public function getFrameId(p_count:Number, p_delta:Number):Number
 	{
-		var count:Number = p_count + 0.01 * p_delta;
-		if (int(count) > 90)
-		{
-			count -= 90;
-		}
-		return count;
+		return (p_count + 0.01 * p_delta) % 90;
 	}
 	
 	public function getFrame(p_id:int):BitmapData
@@ -855,12 +845,7 @@ class Hostage extends BasicObject
 			return;
 		}
 		
-		this._angle += 0.0001 * p_delta;
-		if (this._angle > 1)
-		{
-			this._angle -= 1;
-		}
-		
+		this._angle = (this._angle + 0.0001 * p_delta) % 1;
 		this._sp.rotation = 360 * this._angle;
 	}
 	
@@ -986,7 +971,6 @@ class CellImage extends CreatableBitmap
 	}
 
 }
-
 
 /*
    class GalaxyAni implements ICreatable
@@ -1311,11 +1295,7 @@ class GalaxyMc extends BasicObject
 		for (var i:int = 0; i < this._list.length; i++)
 		{
 			var img:Bitmap = this._list[i].img;
-			this._list[i].sum += this._list[i].delta * p_delta;
-			if (this._list[i].sum > 1)
-			{
-				this._list[i].sum -= 2;
-			}
+			this._list[i].sum = (this._list[i].sum + this._list[i].delta * p_delta + 1) % 2 - 1;
 			img.alpha = Math.abs(this._list[i].sum) * this._list[i].max;
 		}
 	}
