@@ -70,7 +70,7 @@
 , "sys:clr",	"cmds-00011",	1
 , "sys:play",	"cmds-00015",	1
 , "sys:auto",	"cmds-00013",	1
-, "sys:prtScn",	"cmds-00014",	0
+, "sys:prtScn",	"cmds-00014",	1
 , "lang:zh",	"lang-00001",	0
 , "lang:en",	"lang-00002",	0
 		]

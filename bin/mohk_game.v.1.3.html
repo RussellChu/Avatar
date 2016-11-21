@@ -84,11 +84,12 @@ data.demoCmd = [1, 1, 1, 1, 3, 3];
 /*
  * production setting
  */
-data.cellRadius = 8;
-data.cellMargin = 1;
+data.cellRadius = 32;
+data.cellMargin = 2;
 data.fontSize = 8;
 data.cmdStore = 10;
 data.demoSpeed = 100;
+data.showTips = false;
 
 var valueStr = encodeObjToUrlParam( {data: JSON.stringify( data )} );
 paramElement.setAttribute( "value", valueStr );

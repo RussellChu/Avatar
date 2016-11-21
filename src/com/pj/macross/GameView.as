@@ -1,9 +1,13 @@
 package com.pj.macross
 {
+	import com.adobe.images.PNGEncoder;
 	import com.pj.common.Helper;
 	import com.pj.common.component.BasicContainer;
 	import com.pj.common.component.BasicObject;
 	import com.pj.common.component.Slider;
+	import flash.display.BitmapData;
+	import flash.net.FileReference;
+	import flash.utils.ByteArray;
 	
 	/**
 	 * ...
@@ -70,6 +74,14 @@ package com.pj.macross
 			this._slider.saveCapture(p_name + ".png");
 		}
 		
+		private function capScreen(p_name:String):void {
+			var bmp:BitmapData = new BitmapData(this._slider.instance.width, this._slider.instance.height);
+			bmp.draw(this.container);
+			var b:ByteArray = PNGEncoder.encode(bmp);
+			var fileReference:FileReference = new FileReference();
+			fileReference.save(b, p_name + ".png");
+		}
+		
 		public function createMap(p_list:Array):void
 		{
 			this._map.create(p_list);
@@ -91,6 +103,9 @@ package com.pj.macross
 				this.addChild(this._cmdPlay);
 				
 				this._tips = new TipsBoard();
+				if (!GameConfig.getShowTips()) {
+					this._tips.instance.visible = false;
+				}
 				this.addChild(this._tips);
 				this._tips.showMsg(TipsBoard.MSG_START_01);
 			}
@@ -216,7 +231,8 @@ package com.pj.macross
 				GameController.i.signal.dispatch({command: cmdCode}, EVENT_CMD_CLICK);
 				break;
 			case GameData.COMMAND_PRINT: 
-				this._slider.saveCapture(GameConfig.getCapId());
+				//this._slider.saveCapture(GameConfig.getCapId());
+				this.capScreen(GameConfig.getCapId());
 				break;
 			default: 
 				GameController.i.signal.dispatch({command: cmdCode}, EVENT_CMD_CLICK);
