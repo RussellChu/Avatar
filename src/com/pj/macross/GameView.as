@@ -18,6 +18,9 @@ package com.pj.macross
 		static public const EVENT_CMD_CLICK:String = "EVENT_CMD_CLICK";
 		static public const EVENT_MAP_CLICK:String = "EVENT_MAP_CLICK";
 		
+		private var _width:int = 0;
+		private var _height:int = 0;
+		
 		private var _bg:BasicContainer = null;
 		private var _cmd:GameCommand = null;
 		private var _cmdPlay:GameCommandPlay = null;
@@ -80,7 +83,7 @@ package com.pj.macross
 		
 		private function capScreen(p_name:String):void
 		{
-			var bmp:BitmapData = new BitmapData(this._slider.instance.width, this._slider.instance.height);
+			var bmp:BitmapData = new BitmapData(this._width, this._height);
 			bmp.draw(this.container);
 			var b:ByteArray = PNGEncoder.encode(bmp);
 			var fileReference:FileReference = new FileReference();
@@ -162,6 +165,9 @@ package com.pj.macross
 		
 		override public function resize(p_width:int, p_height:int):void
 		{
+			this._width = p_width;
+			this._height = p_height;
+			
 			this._bg.resize(p_width, p_height);
 			this._slider.resize(p_width, p_height);
 			
