@@ -66,6 +66,10 @@ package com.pj.macross
 			
 			this._map = new GameMap();
 			this._map.signal.add(this.onMapClick, GameMap.ACTION_CLICK);
+			if (GameConfig.getAdminMode())
+			{
+				this._map.signal.add(this.onMapOver, GameMap.ACTION_OVER);
+			}
 			this._mark = new MarkBoard();
 		}
 		
@@ -74,7 +78,8 @@ package com.pj.macross
 			this._slider.saveCapture(p_name + ".png");
 		}
 		
-		private function capScreen(p_name:String):void {
+		private function capScreen(p_name:String):void
+		{
 			var bmp:BitmapData = new BitmapData(this._slider.instance.width, this._slider.instance.height);
 			bmp.draw(this.container);
 			var b:ByteArray = PNGEncoder.encode(bmp);
@@ -103,7 +108,8 @@ package com.pj.macross
 				this.addChild(this._cmdPlay);
 				
 				this._tips = new TipsBoard();
-				if (!GameConfig.getShowTips()) {
+				if (!GameConfig.getShowTips())
+				{
 					this._tips.instance.visible = false;
 				}
 				this.addChild(this._tips);
@@ -270,6 +276,15 @@ package com.pj.macross
 			{
 				GameController.i.signal.dispatch({id: id, side: this._cmdSide, command: this._cmdCode}, EVENT_MAP_CLICK);
 			}
+		}
+		
+		private function onMapOver(p_result:Object):void
+		{
+			var data:Object = p_result.data;
+			var id:String = data.id;
+			var side:int = data.side;
+			var state:int = data.state;
+			this._tips.descCell(id, side, state);
 		}
 	
 	}
@@ -659,10 +674,57 @@ class TipsBoard extends JText
 		super.init();
 		this.textField.background = true;
 		this.textField.backgroundColor = 0xffffff;
+		this.text = "";
+	}
+	
+	public function descCell(p_id:String, p_side:int, p_state:int):void
+	{
+		var sideStr:String = "";
+		var stateStr:String = "";
+		switch (p_side)
+		{
+		case GameData.SIDE_A: 
+			sideStr = GameLang.i.getValue("text-00101");
+			break;
+		case GameData.SIDE_B: 
+			sideStr = GameLang.i.getValue("text-00102");
+			break;
+		case GameData.SIDE_C: 
+			sideStr = GameLang.i.getValue("text-00103");
+			break;
+		default: 
+			sideStr = GameLang.i.getValue("text-00100");
+		}
+		switch (p_state)
+		{
+		case GameData.STATE_OBSTACLE: 
+			stateStr = GameLang.i.getValue("text-00105");
+			break;
+		case GameData.STATE_BASE: 
+			stateStr = GameLang.i.getValue("text-00106");
+			break;
+		case GameData.STATE_ROAD: 
+			stateStr = GameLang.i.getValue("text-00107");
+			break;
+		case GameData.STATE_ROAD_EX: 
+			stateStr = GameLang.i.getValue("text-00108");
+			break;
+		case GameData.STATE_HOSTAGE: 
+			stateStr = GameLang.i.getValue("text-00109");
+			break;
+		default: 
+			stateStr = GameLang.i.getValue("text-00104");
+		}
+		this.text = p_id + " - " + sideStr + " - " + stateStr;
 	}
 	
 	public function showMsg(p_code:int):void
 	{
+		if (GameConfig.getAdminMode())
+		{
+			return;
+		}
+		
 		switch (p_code)
 		{
 		case MSG_START_01: 
@@ -1224,6 +1286,7 @@ class GameMapItem extends BasicObject
 class GameMap extends ButtonGroup
 {
 	static public const ACTION_CLICK:String = "GameMap.ACTION_CLICK";
+	static public const ACTION_OVER:String = "GameMap.ACTION_OVER";
 	
 	private var _itemMap:Object = null;
 	private var _downKey:String = "";
@@ -1349,7 +1412,7 @@ class GameMap extends ButtonGroup
 		{
 			return;
 		}
-		this.signal.dispatch({action: ACTION_CLICK, data: {id: key, side: item.side, state: item.state}, target: this});
+		this.signal.dispatch({action: ACTION_CLICK, data: {id: key, side: item.side, state: item.state}, target: this}, ACTION_CLICK);
 	}
 	
 	override protected function onMouseDown(p_evt:MouseEvent):void
@@ -1398,6 +1461,10 @@ class GameMap extends ButtonGroup
 		}
 		this._overKey = key;
 		item.setMouseOver();
+		if (GameConfig.getAdminMode())
+		{
+			this.signal.dispatch({action: ACTION_OVER, data: {id: key, side: item.side, state: item.state}, target: this}, ACTION_OVER);
+		}
 	}
 	
 	override protected function onMouseUp(p_evt:MouseEvent):void
