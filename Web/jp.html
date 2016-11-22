@@ -1,0 +1,82 @@
+<html>
+<head>
+<title>JP</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+</head>
+<body style="margin:0;">
+</body>
+<script>
+const CONVERT_STR = "a:あ,i:い,u:う,e:え,o:お,ka:か,ki:き,ku:く,ke:け,ko:こ,sa:さ,shi:し,su:す,se:せ,so:そ,ta:た,ti:で,chi:ち,tsu:つ,te:て,to:と,na:な,ni:に,nu:ぬ,ne:ね,no:の,ma:ま,mi:み,mu:む,me:め,mo:も,ha:は,hi:ひ,fu:ふ,he:へ,ho:ほ,ra:ら,ri:り,ru:る,re:れ,ro:ろ,ya:や,yu:ゆ,yo:よ,wa:わ,wo:を,ga:が,gi:ぎ,gu:ぐ,ge:げ,go:ご,za:ざ,ji:じ,zu:ず,ze:ぜ,zo:ぞ,da:だ,ji:ぢ,zu:づ,de:で,do:ど,ba:ば,bi:び,bu:ぶ,be:べ,bo:ぼ,pa:ぱ,pi:ぴ,pu:ぷ,pe:ぺ,po:ぽ,kya:きゃ,kyu:きゅ,kyo:きょ,sha:しゃ,shu:しゅ,she:しぇ,sho:しょ,cha:ちゃ,chu:ちゅ,che:ちぇ,cho:ちょ,nya:にゃ,nyu:にゅ,nye:にぇ,nyo:にょ,mya:みゃ,myu:みゅ,mye:みぇ,myo:みょ,hya:ひゃ,hyu:ひゅ,hye:ひぇ,hyo:ひょ,rya:りゃ,ryu:りゅ,rye:りぇ,ryo:りょ,gya:ぎゃ,gyu:ぎゅ,gyo:ぎょ,ja:じゃ,jya:じゃ,ju:じゅ,je:じぇ,jo:じょ,bya:びゃ,byu:びゅ,byo:びょ,pya:ぴゃ,pyu:ぴゅ,pyo:ぴょ,n:ん";
+const TSU_LIST = "bcdfghjkmnprstyz";
+const ALPHA_LIST = "abcdefghijklmnopqrstuvwxyz";
+const TSU_S = "っ";
+
+var tfSrc = document.createElement( "textarea" );
+tfSrc.setAttribute( "cols", "100" );
+tfSrc.setAttribute( "rows", "5" );
+tfSrc.style.cssFloat = "left";
+document.body.appendChild( tfSrc );
+var tfRlt = document.createElement( "textarea" );
+tfRlt.setAttribute( "cols", "100" );
+tfRlt.setAttribute( "rows", "5" );
+tfRlt.style.cssFloat = "left";
+document.body.appendChild( tfRlt );
+
+var convertList = [];
+var addData = function ( p_code, p_str ) {
+	convertList.push( {code: p_code, str: p_str} );
+}
+
+var listA = CONVERT_STR.split(",");
+for(var i = 0; i < listA.length; i++) {
+	var listB = listA[i].split(":");
+	convertList.push( {code: listB[0], str: listB[1]} );
+}
+
+var onClick = function ( p_evt ) {
+	var src = tfSrc.value;
+	src = src.toLowerCase();
+	var rlt = "";
+	while (src.length > 0) {
+		var isMatch = false;
+		for(var i = 0; i < convertList.length; i++) {
+			var code = convertList[i].code;
+			var str = convertList[i].str;
+			if ( code.length > src.length ) {
+				continue;
+			}
+			var testStr = src.substring( 0, code.length );
+			if (testStr != code) {
+				continue;
+			}
+			isMatch = true;
+			src = src.substring( code.length );
+			rlt += str;
+			break;
+		}
+		if (!isMatch) {
+			var c = src.substring( 0, 1 );
+			src = src.substring( 1 );
+			if ( TSU_LIST.indexOf( c ) >= 0 ) {
+				if ( c == src.substring( 0, 1 ) ) {
+					rlt += TSU_S;
+					continue;
+				}
+			}
+			rlt += c;
+			if ( ALPHA_LIST.indexOf( c ) >= 0 ) {
+				console.log( "fail >> " + c.charCodeAt(0) + "(" + c + ")" );
+			}
+		}
+	}
+	tfRlt.value = rlt;
+}
+
+var btn = document.createElement( "button" );
+btn.setAttribute( "type", "button" );
+btn.onclick = onClick;
+btn.appendChild( document.createTextNode("Convert") );
+btn.style.cssFloat = "left";
+document.body.appendChild( btn );
+</script>
+</html>
