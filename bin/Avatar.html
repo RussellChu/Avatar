@@ -87,14 +87,15 @@ data.demoCmd = [1, 1, 1, 1, 3, 3];
  * production setting
  */
 data.capId = "cap";
-data.cellRadius = 16;
+data.cellRadius = 8;
 data.cellMargin = 1;
 data.fontSize = 8;
-data.fontDisplay = true;
+data.fontDisplay = false;
 data.cmdStore = 10;
 data.demoSpeed = 100;
 data.showTips = true;
 data.adminMode = true;
+data.saveContent = [];
 
 var valueStr = encodeObjToUrlParam( {data: JSON.stringify( data )} );
 paramElement.setAttribute( "value", valueStr );

@@ -178,6 +178,8 @@ package com.pj
 			case GameData.COMMAND_PLAY: 
 				this._model.playGame(true);
 				break;
+			case GameData.COMMAND_SAVE:
+				this._model.save();
 			default: 
 				;
 			}

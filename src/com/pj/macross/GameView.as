@@ -246,6 +246,9 @@ package com.pj.macross
 				//this._slider.saveCapture(GameConfig.getCapId());
 				this.capScreen(GameConfig.getCapId());
 				break;
+			case GameData.COMMAND_SAVE:
+				GameController.i.signal.dispatch({command: cmdCode}, EVENT_CMD_CLICK);
+				break;
 			default: 
 				GameController.i.signal.dispatch({command: cmdCode}, EVENT_CMD_CLICK);
 			}

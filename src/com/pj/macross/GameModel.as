@@ -7,8 +7,10 @@ package com.pj.macross
 	import com.pj.macross.structure.MapCell;
 	import flash.events.Event;
 	import flash.events.NetStatusEvent;
+	import flash.net.FileReference;
 	import flash.net.SharedObject;
 	import flash.net.SharedObjectFlushStatus;
+	import flash.utils.ByteArray;
 	
 	/**
 	 * ...
@@ -157,13 +159,44 @@ package com.pj.macross
 			
 			this.loadSave();
 			
-			if (this._record.length > 0)
+			var m:int = 0;
+			var item:Array = null;
+			var side:int = 0;
+			var state:int = 0;
+			var saveContent:Array = GameConfig.getSaveContent();
+			
+			if (saveContent.length > 0)
 			{
-				for (var m:int = 0; m < this._record.length; m++)
+				for (m = 0; m < saveContent.length; m++)
 				{
-					var item:Array = this._record[m];
-					var state:int = item[0];
-					var side:int = item[1];
+					item = saveContent[m];
+					id = item[0];
+					if (id >= 0)
+					{
+						side = item[1];
+						state = item[2];
+						var cell:MapCell = this._map.getCellById(id);
+						if (cell)
+						{
+							cell.side = side;
+							cell.state = state;
+						}
+					}
+					else
+					{
+						this.setScore(GameData.SIDE_A, item[1]);
+						this.setScore(GameData.SIDE_B, item[2]);
+						this.setScore(GameData.SIDE_C, item[3]);
+					}
+				}
+			}
+			else if (this._record.length > 0)
+			{
+				for (m = 0; m < this._record.length; m++)
+				{
+					item = this._record[m];
+					state = item[0];
+					side = item[1];
 					x = item[2];
 					y = item[3];
 					z = item[4];
@@ -437,25 +470,48 @@ package com.pj.macross
 		
 		public function save():void
 		{
-			var flushStatus:String = null;
-			try
+			var list:Array = this._map.getList();
+			var rlt:Array = [];
+			if (this.getScore(GameData.SIDE_A) > 0 || this.getScore(GameData.SIDE_B) > 0 || this.getScore(GameData.SIDE_C) > 0)
 			{
-				flushStatus = this._so.flush(16384);
+				rlt.push([-1, this.getScore(GameData.SIDE_A), this.getScore(GameData.SIDE_B), this.getScore(GameData.SIDE_C)]);
 			}
-			catch (error:Error)
+			for (var i:int = 0; i < list.length; i++)
 			{
-				trace("Error...Could not write SharedObject to disk");
-			}
-			if (flushStatus != null)
-			{
-				switch (flushStatus)
+				var item:MapCell = list[i] as MapCell;
+				if (item.state == GameData.STATE_NONE)
 				{
-				case SharedObjectFlushStatus.PENDING: 
-					trace("Requesting permission to save object...");
-					break;
-				case SharedObjectFlushStatus.FLUSHED: 
-					trace("Value flushed to disk.");
-					break;
+					continue;
+				}
+				rlt.push([item.id, item.side, item.state]);
+			}
+			var rltStr:String = JSON.stringify(rlt);
+			var b:ByteArray = new ByteArray();
+			b.writeMultiByte(rltStr, "utf-8");
+			var fileReference:FileReference = new FileReference();
+			fileReference.save(b, "save.txt");
+			if (false)
+			{
+				var flushStatus:String = null;
+				try
+				{
+					flushStatus = this._so.flush(16384);
+				}
+				catch (error:Error)
+				{
+					trace("Error...Could not write SharedObject to disk");
+				}
+				if (flushStatus != null)
+				{
+					switch (flushStatus)
+					{
+					case SharedObjectFlushStatus.PENDING: 
+						trace("Requesting permission to save object...");
+						break;
+					case SharedObjectFlushStatus.FLUSHED: 
+						trace("Value flushed to disk.");
+						break;
+					}
 				}
 			}
 		}

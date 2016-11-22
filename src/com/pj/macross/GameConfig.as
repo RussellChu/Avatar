@@ -80,6 +80,8 @@ package com.pj.macross
 		
 		static private var __adminMode:Boolean = false;
 		
+		static private var __saveContent:Array = null;
+		
 		static public function getCapId():String  { return __capId; }
 		
 		static public function getSaveVer():int  { return __saveVer; }
@@ -146,6 +148,8 @@ package com.pj.macross
 		
 		static public function getAdminMode():Boolean { return __adminMode; }
 		
+		static public function getSaveContent():Array { return __saveContent; }
+		
 		static public function update(p_data:Object):void
 		{
 			__capId = Helper.getValueString(p_data, "capId", __capId);
@@ -176,6 +180,7 @@ package com.pj.macross
 			__scoreMax = Helper.getValueInteger(p_data, "scoreMax", __scoreMax);
 			__showTips = Helper.getValueBoolean(p_data, "showTips", __showTips);
 			__adminMode = Helper.getValueBoolean(p_data, "adminMode", __adminMode);
+			__saveContent = Helper.getValueArray(p_data, "saveContent", __saveContent);
 		}
 		
 		public function GameConfig()
