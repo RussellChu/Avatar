@@ -7,60 +7,60 @@
 <script type="application/javascript" src="./com/gl/J3DIMath.js"></script>
 
 <script id="vshader" type="x-shader/x-vertex">
-    uniform mat4 u_modelViewProjMatrix;
-    uniform mat4 u_normalMatrix;
-//  uniform vec3 lightDir;
+	uniform mat4 u_modelViewProjMatrix;
+	uniform mat4 u_normalMatrix;
+//	uniform vec3 lightDir;
 
-    attribute vec3 vNormal;
-    attribute vec4 vTexCoord;
-    attribute vec4 vPosition;
+	attribute vec3 vNormal;
+	attribute vec4 vTexCoord;
+	attribute vec4 vVertex;
 
-//  varying float v_Dot;
-    varying vec3 v_Dot;
-    varying vec2 v_texCoord;
+//	varying float v_Dot;
+	varying vec3 v_Dot;
+	varying vec2 v_texCoord;
 
-    void main()
-    {
-        gl_Position = u_modelViewProjMatrix * vPosition;
-        v_texCoord = vTexCoord.st;
-        vec4 transNormal = u_normalMatrix * vec4(vNormal, 1);
-    //  v_Dot = max(dot(transNormal.xyz, lightDir), 0.0);
-        v_Dot = transNormal.xyz;
-    }
+	void main()
+	{
+		gl_Position = u_modelViewProjMatrix * vVertex;
+		v_texCoord = vTexCoord.st;
+		vec4 transNormal = u_normalMatrix * vec4(vNormal, 1);
+	//	v_Dot = max(dot(transNormal.xyz, lightDir), 0.0);
+		v_Dot = transNormal.xyz;
+	}
 </script>
 
 <script id="fshader" type="x-shader/x-fragment">
-    precision mediump float;
+	precision mediump float;
 
-    uniform sampler2D sampler2d;
-    uniform sampler2D sampler2dB;
-    uniform vec3 lightDir;
+	uniform sampler2D sampler2d;
+	uniform sampler2D sampler2dB;
+	uniform vec3 lightDir;
 
-    varying vec3 v_Dot;
-    varying vec2 v_texCoord;
+	varying vec3 v_Dot;
+	varying vec2 v_texCoord;
 
-    void main()
-    {
+	void main()
+	{
 		/*
-        vec2 texCoord = vec2(v_texCoord.s, v_texCoord.t);
-        vec2 texCoord2 = vec2(v_texCoord.s - 0.01, v_texCoord.t + 0.00);
-        vec2 texCoord3 = vec2(v_texCoord.s + 0.01, v_texCoord.t + 0.00);
-        vec2 texCoord4 = vec2(v_texCoord.s + 0.00, v_texCoord.t + 0.01);
-        vec2 texCoord5 = vec2(v_texCoord.s + 0.00, v_texCoord.t - 0.01);
-        vec4 color = texture2D(sampler2d, texCoord);
-        vec4 color2 = texture2D(sampler2d, texCoord2);
-        vec4 color3 = texture2D(sampler2d, texCoord3);
-        vec4 color4 = texture2D(sampler2d, texCoord4);
-        vec4 color5 = texture2D(sampler2d, texCoord5);
-        vec4 color6 = ((color2 + color3 + color4 + color5) * 0.25 - color + vec4(1, 1, 1, 1) ) * 0.5;
+		vec2 texCoord = vec2(v_texCoord.s, v_texCoord.t);
+		vec2 texCoord2 = vec2(v_texCoord.s - 0.01, v_texCoord.t + 0.00);
+		vec2 texCoord3 = vec2(v_texCoord.s + 0.01, v_texCoord.t + 0.00);
+		vec2 texCoord4 = vec2(v_texCoord.s + 0.00, v_texCoord.t + 0.01);
+		vec2 texCoord5 = vec2(v_texCoord.s + 0.00, v_texCoord.t - 0.01);
+		vec4 color = texture2D(sampler2d, texCoord);
+		vec4 color2 = texture2D(sampler2d, texCoord2);
+		vec4 color3 = texture2D(sampler2d, texCoord3);
+		vec4 color4 = texture2D(sampler2d, texCoord4);
+		vec4 color5 = texture2D(sampler2d, texCoord5);
+		vec4 color6 = ((color2 + color3 + color4 + color5) * 0.25 - color + vec4(1, 1, 1, 1) ) * 0.5;
 		color6.a = color.a;
 		*/
-        vec2 texCoord = vec2(v_texCoord.s, v_texCoord.t);
-        vec4 color = texture2D(sampler2d, texCoord);
-        vec4 color2 = texture2D(sampler2dB, texCoord);
+		vec2 texCoord = vec2(v_texCoord.s, v_texCoord.t);
+		vec4 color = texture2D(sampler2d, texCoord);
+		vec4 color2 = texture2D(sampler2dB, texCoord);
 		float dotVer = max(dot(color2.xyz - vec3(0.5, 0.5, 0.5) + v_Dot, lightDir), 0.0);
-        gl_FragColor = vec4(color.xyz * dotVer, color.a);
-    }
+		gl_FragColor = vec4(color.xyz * dotVer, color.a);
+	}
 </script>
 
 <script>
@@ -144,6 +144,68 @@ function createDrawer () {
 		return shader;
 	};
 	
+	drawer.createShader = function ( p_vShader, p_fShader, p_attribs, p_clearColor, p_clearDepth )
+	{
+		// create our shaders
+		var vertexShader = loadShader( p_vShader );
+		var fragmentShader = loadShader( p_fShader );
+
+		// Create the program object
+		var program = gl.createProgram();
+
+		// Attach our two shaders to the program
+		gl.attachShader( program, vertexShader );
+		gl.attachShader( program, fragmentShader );
+		
+		var shader = {};
+		shader.program = program;
+		shader.attribs = p_attribs;
+		shader.clearColor = p_clearColor;
+		shader.clearDepth = p_clearDepth;
+		
+		shader.setup = function () {
+			var program = shader.program;
+			var attribs = shader.attribs;
+			var clearColor = shader.clearColor;
+			var clearDepth = shader.clearDepth;
+			
+			// Bind attributes
+			for (var i = 0; i < attribs.length; ++i) {
+				gl.bindAttribLocation( program, i, attribs[i] );
+			}
+
+			// Link the program
+			gl.linkProgram(program);
+
+			// Check the link status
+			var linked = gl.getProgramParameter(program, gl.LINK_STATUS);
+			if (!linked && !gl.isContextLost()) {
+				// something went wrong with the link
+				var error = gl.getProgramInfoLog (program);
+				console.log("Error in program linking:"+error);
+
+				gl.deleteProgram(program);
+				gl.deleteProgram(fragmentShader);
+				gl.deleteProgram(vertexShader);
+
+				return false;
+			}
+
+			gl.useProgram(program);
+
+			gl.clearColor(clearColor[0], clearColor[1], clearColor[2], clearColor[3]);
+			gl.clearDepth(clearDepth);
+
+			gl.enable(gl.DEPTH_TEST);
+			gl.enable(gl.BLEND);
+			gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+			
+			return true;
+		};
+		
+		return shader;
+	};
+	
 	drawer.simpleSetup = function (vshader, fshader, attribs, clearColor, clearDepth)
 	{
 		// create our shaders
@@ -156,10 +218,11 @@ function createDrawer () {
 		// Attach our two shaders to the program
 		gl.attachShader (program, vertexShader);
 		gl.attachShader (program, fragmentShader);
-
+		
 		// Bind attributes
-		for (var i = 0; i < attribs.length; ++i)
+		for (var i = 0; i < attribs.length; ++i) {
 			gl.bindAttribLocation (program, i, attribs[i]);
+		}
 
 		// Link the program
 		gl.linkProgram(program);
@@ -187,7 +250,11 @@ function createDrawer () {
 		gl.enable(gl.BLEND);
 		gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
-		return program;
+		var shader = {};
+		shader.program = program;
+		shader.attribs = attribs;
+		
+		return shader;
 	};
 	
 	return drawer;
@@ -202,22 +269,16 @@ function createDrawObject ( p_gl ) {
 	const ATTRIB_TEX_COORD = "vTexCoord";
 	const ATTRIB_TEX_COORD_2 = "vTexCoord2";
 	
-	var attribsList = [];
-	var attribsMap = {};
 	var bufferMap = {};
 	var sizeMap = {};
 	var indexLength = 0;
 	var indexBuffer = [];
 	
 	updateAttribList = function ( p_name, p_data, p_size ) {
-		if ( !attribsMap.hasOwnProperty[p_name] ) {
-			attribsMap.hasOwnProperty[p_name] = attribsList.length;
-			attribsList.push( p_name );
-		}
 		bufferMap[p_name] = gl.createBuffer();
-		gl.bindBuffer( gl.ELEMENT_ARRAY_BUFFER, bufferMap[p_name] );
-		gl.bufferData( gl.ELEMENT_ARRAY_BUFFER, new Float32Array( p_data ), gl.STATIC_DRAW );
-		gl.bindBuffer( gl.ELEMENT_ARRAY_BUFFER, null );
+		gl.bindBuffer( gl.ARRAY_BUFFER, bufferMap[p_name] );
+		gl.bufferData( gl.ARRAY_BUFFER, new Float32Array( p_data ), gl.STATIC_DRAW );
+		gl.bindBuffer( gl.ARRAY_BUFFER, null );
 		sizeMap[p_name] = p_size;
 	}
 	
@@ -244,21 +305,20 @@ function createDrawObject ( p_gl ) {
 		gl.bufferData( gl.ELEMENT_ARRAY_BUFFER, new Uint8Array( p_list ), gl.STATIC_DRAW );
 		gl.bindBuffer( gl.ELEMENT_ARRAY_BUFFER, null );
 	}
-	obj.getAttribs = function () {
-		return attribsList;
-	}
-	obj.draw = function () {
-		for(var i = 0; i < attribsList.length; i++) {
-			var name = attribsList[i];
-			// Enable vertex attribute arrays.
+	obj.draw = function ( p_shader ) {
+		var attribs = p_shader.attribs;
+		for(var i = 0; i < attribs.length; i++) {
+			var name = attribs[i];
+			if ( !bufferMap.hasOwnProperty( name ) ) {
+				return;
+			}
 			gl.enableVertexAttribArray( i );
-			// Set up vertex attributes for vertices, normals and texCoords
 			gl.bindBuffer( gl.ARRAY_BUFFER, bufferMap[name] );
 			gl.vertexAttribPointer( i, sizeMap[name], gl.FLOAT, false, 0, 0);
 		}
 		
-        // Bind the index array
-        gl.bindBuffer( gl.ELEMENT_ARRAY_BUFFER, indexBuffer );
+		// Bind the index array
+		gl.bindBuffer( gl.ELEMENT_ARRAY_BUFFER, indexBuffer );
 		
 		// Draw
 		gl.drawElements( gl.TRIANGLES, indexLength, gl.UNSIGNED_BYTE, 0 );
@@ -278,85 +338,44 @@ function makeRect( p_gl )
 	var t1 = { x: 1 / 2 + Math.sqrt(3) / 4, y: 3 / 4 };
 	var t2 = { x: 1 / 2 - Math.sqrt(3) / 4, y: 3 / 4 };
 	
-	var vertices = new Float32Array([
+	var vertices = [
 	  v0.x, v0.y, v0.z, v1.x, v1.y, v1.z, v2.x, v2.y, v2.z
 	, v0.x, v0.y, v0.z, v2.x, v2.y, v2.z, v3.x, v3.y, v3.z
 	, v0.x, v0.y, v0.z, v3.x, v3.y, v3.z, v1.x, v1.y, v1.z
 	, v1.x, v1.y, v1.z, v0.x, v0.y, v0.z, v2.x, v2.y, v2.z
-	]);
+	];
 	
-	var normals = new Float32Array([
+	var normals = [
 	  -v3.x, -v3.y, -v3.z, -v3.x, -v3.y, -v3.z, -v3.x, -v3.y, -v3.z
 	, -v1.x, -v1.y, -v1.z, -v1.x, -v1.y, -v1.z, -v1.x, -v1.y, -v1.z
 	, -v2.x, -v2.y, -v2.z, -v2.x, -v2.y, -v2.z, -v2.x, -v2.y, -v2.z
 	, -v0.x, -v0.y, -v0.z, -v0.x, -v0.y, -v0.z, -v0.x, -v0.y, -v0.z
-	]);
+	];
 	
-	var texCoords = new Float32Array([
+	var texCoords = [
 	  t0.x, t0.y, t1.x, t1.y, t2.x, t2.y
 	, t0.x, t0.y, t1.x, t1.y, t2.x, t2.y
 	, t0.x, t0.y, t1.x, t1.y, t2.x, t2.y
 	, t0.x, t0.y, t1.x, t1.y, t2.x, t2.y
-	]);
+	];
 	
-	var indices = new Uint8Array([
+	var indices = [
 	  0, 1, 2
 	, 3, 4, 5
 	, 6, 7, 8
 	, 9, 10, 11
-	]);
+	];
 	
-    var obj = {};
+	var obj = createDrawObject( p_gl );
 	
-	var gl = p_gl;
-
-    var normalObject = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, normalObject);
-    gl.bufferData(gl.ARRAY_BUFFER, normals, gl.STATIC_DRAW);
-
-	var texCoordObject = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, texCoordObject);
-    gl.bufferData(gl.ARRAY_BUFFER, texCoords, gl.STATIC_DRAW);
-
-    var vertexObject = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, vertexObject);
-    gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
-
-    gl.bindBuffer(gl.ARRAY_BUFFER, null);
-
-    var indexObject = gl.createBuffer();
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexObject);
-    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indices, gl.STATIC_DRAW);
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
-
-    var numIndices = indices.length;
-	
-	obj.draw = function () {
-        // Enable all of the vertex attribute arrays.
-        gl.enableVertexAttribArray(0);
-        gl.enableVertexAttribArray(1);
-        gl.enableVertexAttribArray(2);
-
-        // Set up all the vertex attributes for vertices, normals and texCoords
-        gl.bindBuffer(gl.ARRAY_BUFFER, vertexObject);
-        gl.vertexAttribPointer(2, 3, gl.FLOAT, false, 0, 0);
-
-        gl.bindBuffer(gl.ARRAY_BUFFER, normalObject);
-        gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 0, 0);
-
-        gl.bindBuffer(gl.ARRAY_BUFFER, texCoordObject);
-        gl.vertexAttribPointer(1, 2, gl.FLOAT, false, 0, 0);
-
-        // Bind the index array
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexObject);
-		
-		// Draw
-		gl.drawElements(gl.TRIANGLES, numIndices, gl.UNSIGNED_BYTE, 0);
-	};
-
-    return obj;
+	obj.setVertex( vertices );
+	obj.setNormal( normals );
+	obj.setTexCoord( texCoords );
+	obj.setIndex( indices );
+	return obj;
 }
 
+var shader = null;
 var item = null;
 var g = {};
 var currentAngle = 0;
@@ -367,22 +386,22 @@ function drawPicture () {
 	var gl = drawer.gl;
 	/*
 	// Make sure the canvas is sized correctly.
-    (function ()
-    {
-        // change the size of the canvas's backing store to match the size it is displayed.
-        var canvas = drawer.canvas;
-        if (canvas.clientWidth == canvas.width && canvas.clientHeight == canvas.height)
-            return;
+	(function ()
+	{
+		// change the size of the canvas's backing store to match the size it is displayed.
+		var canvas = drawer.canvas;
+		if (canvas.clientWidth == canvas.width && canvas.clientHeight == canvas.height)
+			return;
 
-        canvas.width = canvas.clientWidth;
-        canvas.height = canvas.clientHeight;
+		canvas.width = canvas.clientWidth;
+		canvas.height = canvas.clientHeight;
 
-        // Set the viewport and projection matrix for the scene
-        gl.viewport(0, 0, canvas.clientWidth, canvas.clientHeight);
-        g.perspectiveMatrix = new J3DIMatrix4();
-        g.perspectiveMatrix.perspective(30, canvas.clientWidth / canvas.clientHeight, 1, 10000);
-        g.perspectiveMatrix.lookat(0, 0, 7, 0, 0, 0, 0, 1, 0);
-    } ());
+		// Set the viewport and projection matrix for the scene
+		gl.viewport(0, 0, canvas.clientWidth, canvas.clientHeight);
+		g.perspectiveMatrix = new J3DIMatrix4();
+		g.perspectiveMatrix.perspective(30, canvas.clientWidth / canvas.clientHeight, 1, 10000);
+		g.perspectiveMatrix.lookat(0, 0, 7, 0, 0, 0, 0, 1, 0);
+	} ());
 	*/
 	// Clear the canvas
 	gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
@@ -407,9 +426,7 @@ function drawPicture () {
 	gl.bindTexture(gl.TEXTURE_2D, spiritTexture);
 	gl.bindTexture(gl.TEXTURE_2D, bumpmapTexture);
 
-	item.draw();
-	
-	console.log( "drawing" );
+	item.draw( shader );
 	
 	currentAngle = ( currentAngle + 0.5 ) % 360;
 }
@@ -423,28 +440,30 @@ function start ()
 	spiritTexture = drawer.loadTexture( "./assets/a.jpg" );
 	bumpmapTexture = drawer.loadTexture( "./assets/bumpmap.png" );
 
-	var program = drawer.simpleSetup(
+	shader = drawer.createShader(
 		// The ids of the vertex and fragment shaders
 		  "vshader"
 		, "fshader"
 		// The vertex attribute names used by the shaders.
 		// The order they appear here corresponds to their index
 		// used later.
-		, ["vNormal", "vTexCoord", "vPosition"]
+		, ["vVertex", "vNormal", "vTexCoord"]
 		// The clear color and depth values
 		, [0, 0, 0.5, 1]
 		, 10000
 	);
 	
-	// Set some uniform variables for the shaders
-	drawer.gl.uniform3f(drawer.gl.getUniformLocation(program, "lightDir"), 0, 0, 1);
-	drawer.gl.uniform1i(drawer.gl.getUniformLocation(program, "sampler2d"), 0);
-	drawer.gl.uniform1i(drawer.gl.getUniformLocation(program, "sampler2dB"), 1);
+	shader.setup();
 	
-  drawer.gl.activeTexture(drawer.gl.TEXTURE0);
-  drawer.gl.bindTexture(drawer.gl.TEXTURE_2D, spiritTexture);
-  drawer.gl.activeTexture(drawer.gl.TEXTURE1);
-  drawer.gl.bindTexture(drawer.gl.TEXTURE_2D, bumpmapTexture);
+	// Set some uniform variables for the shaders
+	drawer.gl.uniform3f(drawer.gl.getUniformLocation(shader.program, "lightDir"), 0, 0, 1);
+	drawer.gl.uniform1i(drawer.gl.getUniformLocation(shader.program, "sampler2d"), 0);
+	drawer.gl.uniform1i(drawer.gl.getUniformLocation(shader.program, "sampler2dB"), 1);
+	
+	drawer.gl.activeTexture(drawer.gl.TEXTURE0);
+	drawer.gl.bindTexture(drawer.gl.TEXTURE_2D, spiritTexture);
+	drawer.gl.activeTexture(drawer.gl.TEXTURE1);
+	drawer.gl.bindTexture(drawer.gl.TEXTURE_2D, bumpmapTexture);
 	
 	drawer.gl.viewport(0, 0, 800, 600);
 	g.perspectiveMatrix = new J3DIMatrix4();
@@ -453,12 +472,12 @@ function start ()
 	
 	// Create some matrices to use later and save their locations in the shaders
 	g.mvMatrix = new J3DIMatrix4();
-	g.u_normalMatrixLoc = drawer.gl.getUniformLocation(program, "u_normalMatrix");
+	g.u_normalMatrixLoc = drawer.gl.getUniformLocation(shader.program, "u_normalMatrix");
 	g.normalMatrix = new J3DIMatrix4();
-	g.u_modelViewProjMatrixLoc = drawer.gl.getUniformLocation(program, "u_modelViewProjMatrix");
+	g.u_modelViewProjMatrixLoc = drawer.gl.getUniformLocation(shader.program, "u_modelViewProjMatrix");
 	g.mvpMatrix = new J3DIMatrix4();
 
-    var requestId;
+	var requestId;
 	var f = function () {
 		drawPicture();
 		requestId = window.requestAnimFrame( f, drawer.canvas );
