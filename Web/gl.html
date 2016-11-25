@@ -64,315 +64,335 @@
 </script>
 
 <script>
-
 var drawer = null;
 
-function createDrawer () {
-	var drawer = {};
-	
-	// setup canvas
-	var canvas = document.createElement( "canvas" );
-	canvas.setAttribute( "width", "800" );
-	canvas.setAttribute( "height", "600" );
-	document.body.appendChild( canvas );
-	drawer.canvas = canvas;
-	
-	// setup gl
-	var gl = WebGLUtils.setupWebGL( canvas );
-	drawer.gl = gl;
-	
-	var onLoadTextureComplete = function ( p_texture, p_image ) {
-		gl.bindTexture(gl.TEXTURE_2D, p_texture);
-	//	gl.texImage2D(target, level, internalformat, format, type, HTMLImageElement? pixels);
-		gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, p_image);
-		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-		gl.bindTexture(gl.TEXTURE_2D, null);
-	};
-	
-	drawer.loadTexture = function ( p_url ) {
-		var texture = gl.createTexture();
-		gl.bindTexture(gl.TEXTURE_2D, texture);
-	//	gl.texImage2D(target, level, internalformat, width, height, border, format, type, ArrayBufferView? pixels);
-		gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
-		var image = new Image();
-		image.onload = function () {
-			onLoadTextureComplete( texture, image );
-		};
-		image.src = p_url;
-		return texture;
-	};
-	
-	var loadShader = function (shaderId)
-	{
-		var shaderScript = document.getElementById(shaderId);
-		if (!shaderScript) {
-			console.log("*** Error: shader script '"+shaderId+"' not found");
-			return null;
-		}
+function createDrawer() {
+    var drawer = {};
 
-		if (shaderScript.type == "x-shader/x-vertex")
-			var shaderType = gl.VERTEX_SHADER;
-		else if (shaderScript.type == "x-shader/x-fragment")
-			var shaderType = gl.FRAGMENT_SHADER;
-		else {
-			console.log("*** Error: shader script '"+shaderId+"' of undefined type '"+shaderScript.type+"'");
-			return null;
-		}
+    // setup canvas
+    var canvas = document.createElement("canvas");
+    canvas.setAttribute("width", "800");
+    canvas.setAttribute("height", "600");
+    document.body.appendChild(canvas);
+    drawer.canvas = canvas;
 
-		// Create the shader object
-		var shader = gl.createShader(shaderType);
+    // setup gl
+    var gl = WebGLUtils.setupWebGL(canvas);
+    drawer.gl = gl;
 
-		// Load the shader source
-		gl.shaderSource(shader, shaderScript.text);
+    var onLoadTextureComplete = function(p_texture, p_image) {
+        gl.bindTexture(gl.TEXTURE_2D, p_texture);
+        //	gl.texImage2D(target, level, internalformat, format, type, HTMLImageElement? pixels);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, p_image);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        gl.bindTexture(gl.TEXTURE_2D, null);
+    };
 
-		// Compile the shader
-		gl.compileShader(shader);
+    drawer.loadTexture = function(p_url) {
+        var texture = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+        //	gl.texImage2D(target, level, internalformat, width, height, border, format, type, ArrayBufferView? pixels);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+        var image = new Image();
+        image.onload = function() {
+            onLoadTextureComplete(texture, image);
+        };
+        image.src = p_url;
+        return texture;
+    };
 
-		// Check the compile status
-		var compiled = gl.getShaderParameter(shader, gl.COMPILE_STATUS);
-		if (!compiled && !gl.isContextLost()) {
-			// Something went wrong during compilation; get the error
-			var error = gl.getShaderInfoLog(shader);
-			console.log("*** Error compiling shader '"+shaderId+"':"+error);
-			gl.deleteShader(shader);
-			return null;
-		}
+    var loadShader = function(shaderId) {
+        var shaderScript = document.getElementById(shaderId);
+        if (!shaderScript) {
+            console.log("*** Error: shader script '" + shaderId + "' not found");
+            return null;
+        }
 
-		return shader;
-	};
-	
-	drawer.createShader = function ( p_vShader, p_fShader, p_attribs, p_clearColor, p_clearDepth )
-	{
-		// create our shaders
-		var vertexShader = loadShader( p_vShader );
-		var fragmentShader = loadShader( p_fShader );
+        if (shaderScript.type == "x-shader/x-vertex")
+            var shaderType = gl.VERTEX_SHADER;
+        else if (shaderScript.type == "x-shader/x-fragment")
+            var shaderType = gl.FRAGMENT_SHADER;
+        else {
+            console.log("*** Error: shader script '" + shaderId + "' of undefined type '" + shaderScript.type + "'");
+            return null;
+        }
 
-		// Create the program object
-		var program = gl.createProgram();
+        // Create the shader object
+        var shader = gl.createShader(shaderType);
 
-		// Attach our two shaders to the program
-		gl.attachShader( program, vertexShader );
-		gl.attachShader( program, fragmentShader );
-		
-		var shader = {};
-		shader.program = program;
-		shader.attribs = p_attribs;
-		shader.clearColor = p_clearColor;
-		shader.clearDepth = p_clearDepth;
-		
-		shader.setup = function () {
-			var program = shader.program;
-			var attribs = shader.attribs;
-			var clearColor = shader.clearColor;
-			var clearDepth = shader.clearDepth;
-			
-			// Bind attributes
-			for (var i = 0; i < attribs.length; ++i) {
-				gl.bindAttribLocation( program, i, attribs[i] );
-			}
+        // Load the shader source
+        gl.shaderSource(shader, shaderScript.text);
 
-			// Link the program
-			gl.linkProgram(program);
+        // Compile the shader
+        gl.compileShader(shader);
 
-			// Check the link status
-			var linked = gl.getProgramParameter(program, gl.LINK_STATUS);
-			if (!linked && !gl.isContextLost()) {
-				// something went wrong with the link
-				var error = gl.getProgramInfoLog (program);
-				console.log("Error in program linking:"+error);
+        // Check the compile status
+        var compiled = gl.getShaderParameter(shader, gl.COMPILE_STATUS);
+        if (!compiled && !gl.isContextLost()) {
+            // Something went wrong during compilation; get the error
+            var error = gl.getShaderInfoLog(shader);
+            console.log("*** Error compiling shader '" + shaderId + "':" + error);
+            gl.deleteShader(shader);
+            return null;
+        }
 
-				gl.deleteProgram(program);
-				gl.deleteProgram(fragmentShader);
-				gl.deleteProgram(vertexShader);
+        return shader;
+    };
 
-				return false;
-			}
+    drawer.createShader = function(p_vShader, p_fShader, p_attribs, p_clearColor, p_clearDepth) {
+        // create our shaders
+        var vertexShader = loadShader(p_vShader);
+        var fragmentShader = loadShader(p_fShader);
 
-			gl.useProgram(program);
+        // Create the program object
+        var program = gl.createProgram();
 
-			gl.clearColor(clearColor[0], clearColor[1], clearColor[2], clearColor[3]);
-			gl.clearDepth(clearDepth);
+        // Attach our two shaders to the program
+        gl.attachShader(program, vertexShader);
+        gl.attachShader(program, fragmentShader);
 
-			gl.enable(gl.DEPTH_TEST);
-			gl.enable(gl.BLEND);
-			gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-			
-			return true;
-		};
-		
-		return shader;
-	};
-	
-	drawer.simpleSetup = function (vshader, fshader, attribs, clearColor, clearDepth)
-	{
-		// create our shaders
-		var vertexShader = loadShader( vshader );
-		var fragmentShader = loadShader( fshader );
+        var shader = {};
+        shader.program = program;
+        shader.attribs = p_attribs;
+        shader.clearColor = p_clearColor;
+        shader.clearDepth = p_clearDepth;
 
-		// Create the program object
-		var program = gl.createProgram();
+        shader.setup = function() {
+            var program = shader.program;
+            var attribs = shader.attribs;
+            var clearColor = shader.clearColor;
+            var clearDepth = shader.clearDepth;
 
-		// Attach our two shaders to the program
-		gl.attachShader (program, vertexShader);
-		gl.attachShader (program, fragmentShader);
-		
-		// Bind attributes
-		for (var i = 0; i < attribs.length; ++i) {
-			gl.bindAttribLocation (program, i, attribs[i]);
-		}
+            // Bind attributes
+            for (var i = 0; i < attribs.length; ++i) {
+                gl.bindAttribLocation(program, i, attribs[i]);
+            }
 
-		// Link the program
-		gl.linkProgram(program);
+            // Link the program
+            gl.linkProgram(program);
 
-		// Check the link status
-		var linked = gl.getProgramParameter(program, gl.LINK_STATUS);
-		if (!linked && !gl.isContextLost()) {
-			// something went wrong with the link
-			var error = gl.getProgramInfoLog (program);
-			console.log("Error in program linking:"+error);
+            // Check the link status
+            var linked = gl.getProgramParameter(program, gl.LINK_STATUS);
+            if (!linked && !gl.isContextLost()) {
+                // something went wrong with the link
+                var error = gl.getProgramInfoLog(program);
+                console.log("Error in program linking:" + error);
 
-			gl.deleteProgram(program);
-			gl.deleteProgram(fragmentShader);
-			gl.deleteProgram(vertexShader);
+                gl.deleteProgram(program);
+                gl.deleteProgram(fragmentShader);
+                gl.deleteProgram(vertexShader);
 
-			return null;
-		}
+                return false;
+            }
 
-		gl.useProgram(program);
+            gl.useProgram(program);
 
-		gl.clearColor(clearColor[0], clearColor[1], clearColor[2], clearColor[3]);
-		gl.clearDepth(clearDepth);
+            gl.clearColor(clearColor[0], clearColor[1], clearColor[2], clearColor[3]);
+            gl.clearDepth(clearDepth);
 
-		gl.enable(gl.DEPTH_TEST);
-		gl.enable(gl.BLEND);
-		gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+            gl.enable(gl.DEPTH_TEST);
+            gl.enable(gl.BLEND);
+            gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
-		var shader = {};
-		shader.program = program;
-		shader.attribs = attribs;
-		
-		return shader;
-	};
-	
-	return drawer;
+            return true;
+        };
+
+        return shader;
+    };
+
+    drawer.simpleSetup = function(vshader, fshader, attribs, clearColor, clearDepth) {
+        // create our shaders
+        var vertexShader = loadShader(vshader);
+        var fragmentShader = loadShader(fshader);
+
+        // Create the program object
+        var program = gl.createProgram();
+
+        // Attach our two shaders to the program
+        gl.attachShader(program, vertexShader);
+        gl.attachShader(program, fragmentShader);
+
+        // Bind attributes
+        for (var i = 0; i < attribs.length; ++i) {
+            gl.bindAttribLocation(program, i, attribs[i]);
+        }
+
+        // Link the program
+        gl.linkProgram(program);
+
+        // Check the link status
+        var linked = gl.getProgramParameter(program, gl.LINK_STATUS);
+        if (!linked && !gl.isContextLost()) {
+            // something went wrong with the link
+            var error = gl.getProgramInfoLog(program);
+            console.log("Error in program linking:" + error);
+
+            gl.deleteProgram(program);
+            gl.deleteProgram(fragmentShader);
+            gl.deleteProgram(vertexShader);
+
+            return null;
+        }
+
+        gl.useProgram(program);
+
+        gl.clearColor(clearColor[0], clearColor[1], clearColor[2], clearColor[3]);
+        gl.clearDepth(clearDepth);
+
+        gl.enable(gl.DEPTH_TEST);
+        gl.enable(gl.BLEND);
+        gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+
+        var shader = {};
+        shader.program = program;
+        shader.attribs = attribs;
+
+        return shader;
+    };
+
+    return drawer;
 };
 
-function createDrawObject ( p_gl ) {
-	var gl = p_gl;
-	
-	const ATTRIB_VERTEX = "vVertex";
-	const ATTRIB_NORMAL = "vNormal";
-	const ATTRIB_TANGENT = "vTangent";
-	const ATTRIB_TEX_COORD = "vTexCoord";
-	const ATTRIB_TEX_COORD_2 = "vTexCoord2";
-	
-	var bufferMap = {};
-	var sizeMap = {};
-	var indexLength = 0;
-	var indexBuffer = [];
-	
-	updateAttribList = function ( p_name, p_data, p_size ) {
-		bufferMap[p_name] = gl.createBuffer();
-		gl.bindBuffer( gl.ARRAY_BUFFER, bufferMap[p_name] );
-		gl.bufferData( gl.ARRAY_BUFFER, new Float32Array( p_data ), gl.STATIC_DRAW );
-		gl.bindBuffer( gl.ARRAY_BUFFER, null );
-		sizeMap[p_name] = p_size;
-	}
-	
-	var obj = {};
-	obj.setVertex = function ( p_list ) {
-		updateAttribList( ATTRIB_VERTEX, p_list, 3 );
-	}
-	obj.setNormal = function ( p_list ) {
-		updateAttribList( ATTRIB_NORMAL, p_list, 3 );
-	}
-	obj.setTangent = function ( p_list ) {
-		updateAttribList( ATTRIB_TANGENT, p_list, 3 );
-	}
-	obj.setTexCoord = function ( p_list ) {
-		updateAttribList( ATTRIB_TEX_COORD, p_list, 2 );
-	}
-	obj.setTexCoord2 = function ( p_list ) {
-		updateAttribList( ATTRIB_TEX_COORD_2, p_list, 2 );
-	}
-	obj.setIndex = function ( p_list ) {
-		indexLength = p_list.length;
-		indexBuffer = gl.createBuffer();
-		gl.bindBuffer( gl.ELEMENT_ARRAY_BUFFER, indexBuffer );
-		gl.bufferData( gl.ELEMENT_ARRAY_BUFFER, new Uint8Array( p_list ), gl.STATIC_DRAW );
-		gl.bindBuffer( gl.ELEMENT_ARRAY_BUFFER, null );
-	}
-	obj.draw = function ( p_shader ) {
-		var attribs = p_shader.attribs;
-		for(var i = 0; i < attribs.length; i++) {
-			var name = attribs[i];
-			if ( !bufferMap.hasOwnProperty( name ) ) {
-				return;
-			}
-			gl.enableVertexAttribArray( i );
-			gl.bindBuffer( gl.ARRAY_BUFFER, bufferMap[name] );
-			gl.vertexAttribPointer( i, sizeMap[name], gl.FLOAT, false, 0, 0);
-		}
-		
-		// Bind the index array
-		gl.bindBuffer( gl.ELEMENT_ARRAY_BUFFER, indexBuffer );
-		
-		// Draw
-		gl.drawElements( gl.TRIANGLES, indexLength, gl.UNSIGNED_BYTE, 0 );
-		
-		gl.bindBuffer( gl.ELEMENT_ARRAY_BUFFER, null );
-	}
-	return obj;
+function createDrawObject(p_gl) {
+    var gl = p_gl;
+
+    const ATTRIB_VERTEX = "vVertex";
+    const ATTRIB_NORMAL = "vNormal";
+    const ATTRIB_TANGENT = "vTangent";
+    const ATTRIB_TEX_COORD = "vTexCoord";
+    const ATTRIB_TEX_COORD_2 = "vTexCoord2";
+
+    var bufferMap = {};
+    var sizeMap = {};
+    var indexLength = 0;
+    var indexBuffer = [];
+
+    updateAttribList = function(p_name, p_data, p_size) {
+        bufferMap[p_name] = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, bufferMap[p_name]);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(p_data), gl.STATIC_DRAW);
+        gl.bindBuffer(gl.ARRAY_BUFFER, null);
+        sizeMap[p_name] = p_size;
+    }
+
+    var obj = {};
+    obj.setVertex = function(p_list) {
+        updateAttribList(ATTRIB_VERTEX, p_list, 3);
+    }
+    obj.setNormal = function(p_list) {
+        updateAttribList(ATTRIB_NORMAL, p_list, 3);
+    }
+    obj.setTangent = function(p_list) {
+        updateAttribList(ATTRIB_TANGENT, p_list, 3);
+    }
+    obj.setTexCoord = function(p_list) {
+        updateAttribList(ATTRIB_TEX_COORD, p_list, 2);
+    }
+    obj.setTexCoord2 = function(p_list) {
+        updateAttribList(ATTRIB_TEX_COORD_2, p_list, 2);
+    }
+    obj.setIndex = function(p_list) {
+        indexLength = p_list.length;
+        indexBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
+        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint8Array(p_list), gl.STATIC_DRAW);
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
+    }
+    obj.draw = function(p_shader) {
+        var attribs = p_shader.attribs;
+        for (var i = 0; i < attribs.length; i++) {
+            var name = attribs[i];
+            if (!bufferMap.hasOwnProperty(name)) {
+                return;
+            }
+            gl.enableVertexAttribArray(i);
+            gl.bindBuffer(gl.ARRAY_BUFFER, bufferMap[name]);
+            gl.vertexAttribPointer(i, sizeMap[name], gl.FLOAT, false, 0, 0);
+        }
+
+        // Bind the index array
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
+
+        // Draw
+        gl.drawElements(gl.TRIANGLES, indexLength, gl.UNSIGNED_BYTE, 0);
+
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
+    }
+    return obj;
 }
 
-function makeRect( p_gl )
-{
-	var v0 = { x: 0, y: 1, z: 0 };
-	var v1 = { x: -2 * Math.sqrt(2) / 3, y: -1 / 3, z: 0 };
-	var v2 = { x: Math.sqrt(2) / 3, y: -1 / 3, z: -Math.sqrt(6) / 3 };
-	var v3 = { x: Math.sqrt(2) / 3, y: -1 / 3, z: Math.sqrt(6) / 3 };
-	var t0 = { x: 1 / 2, y: 0 };
-	var t1 = { x: 1 / 2 + Math.sqrt(3) / 4, y: 3 / 4 };
-	var t2 = { x: 1 / 2 - Math.sqrt(3) / 4, y: 3 / 4 };
-	
-	var vertices = [
-	  v0.x, v0.y, v0.z, v1.x, v1.y, v1.z, v2.x, v2.y, v2.z
-	, v0.x, v0.y, v0.z, v2.x, v2.y, v2.z, v3.x, v3.y, v3.z
-	, v0.x, v0.y, v0.z, v3.x, v3.y, v3.z, v1.x, v1.y, v1.z
-	, v1.x, v1.y, v1.z, v0.x, v0.y, v0.z, v2.x, v2.y, v2.z
-	];
-	
-	var normals = [
-	  -v3.x, -v3.y, -v3.z, -v3.x, -v3.y, -v3.z, -v3.x, -v3.y, -v3.z
-	, -v1.x, -v1.y, -v1.z, -v1.x, -v1.y, -v1.z, -v1.x, -v1.y, -v1.z
-	, -v2.x, -v2.y, -v2.z, -v2.x, -v2.y, -v2.z, -v2.x, -v2.y, -v2.z
-	, -v0.x, -v0.y, -v0.z, -v0.x, -v0.y, -v0.z, -v0.x, -v0.y, -v0.z
-	];
-	
-	var texCoords = [
-	  t0.x, t0.y, t1.x, t1.y, t2.x, t2.y
-	, t0.x, t0.y, t1.x, t1.y, t2.x, t2.y
-	, t0.x, t0.y, t1.x, t1.y, t2.x, t2.y
-	, t0.x, t0.y, t1.x, t1.y, t2.x, t2.y
-	];
-	
-	var indices = [
-	  0, 1, 2
-	, 3, 4, 5
-	, 6, 7, 8
-	, 9, 10, 11
-	];
-	
-	var obj = createDrawObject( p_gl );
-	
-	obj.setVertex( vertices );
-	obj.setNormal( normals );
-	obj.setTexCoord( texCoords );
-	obj.setIndex( indices );
-	return obj;
+function makeRect(p_gl) {
+    var v0 = {
+        x: 0,
+        y: 1,
+        z: 0
+    };
+    var v1 = {
+        x: -2 * Math.sqrt(2) / 3,
+        y: -1 / 3,
+        z: 0
+    };
+    var v2 = {
+        x: Math.sqrt(2) / 3,
+        y: -1 / 3,
+        z: -Math.sqrt(6) / 3
+    };
+    var v3 = {
+        x: Math.sqrt(2) / 3,
+        y: -1 / 3,
+        z: Math.sqrt(6) / 3
+    };
+    var t0 = {
+        x: 1 / 2,
+        y: 0
+    };
+    var t1 = {
+        x: 1 / 2 + Math.sqrt(3) / 4,
+        y: 3 / 4
+    };
+    var t2 = {
+        x: 1 / 2 - Math.sqrt(3) / 4,
+        y: 3 / 4
+    };
+
+    var vertices = [ //
+        v0.x, v0.y, v0.z, v1.x, v1.y, v1.z, v2.x, v2.y, v2.z //
+        , v0.x, v0.y, v0.z, v2.x, v2.y, v2.z, v3.x, v3.y, v3.z //
+        , v0.x, v0.y, v0.z, v3.x, v3.y, v3.z, v1.x, v1.y, v1.z //
+        , v1.x, v1.y, v1.z, v0.x, v0.y, v0.z, v2.x, v2.y, v2.z //
+    ];
+
+    var normals = [ //
+        -v3.x, -v3.y, -v3.z, -v3.x, -v3.y, -v3.z, -v3.x, -v3.y, -v3.z //
+        , -v1.x, -v1.y, -v1.z, -v1.x, -v1.y, -v1.z, -v1.x, -v1.y, -v1.z //
+        , -v2.x, -v2.y, -v2.z, -v2.x, -v2.y, -v2.z, -v2.x, -v2.y, -v2.z //
+        , -v0.x, -v0.y, -v0.z, -v0.x, -v0.y, -v0.z, -v0.x, -v0.y, -v0.z //
+    ];
+
+    var texCoords = [ //
+        t0.x, t0.y, t1.x, t1.y, t2.x, t2.y //
+        , t0.x, t0.y, t1.x, t1.y, t2.x, t2.y //
+        , t0.x, t0.y, t1.x, t1.y, t2.x, t2.y //
+        , t0.x, t0.y, t1.x, t1.y, t2.x, t2.y //
+    ];
+
+    var indices = [ //
+        0, 1, 2 //
+        , 3, 4, 5 //
+        , 6, 7, 8 //
+        , 9, 10, 11 //
+    ];
+
+    var obj = createDrawObject(p_gl);
+
+    obj.setVertex(vertices);
+    obj.setNormal(normals);
+    obj.setTexCoord(texCoords);
+    obj.setIndex(indices);
+    return obj;
 }
 
 var shader = null;
@@ -382,109 +402,105 @@ var currentAngle = 0;
 var spiritTexture = null;
 var bumpmapTexture = null;
 
-function drawPicture () {
-	var gl = drawer.gl;
-	/*
-	// Make sure the canvas is sized correctly.
-	(function ()
-	{
-		// change the size of the canvas's backing store to match the size it is displayed.
-		var canvas = drawer.canvas;
-		if (canvas.clientWidth == canvas.width && canvas.clientHeight == canvas.height)
-			return;
+function drawPicture() {
+    var gl = drawer.gl;
+    /*
+    // Make sure the canvas is sized correctly.
+    (function ()
+    {
+    	// change the size of the canvas's backing store to match the size it is displayed.
+    	var canvas = drawer.canvas;
+    	if (canvas.clientWidth == canvas.width && canvas.clientHeight == canvas.height)
+    		return;
 
-		canvas.width = canvas.clientWidth;
-		canvas.height = canvas.clientHeight;
+    	canvas.width = canvas.clientWidth;
+    	canvas.height = canvas.clientHeight;
 
-		// Set the viewport and projection matrix for the scene
-		gl.viewport(0, 0, canvas.clientWidth, canvas.clientHeight);
-		g.perspectiveMatrix = new J3DIMatrix4();
-		g.perspectiveMatrix.perspective(30, canvas.clientWidth / canvas.clientHeight, 1, 10000);
-		g.perspectiveMatrix.lookat(0, 0, 7, 0, 0, 0, 0, 1, 0);
-	} ());
-	*/
-	// Clear the canvas
-	gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    	// Set the viewport and projection matrix for the scene
+    	gl.viewport(0, 0, canvas.clientWidth, canvas.clientHeight);
+    	g.perspectiveMatrix = new J3DIMatrix4();
+    	g.perspectiveMatrix.perspective(30, canvas.clientWidth / canvas.clientHeight, 1, 10000);
+    	g.perspectiveMatrix.lookat(0, 0, 7, 0, 0, 0, 0, 1, 0);
+    } ());
+    */
+    // Clear the canvas
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-	// Make a model/view matrix.
-	g.mvMatrix.makeIdentity();
-	g.mvMatrix.rotate(20, 1,0,0);
-	g.mvMatrix.rotate(currentAngle, 0,1,0);
+    // Make a model/view matrix.
+    g.mvMatrix.makeIdentity();
+    g.mvMatrix.rotate(20, 1, 0, 0);
+    g.mvMatrix.rotate(currentAngle, 0, 1, 0);
 
-	// Construct the normal matrix from the model-view matrix and pass it in
-	g.normalMatrix.load(g.mvMatrix);
-	g.normalMatrix.invert();
-	g.normalMatrix.transpose();
-	g.normalMatrix.setUniform(gl, g.u_normalMatrixLoc, false);
+    // Construct the normal matrix from the model-view matrix and pass it in
+    g.normalMatrix.load(g.mvMatrix);
+    g.normalMatrix.invert();
+    g.normalMatrix.transpose();
+    g.normalMatrix.setUniform(gl, g.u_normalMatrixLoc, false);
 
-	// Construct the model-view * projection matrix and pass it in
-	g.mvpMatrix.load(g.perspectiveMatrix);
-	g.mvpMatrix.multiply(g.mvMatrix);
-	g.mvpMatrix.setUniform(gl, g.u_modelViewProjMatrixLoc, false);
+    // Construct the model-view * projection matrix and pass it in
+    g.mvpMatrix.load(g.perspectiveMatrix);
+    g.mvpMatrix.multiply(g.mvMatrix);
+    g.mvpMatrix.setUniform(gl, g.u_modelViewProjMatrixLoc, false);
 
-	// Bind the texture to use
-	gl.bindTexture(gl.TEXTURE_2D, spiritTexture);
-	gl.bindTexture(gl.TEXTURE_2D, bumpmapTexture);
+    // Bind the texture to use
+    gl.bindTexture(gl.TEXTURE_2D, spiritTexture);
+    gl.bindTexture(gl.TEXTURE_2D, bumpmapTexture);
 
-	item.draw( shader );
-	
-	currentAngle = ( currentAngle + 0.5 ) % 360;
+    item.draw(shader);
+
+    currentAngle = (currentAngle + 0.5) % 360;
 }
 
 // Start
-function start ()
-{
-	drawer = createDrawer();
-	item = makeRect( drawer.gl );
-	
-	spiritTexture = drawer.loadTexture( "./assets/a.jpg" );
-	bumpmapTexture = drawer.loadTexture( "./assets/bumpmap.png" );
+function start() {
+    drawer = createDrawer();
+    item = makeRect(drawer.gl);
 
-	shader = drawer.createShader(
-		// The ids of the vertex and fragment shaders
-		  "vshader"
-		, "fshader"
-		// The vertex attribute names used by the shaders.
-		// The order they appear here corresponds to their index
-		// used later.
-		, ["vVertex", "vNormal", "vTexCoord"]
-		// The clear color and depth values
-		, [0, 0, 0.5, 1]
-		, 10000
-	);
-	
-	shader.setup();
-	
-	// Set some uniform variables for the shaders
-	drawer.gl.uniform3f(drawer.gl.getUniformLocation(shader.program, "lightDir"), 0, 0, 1);
-	drawer.gl.uniform1i(drawer.gl.getUniformLocation(shader.program, "sampler2d"), 0);
-	drawer.gl.uniform1i(drawer.gl.getUniformLocation(shader.program, "sampler2dB"), 1);
-	
-	drawer.gl.activeTexture(drawer.gl.TEXTURE0);
-	drawer.gl.bindTexture(drawer.gl.TEXTURE_2D, spiritTexture);
-	drawer.gl.activeTexture(drawer.gl.TEXTURE1);
-	drawer.gl.bindTexture(drawer.gl.TEXTURE_2D, bumpmapTexture);
-	
-	drawer.gl.viewport(0, 0, 800, 600);
-	g.perspectiveMatrix = new J3DIMatrix4();
-	g.perspectiveMatrix.perspective(30, 800 / 600, 1, 10000);
-	g.perspectiveMatrix.lookat(0, 0, 7, 0, 0, 0, 0, 1, 0);
-	
-	// Create some matrices to use later and save their locations in the shaders
-	g.mvMatrix = new J3DIMatrix4();
-	g.u_normalMatrixLoc = drawer.gl.getUniformLocation(shader.program, "u_normalMatrix");
-	g.normalMatrix = new J3DIMatrix4();
-	g.u_modelViewProjMatrixLoc = drawer.gl.getUniformLocation(shader.program, "u_modelViewProjMatrix");
-	g.mvpMatrix = new J3DIMatrix4();
+    spiritTexture = drawer.loadTexture("./assets/a.jpg");
+    bumpmapTexture = drawer.loadTexture("./assets/bumpmap.png");
 
-	var requestId;
-	var f = function () {
-		drawPicture();
-		requestId = window.requestAnimFrame( f, drawer.canvas );
-	};
-	f();
+    shader = drawer.createShader(
+        // The ids of the vertex and fragment shaders
+        "vshader", "fshader"
+        // The vertex attribute names used by the shaders.
+        // The order they appear here corresponds to their index
+        // used later.
+        , ["vVertex", "vNormal", "vTexCoord"]
+        // The clear color and depth values
+        , [0, 0, 0.5, 1], 10000
+    );
+
+    shader.setup();
+
+    // Set some uniform variables for the shaders
+    drawer.gl.uniform3f(drawer.gl.getUniformLocation(shader.program, "lightDir"), 0, 0, 1);
+    drawer.gl.uniform1i(drawer.gl.getUniformLocation(shader.program, "sampler2d"), 0);
+    drawer.gl.uniform1i(drawer.gl.getUniformLocation(shader.program, "sampler2dB"), 1);
+
+    drawer.gl.activeTexture(drawer.gl.TEXTURE0);
+    drawer.gl.bindTexture(drawer.gl.TEXTURE_2D, spiritTexture);
+    drawer.gl.activeTexture(drawer.gl.TEXTURE1);
+    drawer.gl.bindTexture(drawer.gl.TEXTURE_2D, bumpmapTexture);
+
+    drawer.gl.viewport(0, 0, 800, 600);
+    g.perspectiveMatrix = new J3DIMatrix4();
+    g.perspectiveMatrix.perspective(30, 800 / 600, 1, 10000);
+    g.perspectiveMatrix.lookat(0, 0, 7, 0, 0, 0, 0, 1, 0);
+
+    // Create some matrices to use later and save their locations in the shaders
+    g.mvMatrix = new J3DIMatrix4();
+    g.u_normalMatrixLoc = drawer.gl.getUniformLocation(shader.program, "u_normalMatrix");
+    g.normalMatrix = new J3DIMatrix4();
+    g.u_modelViewProjMatrixLoc = drawer.gl.getUniformLocation(shader.program, "u_modelViewProjMatrix");
+    g.mvpMatrix = new J3DIMatrix4();
+
+    var requestId;
+    var f = function() {
+        drawPicture();
+        requestId = window.requestAnimFrame(f, drawer.canvas);
+    };
+    f();
 }
-
 </script>
 </head>
 <body style="margin:0;" onload="start()">
