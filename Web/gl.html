@@ -10,21 +10,30 @@
 	uniform mat4 u_modelViewProjMatrix;
 	uniform mat4 u_normalMatrix;
 	//	uniform vec3 lightDir;
+	
+	uniform sampler2D sampler2d;
 
 	attribute vec3 vNormal;
+	attribute vec3 vTangent;
 	attribute vec4 vTexCoord;
 	attribute vec4 vVertex;
 
 	//	varying float v_Dot;
-	varying vec3 v_Dot;
+	varying vec3 v_N;
+	varying vec3 v_T;
 	varying vec2 v_texCoord;
 
 	void main() {
-		gl_Position = u_modelViewProjMatrix * vVertex;
 		v_texCoord = vTexCoord.st;
+		vec2 texCoord = vec2(v_texCoord.s, v_texCoord.t);
+		vec4 color2 = texture2D(sampler2d, texCoord);
+		vec4 vA = vVertex + vec4(vNormal * (color2.y - 0.0) * 0.2, 0) * 1.0;
+		gl_Position = u_modelViewProjMatrix * vA;
 		vec4 transNormal = u_normalMatrix * vec4(vNormal, 1);
 		//	v_Dot = max(dot(transNormal.xyz, lightDir), 0.0);
-		v_Dot = transNormal.xyz;
+		v_N = normalize( transNormal.xyz );
+		vec4 transTangent = u_normalMatrix * vec4(vTangent, 1);
+		v_T = normalize( transTangent.xyz );
 	}
 </script>
 
@@ -35,29 +44,23 @@
 	uniform sampler2D sampler2dB;
 	uniform vec3 lightDir;
 
-	varying vec3 v_Dot;
+	varying vec3 v_N;
+	varying vec3 v_T;
 	varying vec2 v_texCoord;
 
 	void main() {
-		/*
-		vec2 texCoord = vec2(v_texCoord.s, v_texCoord.t);
-		vec2 texCoord2 = vec2(v_texCoord.s - 0.01, v_texCoord.t + 0.00);
-		vec2 texCoord3 = vec2(v_texCoord.s + 0.01, v_texCoord.t + 0.00);
-		vec2 texCoord4 = vec2(v_texCoord.s + 0.00, v_texCoord.t + 0.01);
-		vec2 texCoord5 = vec2(v_texCoord.s + 0.00, v_texCoord.t - 0.01);
-		vec4 color = texture2D(sampler2d, texCoord);
-		vec4 color2 = texture2D(sampler2d, texCoord2);
-		vec4 color3 = texture2D(sampler2d, texCoord3);
-		vec4 color4 = texture2D(sampler2d, texCoord4);
-		vec4 color5 = texture2D(sampler2d, texCoord5);
-		vec4 color6 = ((color2 + color3 + color4 + color5) * 0.25 - color + vec4(1, 1, 1, 1) ) * 0.5;
-		color6.a = color.a;
-		*/
 		vec2 texCoord = vec2(v_texCoord.s, v_texCoord.t);
 		vec4 color = texture2D(sampler2d, texCoord);
-		vec4 color2 = texture2D(sampler2dB, texCoord);
-		float dotVer = max(dot(color2.xyz - vec3(0.5, 0.5, 0.5) + v_Dot, lightDir), 0.0);
+		vec4 color2 = texture2D(sampler2d, texCoord);
+		
+		color2.y *= 2.0;
+		vec3 bumpVtr = normalize( color2.xyz - vec3(0.5, 0.5, 0.5) );
+		vec3 vLeft = cross( v_N, v_T );
+		vec3 vFinal = vLeft * bumpVtr.x + v_N * bumpVtr.y + v_T * bumpVtr.z;
+		
+		float dotVer = max(dot(vFinal, lightDir), 0.0);
 		gl_FragColor = vec4(color.xyz * dotVer, color.a);
+	//	gl_FragColor = vec4(( vFinal + vec3(1.0, 1.0, 1.0) ) * 0.5, color.a);
 	}
 </script>
 
@@ -66,21 +69,114 @@
 http://math.hws.edu/graphicsbook/source/
 https://www.khronos.org/webgl/wiki/Demo_Repository
 */
-var drawer = null;
 
-function createDrawer() {
+// Testing Area
+
+// End
+
+// to do
+var util = (function () {
+	var obj = {};
+	// to do
+	var createSearchList = function () {
+		var obj = {};
+		return obj;
+	};
+	// var find = function ( p_list, p_value ) {
+	// 	if ( !( p_list instanceof Array ) ) {
+	// 		return
+	// 	}
+	//	for(var i = 0; i < )
+	// };
+	var dispatcher = (function () {
+		var obj = {};
+		var eventMap = {};
+		var getList = function ( p_name ) {
+			if ( !eventMap.hasOwnProperty( p_name ) ) {
+				eventMap[p_name] = [];
+			}
+			return eventMap[p_name];
+		};
+		obj.addListener = function ( p_name, p_listener ) {
+			if (
+					!( typeof p_name === 'string' )
+				||	!( typeof p_listener === 'function' )
+			) {
+				return false;
+			}
+			if ( p_name === '' ) {
+				return false;
+			}
+			var list = getList( p_name );
+			if ( list.indexOf( p_listener ) > -1 ) {
+				return true;
+			}
+			list.push( p_listener );
+			return true;
+		};
+		obj.removeListener = function ( p_name, p_listener ) {
+			var removeLevel = 0;
+			if ( !( typeof p_listener === 'function' ) ) {
+				removeLevel = 1;
+			}
+			if ( !( typeof p_name === 'string' ) ) {
+				removeLevel = 2;
+			}
+			if ( p_name === '' ) {
+				removeLevel = 2;
+			}
+			if ( removeLevel === 2 ) {
+				eventMap = {};
+				return;
+			}
+			
+			if ( removeLevel === 1 ) {
+				eventMap[p_name] = [];
+				return;
+			}
+			
+			var list = getList( p_name );
+			var index = list.indexOf( p_listener );
+			if ( index > -1 ) {
+				array.splice( index, 1 );
+			}
+		};
+		obj.dispatch = function ( p_name, p_data ) {
+			if ( !( typeof p_name === 'string' ) ) {
+				return;
+			}
+			var list = getList( p_name );
+			for(var i = 0; i < list.length; i++) {
+				var listener = list[i];
+				if ( listener.length == 0 ) {
+					listener();
+				} else {
+					listener( data );
+				}
+			}
+		};
+		return obj;
+	} ());
+	obj.dispatcher = dispatcher;
+	return obj;
+} ());
+
+var drawer = (function () {
 	var drawer = {};
+	var gl = null;
+	
+	drawer.setup = function () {
+		// setup canvas
+		var canvas = document.createElement("canvas");
+		canvas.setAttribute("width", "800");
+		canvas.setAttribute("height", "600");
+		document.body.appendChild(canvas);
+		drawer.canvas = canvas;
 
-	// setup canvas
-	var canvas = document.createElement("canvas");
-	canvas.setAttribute("width", "800");
-	canvas.setAttribute("height", "600");
-	document.body.appendChild(canvas);
-	drawer.canvas = canvas;
-
-	// setup gl
-	var gl = WebGLUtils.setupWebGL(canvas);
-	drawer.gl = gl;
+		// setup gl
+		gl = WebGLUtils.setupWebGL(canvas);
+		drawer.gl = gl;
+	}
 
 	var onLoadTextureComplete = function(p_texture, p_image) {
 		gl.bindTexture(gl.TEXTURE_2D, p_texture);
@@ -113,9 +209,9 @@ function createDrawer() {
 			return null;
 		}
 
-		if (shaderScript.type == "x-shader/x-vertex")
+		if (shaderScript.type === "x-shader/x-vertex")
 			var shaderType = gl.VERTEX_SHADER;
-		else if (shaderScript.type == "x-shader/x-fragment")
+		else if (shaderScript.type === "x-shader/x-fragment")
 			var shaderType = gl.FRAGMENT_SHADER;
 		else {
 			console.log("*** Error: shader script '" + shaderId + "' of undefined type '" + shaderScript.type + "'");
@@ -195,6 +291,9 @@ function createDrawer() {
 			gl.clearColor(clearColor[0], clearColor[1], clearColor[2], clearColor[3]);
 			gl.clearDepth(clearDepth);
 
+			gl.enable(gl.CULL_FACE);
+			gl.cullFace(gl.FRONT);
+			
 			gl.enable(gl.DEPTH_TEST);
 			gl.enable(gl.BLEND);
 			gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
@@ -205,58 +304,8 @@ function createDrawer() {
 		return shader;
 	};
 
-	drawer.simpleSetup = function(vshader, fshader, attribs, clearColor, clearDepth) {
-		// create our shaders
-		var vertexShader = loadShader(vshader);
-		var fragmentShader = loadShader(fshader);
-
-		// Create the program object
-		var program = gl.createProgram();
-
-		// Attach our two shaders to the program
-		gl.attachShader(program, vertexShader);
-		gl.attachShader(program, fragmentShader);
-
-		// Bind attributes
-		for (var i = 0; i < attribs.length; ++i) {
-			gl.bindAttribLocation(program, i, attribs[i]);
-		}
-
-		// Link the program
-		gl.linkProgram(program);
-
-		// Check the link status
-		var linked = gl.getProgramParameter(program, gl.LINK_STATUS);
-		if (!linked && !gl.isContextLost()) {
-			// something went wrong with the link
-			var error = gl.getProgramInfoLog(program);
-			console.log("Error in program linking:" + error);
-
-			gl.deleteProgram(program);
-			gl.deleteProgram(fragmentShader);
-			gl.deleteProgram(vertexShader);
-
-			return null;
-		}
-
-		gl.useProgram(program);
-
-		gl.clearColor(clearColor[0], clearColor[1], clearColor[2], clearColor[3]);
-		gl.clearDepth(clearDepth);
-
-		gl.enable(gl.DEPTH_TEST);
-		gl.enable(gl.BLEND);
-		gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-
-		var shader = {};
-		shader.program = program;
-		shader.attribs = attribs;
-
-		return shader;
-	};
-
 	return drawer;
-};
+} ());
 
 function createDrawObject(p_gl) {
 	var gl = p_gl;
@@ -300,7 +349,7 @@ function createDrawObject(p_gl) {
 		indexLength = p_list.length;
 		indexBuffer = gl.createBuffer();
 		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
-		gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint8Array(p_list), gl.STATIC_DRAW);
+		gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(p_list), gl.STATIC_DRAW);
 		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
 	}
 	obj.draw = function(p_shader) {
@@ -319,11 +368,92 @@ function createDrawObject(p_gl) {
 		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
 
 		// Draw
-		gl.drawElements(gl.TRIANGLES, indexLength, gl.UNSIGNED_BYTE, 0);
+		gl.drawElements(gl.TRIANGLES, indexLength, gl.UNSIGNED_SHORT, 0);
 
 		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
 	}
 	return obj;
+}
+
+function makeDenseTriIndex( p_cut ) {
+	var iArr = [];
+	for(var i = 0; i < p_cut; i++) {
+		var arr = [];
+		var startNum = ( i + 1 ) * (i + 2 ) / 2;
+		var addNum = i + 2;
+		var len = i * 2 + 3;
+		for(var j = 0; j < len; j++) {
+			arr.push( startNum );
+			addNum = 1 - addNum;
+			startNum += addNum;
+		}
+		for(var j = 0; j < arr.length - 2; j++) {
+			if (j % 2 === 0) {
+				iArr.push( arr[j] );
+				iArr.push( arr[j + 2] );
+				iArr.push( arr[j + 1] );
+			} else {
+				iArr.push( arr[j] );
+				iArr.push( arr[j + 1] );
+				iArr.push( arr[j + 2] );
+			}
+		}
+	}
+	return iArr;
+}
+
+function makeDenseTriVertex( p_p0, p_p1, p_p2, p_cut, p_func ) {
+	var vArr = [p_p0];
+	for(var i = 1; i <= p_cut; i++) {
+		var rA = (p_cut - i) / p_cut;
+		var pA = p_func( p_p0, p_p1, rA );
+		var pB = p_func( p_p0, p_p2, rA );
+		for(var j = 0; j <= i; j++) {
+			var rB = (i - j) / i;
+			var pC = p_func( pA, pB, rB );
+			vArr.push( pC );
+		}
+	}
+	return vArr;
+}
+
+function makeDense( p_iArr, p_vArr, p_vLen, p_cut ) {
+	var indexArr = [];
+	var vertexArr = [];
+	var ptr = 0;
+	var vNum = 0;
+	while( ptr < p_iArr.length - 2 ) {
+		var i0 = p_iArr[ptr];
+		var i1 = p_iArr[ptr + 1];
+		var i2 = p_iArr[ptr + 2];
+		var p0 = [];
+		var p1 = [];
+		var p2 = [];
+		for(var i = 0; i < p_vLen; i++) {
+			p0.push( p_vArr[i0 * p_vLen + i] );
+			p1.push( p_vArr[i1 * p_vLen + i] );
+			p2.push( p_vArr[i2 * p_vLen + i] );
+		}
+		var iBuffArr = makeDenseTriIndex( p_cut );
+		var vBuffArr = makeDenseTriVertex( p0, p1, p2, p_cut, function ( p_p0, p_p1, p_r ) {
+			var p = [];
+			for(var i = 0; i < p_vLen; i++) {
+				p.push( p_p0[i] * p_r + p_p1[i] * (1 - p_r) );
+			}
+			return p;
+		});
+		for(var i = 0; i < iBuffArr.length; i++) {
+			indexArr.push( iBuffArr[i] + vNum );
+		}
+		for(var i = 0; i < vBuffArr.length; i++) {
+			for(var j = 0; j < p_vLen; j++) {
+				vertexArr.push( vBuffArr[i][j] );
+			}
+		}
+		vNum += vBuffArr.length;
+		ptr += 3;
+	}
+	return { iArr: indexArr, vArr: vertexArr };
 }
 
 function makeRect(p_gl) {
@@ -339,7 +469,7 @@ function makeRect(p_gl) {
 		v0.x, v0.y, v0.z, v1.x, v1.y, v1.z, v2.x, v2.y, v2.z //
 		, v0.x, v0.y, v0.z, v2.x, v2.y, v2.z, v3.x, v3.y, v3.z //
 		, v0.x, v0.y, v0.z, v3.x, v3.y, v3.z, v1.x, v1.y, v1.z //
-		, v1.x, v1.y, v1.z, v0.x, v0.y, v0.z, v2.x, v2.y, v2.z //
+		, v1.x, v1.y, v1.z, v3.x, v3.y, v3.z, v2.x, v2.y, v2.z //
 	];
 
 	var normals = [ //
@@ -347,6 +477,45 @@ function makeRect(p_gl) {
 		, -v1.x, -v1.y, -v1.z, -v1.x, -v1.y, -v1.z, -v1.x, -v1.y, -v1.z //
 		, -v2.x, -v2.y, -v2.z, -v2.x, -v2.y, -v2.z, -v2.x, -v2.y, -v2.z //
 		, -v0.x, -v0.y, -v0.z, -v0.x, -v0.y, -v0.z, -v0.x, -v0.y, -v0.z //
+	];
+	
+	var tangents = [
+	  v0.x - v1.x * 0.5 - v2.x * 0.5
+	, v0.y - v1.y * 0.5 - v2.y * 0.5
+	, v0.z - v1.z * 0.5 - v2.z * 0.5
+	, v0.x - v1.x * 0.5 - v2.x * 0.5
+	, v0.y - v1.y * 0.5 - v2.y * 0.5
+	, v0.z - v1.z * 0.5 - v2.z * 0.5
+	, v0.x - v1.x * 0.5 - v2.x * 0.5
+	, v0.y - v1.y * 0.5 - v2.y * 0.5
+	, v0.z - v1.z * 0.5 - v2.z * 0.5
+	, v0.x - v2.x * 0.5 - v3.x * 0.5
+	, v0.y - v2.y * 0.5 - v3.y * 0.5
+	, v0.z - v2.z * 0.5 - v3.z * 0.5
+	, v0.x - v2.x * 0.5 - v3.x * 0.5
+	, v0.y - v2.y * 0.5 - v3.y * 0.5
+	, v0.z - v2.z * 0.5 - v3.z * 0.5
+	, v0.x - v2.x * 0.5 - v3.x * 0.5
+	, v0.y - v2.y * 0.5 - v3.y * 0.5
+	, v0.z - v2.z * 0.5 - v3.z * 0.5
+	, v0.x - v3.x * 0.5 - v1.x * 0.5
+	, v0.y - v3.y * 0.5 - v1.y * 0.5
+	, v0.z - v3.z * 0.5 - v1.z * 0.5
+	, v0.x - v3.x * 0.5 - v1.x * 0.5
+	, v0.y - v3.y * 0.5 - v1.y * 0.5
+	, v0.z - v3.z * 0.5 - v1.z * 0.5
+	, v0.x - v3.x * 0.5 - v1.x * 0.5
+	, v0.y - v3.y * 0.5 - v1.y * 0.5
+	, v0.z - v3.z * 0.5 - v1.z * 0.5
+	, v1.x - v3.x * 0.5 - v2.x * 0.5
+	, v1.y - v3.y * 0.5 - v2.y * 0.5
+	, v1.z - v3.z * 0.5 - v2.z * 0.5
+	, v1.x - v3.x * 0.5 - v2.x * 0.5
+	, v1.y - v3.y * 0.5 - v2.y * 0.5
+	, v1.z - v3.z * 0.5 - v2.z * 0.5
+	, v1.x - v3.x * 0.5 - v2.x * 0.5
+	, v1.y - v3.y * 0.5 - v2.y * 0.5
+	, v1.z - v3.z * 0.5 - v2.z * 0.5
 	];
 
 	var texCoords = [ //
@@ -362,13 +531,22 @@ function makeRect(p_gl) {
 		, 6, 7, 8 //
 		, 9, 10, 11 //
 	];
+	
+	var cut = 150;
+	var verticesC = makeDense( indices, vertices, 3, cut );
+	var indicesB = verticesC.iArr;
+	var verticesB = verticesC.vArr;
+	var normalsB = makeDense( indices, normals, 3, cut ).vArr;
+	var tangentsB = makeDense( indices, tangents, 3, cut ).vArr;
+	var texCoordsB = makeDense( indices, texCoords, 2, cut ).vArr;
 
 	var obj = createDrawObject(p_gl);
 
-	obj.setVertex(vertices);
-	obj.setNormal(normals);
-	obj.setTexCoord(texCoords);
-	obj.setIndex(indices);
+	obj.setVertex(verticesB);
+	obj.setNormal(normalsB);
+	obj.setTangent(tangentsB);
+	obj.setTexCoord(texCoordsB);
+	obj.setIndex(indicesB);
 	return obj;
 }
 
@@ -430,11 +608,12 @@ function drawPicture() {
 
 // Start
 function start() {
-	drawer = createDrawer();
+	drawer.setup();
 	item = makeRect(drawer.gl);
 
 	spiritTexture = drawer.loadTexture("./assets/a.jpg");
 	bumpmapTexture = drawer.loadTexture("./assets/bumpmap.png");
+	dpmapTexture = drawer.loadTexture("./assets/dpmap.png");
 
 	shader = drawer.createShader(
 		// The ids of the vertex and fragment shaders
@@ -442,7 +621,7 @@ function start() {
 		// The vertex attribute names used by the shaders.
 		// The order they appear here corresponds to their index
 		// used later.
-		, ["vVertex", "vNormal", "vTexCoord"]
+		, ["vVertex", "vNormal", "vTangent", "vTexCoord"]
 		// The clear color and depth values
 		, [0, 0, 0.5, 1], 10000
 	);
@@ -453,11 +632,14 @@ function start() {
 	drawer.gl.uniform3f(drawer.gl.getUniformLocation(shader.program, "lightDir"), 0, 0, 1);
 	drawer.gl.uniform1i(drawer.gl.getUniformLocation(shader.program, "sampler2d"), 0);
 	drawer.gl.uniform1i(drawer.gl.getUniformLocation(shader.program, "sampler2dB"), 1);
+	drawer.gl.uniform1i(drawer.gl.getUniformLocation(shader.program, "sampler2dC"), 2);
 
 	drawer.gl.activeTexture(drawer.gl.TEXTURE0);
-	drawer.gl.bindTexture(drawer.gl.TEXTURE_2D, spiritTexture);
+	drawer.gl.bindTexture(drawer.gl.TEXTURE_2D, bumpmapTexture);
 	drawer.gl.activeTexture(drawer.gl.TEXTURE1);
 	drawer.gl.bindTexture(drawer.gl.TEXTURE_2D, bumpmapTexture);
+	drawer.gl.activeTexture(drawer.gl.TEXTURE2);
+	drawer.gl.bindTexture(drawer.gl.TEXTURE_2D, dpmapTexture);
 
 	drawer.gl.viewport(0, 0, 800, 600);
 	g.perspectiveMatrix = new J3DIMatrix4();
