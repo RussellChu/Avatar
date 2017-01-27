@@ -138,7 +138,7 @@ var util = (function () {
 			var list = getList( p_name );
 			var index = list.indexOf( p_listener );
 			if ( index > -1 ) {
-				array.splice( index, 1 );
+				list.splice( index, 1 );
 			}
 		};
 		obj.dispatch = function ( p_name, p_data ) {
@@ -148,10 +148,10 @@ var util = (function () {
 			var list = getList( p_name );
 			for(var i = 0; i < list.length; i++) {
 				var listener = list[i];
-				if ( listener.length == 0 ) {
+				if ( listener.length === 0 ) {
 					listener();
 				} else {
-					listener( data );
+					listener( p_data );
 				}
 			}
 		};
@@ -660,6 +660,42 @@ function start() {
 	};
 	f();
 }
+
+var listenerA = function ( p_data ) {
+	console.log( "listenerA >> " + p_data );
+}
+
+var listenerB = function ( p_data ) {
+	console.log( "listenerB >> " + p_data );
+}
+
+var listenerC = function ( p_data ) {
+	console.log( "listenerC >> " + p_data );
+}
+
+util.dispatcher.addListener( 'A', listenerA );
+util.dispatcher.addListener( 'A', listenerB );
+util.dispatcher.addListener( 'A', listenerC );
+util.dispatcher.addListener( 'B', listenerA );
+util.dispatcher.addListener( 'C', listenerA );
+
+util.dispatcher.dispatch( 'A', "some data" );
+util.dispatcher.dispatch( 'B', "some data 2" );
+
+util.dispatcher.removeListener( 'A', listenerB );
+
+util.dispatcher.dispatch( 'A', "some data 3" );
+util.dispatcher.addListener( 'A', listenerB );
+util.dispatcher.addListener( 'A', listenerB );
+
+util.dispatcher.removeListener( 'A' );
+
+util.dispatcher.dispatch( 'A', "some data 4" );
+
+util.dispatcher.dispatch( 'A', "some data 5" );
+util.dispatcher.dispatch( 'B', "some data 6" );
+util.dispatcher.dispatch( 'C', "some data 7" );
+
 </script>
 </head>
 <body style="margin:0;" onload="start()">
