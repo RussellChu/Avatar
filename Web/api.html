@@ -1,46 +1,297 @@
 <html>
 <head>
-<title></title>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title></title>
+<style>
+.abc:hover {
+    background-color: #086912;
+}
+.abc {
+    background-attachment: scroll;
+    background-clip: border-box;
+    background-color: rgb(51, 172, 63);
+    background-image: none;
+    background-origin: padding-box;
+    background-position-x: 0%;
+    background-position-y: 0%;
+    background-repeat-x: initial;
+    background-repeat-y: initial;
+    background-size: auto;
+    border-bottom-color: rgb(255, 255, 255);
+    border-bottom-left-radius: 3px;
+    border-bottom-right-radius: 3px;
+    border-bottom-style: none;
+    border-bottom-width: 0px;
+    border-image-outset: 0px;
+    border-image-repeat: stretch;
+    border-image-slice: 100%;
+    border-image-source: none;
+    border-image-width: 1;
+    border-left-color: rgb(255, 255, 255);
+    border-left-style: none;
+    border-left-width: 0px;
+    border-right-color: rgb(255, 255, 255);
+    border-right-style: none;
+    border-right-width: 0px;
+    border-top-color: rgb(255, 255, 255);
+    border-top-left-radius: 3px;
+    border-top-right-radius: 3px;
+    border-top-style: none;
+    border-top-width: 0px;
+    box-sizing: border-box;
+    color: rgb(255, 255, 255);
+    cursor: default;
+    display: inline-block;
+    font-family: Arial;
+    font-size: 15px;
+    font-stretch: normal;
+    font-style: normal;
+    font-variant-caps: normal;
+    font-variant-ligatures: normal;
+    font-variant-numeric: normal;
+    font-weight: normal;
+    height: 33px;
+    letter-spacing: normal;
+    line-height: normal;
+    margin-bottom: 0px;
+    margin-left: 0px;
+    margin-right: 4px;
+    margin-top: 0px;
+    outline-color: rgb(255, 255, 255);
+    outline-style: none;
+    outline-width: 0px;
+    padding-bottom: 8px;
+    padding-left: 20px;
+    padding-right: 20px;
+    padding-top: 8px;
+    text-align: center;
+    text-indent: 0px;
+    text-rendering: auto;
+    text-shadow: none;
+    text-transform: none;
+    user-select: none;
+    white-space: pre;
+    width: 87px;
+    word-spacing: 0px;
+    writing-mode: horizontal-tb;
+    -webkit-appearance: none;
+    -webkit-rtl-ordering: logical;
+    -webkit-border-image: none;
+}
+</style>
 </head>
 <body style="margin:0;">
+<div id="assets">
+<div id="btn">
+<input type="button" name="btnSearch" value="Search" id="btnSearch" class="abc">
+</div>
+</div>
 </body>
+<!--
+
+-->
 <script>
-var helper = {};
+<!-- var mainView = document.createElement( 'div' ); -->
+<!-- document.body.appendChild( mainView ); -->
+<!-- var assets = document.body.getElementsByName( 'assets' ); -->
+<!-- var btn = assets.getElementsByName( 'btn' ); -->
+<!-- var newBtn = btn.cloneNode(true); -->
+<!-- mainView.appendChild( newBtn ); -->
 
-helper.createClass = function ( p_baseClass, p_constructor, p_method ) {
-	var cls = p_constructor;
+<!-- API -->
+var tools = (function () {
+	var instance = {};
+//	var log = function () {
+//		console.log( arguments );
+//	};
+	var log = function () {
+		console.log( arguments );
+	};
+	var isExist = function ( obj ) {
+		if ( typeof obj === 'undefined' ) {
+			return false;
+		}
+		if ( typeof obj === 'object' ) {
+			if ( obj === null ) {
+				return false;
+			}
+		}
+		return true;
+	};
+	var doExist = function ( obj, key, func, defaultValue ) {
+		var result = false;
+		if ( typeof defaultValue !== 'undefined' ) {
+			result = defaultValue;
+		}
+		if ( !isExist( obj ) ) {
+			return result;
+		}
+		if ( typeof obj !== 'object' ) {
+			return result;
+		}
+		if ( !isExist( obj[key] ) ) {
+			return result;
+		}
+		return func( obj[key] );
+	};
+	instance.doExist = doExist;
+	instance.isExist = isExist;
+	instance.log = log;
+	return instance;
+} ());
+var doExist = tools.doExist;
+var isExist = tools.isExist;
+var log = tools.log;
+
+<!-- Testing Area -->
+var aniObj = {};
+aniObj['testObj'] = 0;
+
+log( "Testing A" );
+
+tools.doExist( aniObj, 'testObj', function ( obj ) {
+	log( "Testing B" );
+});
+
+log( "Testing C" );
+
+var buildClass = function ( setting ) {
+	var extend = function(child, parent) {
+		var hasProp = {}.hasOwnProperty;
+		
+		for (var key in parent) {
+			if (hasProp.call(parent, key)) {
+				child[key] = parent[key];
+			}
+		}
+
+		function ctor() {
+			this.constructor = child;
+		}
+		ctor.prototype = parent.prototype;
+		child.prototype = new ctor();
+		child.__super__ = parent.prototype;
+		return child;
+	}
+
+	var newClass;
 	
-};
+	var superClass = setting.superClass;
+	
+	var constructor = setting.constructor;
+	
+	var __static__ = setting.__static__;
+	
+	newClass = function () {
+		if ( isExist( newClass.__super__ ) ) {
+			newClass.__super__.constructor.apply( this, arguments );
+		}
+		if ( isExist( constructor ) ) {
+			constructor.apply( this, arguments );
+		}
+	}
 
-var ClassA = function ( p_name ) {
-	this._name = p_name;
-};
-ClassA.prototype.init = function () {
-	this._nameB = this._name;
-};
-ClassA.prototype.testA = function () {
-	return this._name;
-};
-ClassA.prototype.testB = function () {
-	return this._name;
-};
+	if ( isExist( superClass ) ) {
+		extend( newClass, superClass );
+	}
+	
+	for (var key in setting) {
+		if ( key == '__static__' ) {
+			continue;
+		}
+		if ( key == 'constructor' ) {
+			continue;
+		}
+		if ( key == 'super' ) {
+			continue;
+		}
+		if ( key == 'superClass' ) {
+			continue;
+		}
+		newClass.prototype[key] = setting[key];
+	}
+	
+	newClass.prototype.super = newClass.__super__;
 
-var ClassB = function () {
-	;
-};
-
-for(var key in ClassA.prototype) {
-	console.log( "k >> " + key );
+	if ( isExist( __static__ ) ) {
+		for (var key in __static__) {
+			newClass[key] = __static__[key];
+			/*
+			Object.defineProperty( newClass, key, {
+				value: constant[key],
+				writable: false,
+				enumerable: true,
+				configurable: true
+			});
+			*/
+		}
+	}
+	
+	return newClass;
 }
 
-console.log("ok");
-var a = new ClassA( "Hello" );
-console.log( a.testA() );
+var ClassA = buildClass({
+	  __static__: {
+		  C_A0: 321
+		, C_A1: 432
+	}
+	, _a: 1
+	, _b: 2
+	, constructor: function ( data ) {
+		log( "ClassA constructor >> " + data + " >> " + this._a + ", " + this._b );
+	}
+	, start: function ( data ) {
+		log( "ClassA start >> " + data );
+	}
+});
 
-for(var key in ClassA.prototype) {
-	console.log( "k2 >> " + key );
-}
+var ClassB = buildClass({
+	  superClass: ClassA
+	, _a: 3
+	, constructor: function ( data ) {
+		log( "ClassB constructor >> " + data + " >> " + this._a + ", " + this._b );
+	}
+	, start: function ( data ) {
+		this.super.start.apply( this, arguments );
+		log( 'ClassB start >> ' + data );
+	}
+	, start2: function ( data ) {
+		log( "ClassB start2 >> " + data );
+	}
+});
+
+var ClassC = buildClass({
+	  superClass: ClassA
+	, _b: 6
+	, constructor: function ( data ) {
+		log( 'ClassC constructor >> ' + data );
+		this._a = 4;
+	}
+	, start: function ( data ) {
+		this.super.start( data );
+		log( 'ClassC start ' + this._a + ' start >> ' + data );
+	}
+});
+
+var a = new ClassA( 'a 123' );
+a.start('a 234');
+
+var a2 = new ClassB( 'b 123' );
+a2.start('b 234');
+a2.start2('b 345');
+
+var a3 = new ClassA( 'c 123' );
+a3.start('c 234');
+
+var a4 = new ClassC( 'd 123' );
+a4.start('d 234');
+
+log( "ClassA.C_A0 >> " + ClassA.C_A0 );
+log( "ClassA.C_A1 >> " + ClassA.C_A1 );
+log( "ClassB.C_A0 >> " + ClassB.C_A0 );
+log( "ClassB.C_A1 >> " + ClassB.C_A1 );
+log( "ClassC.C_A0 >> " + ClassC.C_A0 );
+log( "ClassC.C_A1 >> " + ClassC.C_A1 );
 
 </script>
 </html>
