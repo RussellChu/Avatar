@@ -83,7 +83,8 @@
 <body style="margin:0;">
 <div id="assets">
 <div id="btn">
-<input type="button" name="btnSearch" value="Search" id="btnSearch" class="abc">
+<input type="button" value="Search A" class="abc">
+<input type="button" value="Search" id="btnSearch" class="abc">
 </div>
 </div>
 </body>
@@ -91,22 +92,15 @@
 
 -->
 <script>
-<!-- var mainView = document.createElement( 'div' ); -->
-<!-- document.body.appendChild( mainView ); -->
-<!-- var assets = document.body.getElementsByName( 'assets' ); -->
-<!-- var btn = assets.getElementsByName( 'btn' ); -->
-<!-- var newBtn = btn.cloneNode(true); -->
-<!-- mainView.appendChild( newBtn ); -->
 
 <!-- API -->
 var tools = (function () {
 	var instance = {};
-//	var log = function () {
-//		console.log( arguments );
-//	};
+
 	var log = function () {
 		console.log( arguments );
 	};
+	
 	var isExist = function ( obj ) {
 		if ( typeof obj === 'undefined' ) {
 			return false;
@@ -118,12 +112,19 @@ var tools = (function () {
 		}
 		return true;
 	};
+	
 	var doExist = function ( obj, key, func, defaultValue ) {
 		var result = false;
 		if ( typeof defaultValue !== 'undefined' ) {
 			result = defaultValue;
 		}
 		if ( !isExist( obj ) ) {
+			return result;
+		}
+		if ( !isExist( key ) ) {
+			return result;
+		}
+		if ( !isExist( func ) ) {
 			return result;
 		}
 		if ( typeof obj !== 'object' ) {
@@ -134,14 +135,179 @@ var tools = (function () {
 		}
 		return func( obj[key] );
 	};
+	
+	var setExist = function ( obj, key, defaultValue ) {
+		var result = null;
+		if ( typeof defaultValue !== 'undefined' ) {
+			result = defaultValue;
+		}
+		if ( !isExist( obj ) ) {
+			return result;
+		}
+		if ( !isExist( key ) ) {
+			return result;
+		}
+		if ( typeof obj !== 'object' ) {
+			return result;
+		}
+		if ( typeof obj[key] === 'undefined' ) {
+			return result;
+		}
+		return obj[key];
+	};
+
+	var getChildById = function ( inst, id ) {
+		if ( !isExist( inst ) ) {
+			return null;
+		}
+		if ( !isExist( id ) ) {
+			return null;
+		}
+		for(var i = 0; i < inst.childNodes.length; i++) {
+			var item = inst.childNodes[i];
+			if ( item.id === id ) {
+				return item;
+			}
+		}
+		return null;
+	};
+	
+	var buildClass = function ( setting ) {
+		if ( !isExist( setting ) ) {
+			return function () {};
+		}
+		
+		var extend = function( child, parent ) {
+			var hasProp = {}.hasOwnProperty;
+			
+			for (var key in parent) {
+				if ( hasProp.call( parent, key )) {
+					child[key] = parent[key];
+				}
+			}
+
+			function ctor() {
+				this.constructor = child;
+			}
+			ctor.prototype = parent.prototype;
+			child.prototype = new ctor();
+			child.__super__ = parent.prototype;
+			return child;
+		};
+		
+		var superClass = setting.superClass;
+		
+		var constructor = setting.constructor;
+		
+		var __static__ = setting.__static__;
+		
+		var TAG = setExist( setting, 'TAG', 'Unknown' );
+		
+		var newClass = function () {
+			if ( isExist( newClass.__super__ ) ) {
+				newClass.__super__.constructor.apply( this, arguments );
+			}
+			if ( isExist( constructor ) ) {
+				constructor.apply( this, arguments );
+			}
+		};
+
+		if ( isExist( superClass ) ) {
+			extend( newClass, superClass );
+		}
+		
+		for (var key in setting) {
+			if ( key === 'TAG' ) {
+				continue;
+			}
+			if ( key === '__static__' ) {
+				continue;
+			}
+			if ( key === 'constructor' ) {
+				continue;
+			}
+			if ( key === 'super' ) {
+				continue;
+			}
+			if ( key === 'superClass' ) {
+				continue;
+			}
+			if ( key === 'err' ) {
+				continue;
+			}
+			if ( key === 'log' ) {
+				continue;
+			}
+			newClass.prototype[key] = setting[key];
+		}
+		
+		newClass.prototype.err = function () {
+			console.log( 'ERROR', TAG, arguments );
+		};
+		
+		newClass.prototype.log = function () {
+			console.log( TAG, arguments );
+		};
+		
+		if ( isExist( newClass.__super__ ) ) {
+			newClass.prototype.super = newClass.__super__;
+		}
+
+		if ( isExist( __static__ ) ) {
+			for (var key in __static__) {
+				newClass[key] = __static__[key];
+				/*
+				Object.defineProperty( newClass, key, {
+					value: constant[key],
+					writable: false,
+					enumerable: true,
+					configurable: true
+				});
+				*/
+			}
+		}
+		
+		return newClass;
+	};
+	instance.buildClass = buildClass;
 	instance.doExist = doExist;
 	instance.isExist = isExist;
+	instance.setExist = setExist;
+	instance.getChildById = getChildById;
 	instance.log = log;
 	return instance;
 } ());
+
+var buildClass = tools.buildClass;
 var doExist = tools.doExist;
 var isExist = tools.isExist;
+var setExist = tools.setExist;
+var getChildById = tools.getChildById;
 var log = tools.log;
+
+var BaseObject = buildClass({
+	  TAG: 'BaseObject'
+	, _inst: null
+	, constructor: function ( inst ) {
+		if ( !isExist( inst ) ) {
+			this.err( 'No inst' );
+			return;
+		}
+		this._inst = inst;
+	}
+	, dispose: function () {
+		this._inst = null;
+	}
+	, instance: function () {
+		return this._inst;
+	}
+});
+
+<!-- Notices -->
+/*
+to do -
+	find children by name?
+*/
 
 <!-- Testing Area -->
 var aniObj = {};
@@ -155,121 +321,50 @@ tools.doExist( aniObj, 'testObj', function ( obj ) {
 
 log( "Testing C" );
 
-var buildClass = function ( setting ) {
-	var extend = function(child, parent) {
-		var hasProp = {}.hasOwnProperty;
-		
-		for (var key in parent) {
-			if (hasProp.call(parent, key)) {
-				child[key] = parent[key];
-			}
-		}
-
-		function ctor() {
-			this.constructor = child;
-		}
-		ctor.prototype = parent.prototype;
-		child.prototype = new ctor();
-		child.__super__ = parent.prototype;
-		return child;
-	}
-
-	var newClass;
-	
-	var superClass = setting.superClass;
-	
-	var constructor = setting.constructor;
-	
-	var __static__ = setting.__static__;
-	
-	newClass = function () {
-		if ( isExist( newClass.__super__ ) ) {
-			newClass.__super__.constructor.apply( this, arguments );
-		}
-		if ( isExist( constructor ) ) {
-			constructor.apply( this, arguments );
-		}
-	}
-
-	if ( isExist( superClass ) ) {
-		extend( newClass, superClass );
-	}
-	
-	for (var key in setting) {
-		if ( key == '__static__' ) {
-			continue;
-		}
-		if ( key == 'constructor' ) {
-			continue;
-		}
-		if ( key == 'super' ) {
-			continue;
-		}
-		if ( key == 'superClass' ) {
-			continue;
-		}
-		newClass.prototype[key] = setting[key];
-	}
-	
-	newClass.prototype.super = newClass.__super__;
-
-	if ( isExist( __static__ ) ) {
-		for (var key in __static__) {
-			newClass[key] = __static__[key];
-			/*
-			Object.defineProperty( newClass, key, {
-				value: constant[key],
-				writable: false,
-				enumerable: true,
-				configurable: true
-			});
-			*/
-		}
-	}
-	
-	return newClass;
-}
-
 var ClassA = buildClass({
-	  __static__: {
+	  TAG: 'ClassA'
+	, __static__: {
 		  C_A0: 321
 		, C_A1: 432
 	}
 	, _a: 1
 	, _b: 2
 	, constructor: function ( data ) {
-		log( "ClassA constructor >> " + data + " >> " + this._a + ", " + this._b );
+		this.log( "ClassA constructor >> " + data + " >> " + this._a + ", " + this._b );
 	}
 	, start: function ( data ) {
-		log( "ClassA start >> " + data );
+		this.log( "ClassA start >> " + data );
+		this.err( "ClassA err >> " + data );
 	}
 });
 
 var ClassB = buildClass({
-	  superClass: ClassA
+	  TAG: 'ClassB'
+	, superClass: ClassA
 	, _a: 3
 	, constructor: function ( data ) {
-		log( "ClassB constructor >> " + data + " >> " + this._a + ", " + this._b );
+		this.log( "ClassB constructor >> " + data + " >> " + this._a + ", " + this._b );
 	}
 	, start: function ( data ) {
 		this.super.start.apply( this, arguments );
-		log( 'ClassB start >> ' + data );
+		this.log( 'ClassB start >> ' + data );
 	}
 	, start2: function ( data ) {
-		log( "ClassB start2 >> " + data );
+		this.log( "ClassB start2 >> " + data );
 	}
 });
 
 var ClassC = buildClass({
-	  superClass: ClassA
+	  TAG: 'ClassC'
+	, superClass: ClassA
 	, _b: 6
 	, constructor: function ( data ) {
-		log( 'ClassC constructor >> ' + data );
+		this.log( 'ClassC constructor >> ' + data );
 		this._a = 4;
 	}
 	, start: function ( data ) {
 		this.super.start( data );
-		log( 'ClassC start ' + this._a + ' start >> ' + data );
+		this.log( 'ClassC start ' + this._a + ' start >> ' + data );
 	}
 });
 
@@ -292,6 +387,15 @@ log( "ClassB.C_A0 >> " + ClassB.C_A0 );
 log( "ClassB.C_A1 >> " + ClassB.C_A1 );
 log( "ClassC.C_A0 >> " + ClassC.C_A0 );
 log( "ClassC.C_A1 >> " + ClassC.C_A1 );
+
+
+var mainView = document.createElement( 'div' );
+document.body.appendChild( mainView );
+var assets = getChildById( document.body, 'assets' );
+var btn = getChildById( assets, 'btn' );
+var newBtn = btn.cloneNode(true);
+newBtn.id = 'aaa';
+mainView.appendChild( newBtn );
 
 </script>
 </html>
