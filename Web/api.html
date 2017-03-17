@@ -55,7 +55,7 @@
     line-height: normal;
     margin-bottom: 0px;
     margin-left: 0px;
-    margin-right: 4px;
+    margin-right: 0px;
     margin-top: 0px;
     outline-color: rgb(255, 255, 255);
     outline-style: none;
@@ -83,8 +83,7 @@
 <body style="margin:0;">
 <div id="assets">
 <div id="btn">
-<input type="button" value="Search A" class="abc">
-<input type="button" value="Search" id="btnSearch" class="abc">
+<input type="button" value="Search A" class="abc"><input type="button" value="Search" id="btnSearch" class="abc">
 </div>
 </div>
 </body>
@@ -277,6 +276,169 @@ var tools = (function () {
 	instance.log = log;
 	return instance;
 } ());
+
+var TimeCore = (function () {
+	var inst = {};
+	var currTime = 0;
+	var timeSlot = {};
+	
+	var updateCurrTime = function ()
+	{
+		var d = new Date();
+		currTime = d.getTime();
+	};
+	
+	updateCurrTime();
+	
+	var handler;
+	handler = function () {
+		var lastTime = currTime;
+		updateCurrTime();
+		for(var i = lastTime + 1; i <= currTime; i++)
+		{
+			var nextSlot = timeSlot[i];
+			if ( !nextSlot )
+			{
+				continue;
+			}
+			for(var j = 0; j < nextSlot.length; j++)
+			{
+				nextSlot[j]();
+			}
+		}
+		setTimeout( handler, 1 );
+	};
+	
+	var delay = function ( callBack, interval ) {
+		if ( typeof callBack !== "function" )
+		{
+			return;
+		}
+		if ( typeof interval !== "number" )
+		{
+			return;
+		}
+		if ( interval < 1 )
+		{
+			return;
+		}
+		
+		var nextTime = Math.floor(currTime + interval);
+		var nextSlot = timeSlot[nextTime];
+		if ( !nextSlot )
+		{
+			nextSlot = [];
+			timeSlot[nextTime] = nextSlot;
+		}
+		nextSlot.push( callBack );
+	};
+	
+	var Timer = buildClass({
+		  TAG: 'Timer'
+		, _callBack
+		, _init: false
+		, _minItvl: 0
+		, _stdItvl: 0
+		, _t: 0
+		, _t0: 0
+		, constructor: function ( callBack, stdItvl, minItvl )
+		{
+			if ( typeof callBack !== "function" )
+			{
+				return;
+			}
+			if ( typeof stdItvl !== "number" )
+			{
+				return;
+			}
+			if ( stdItvl < 1 )
+			{
+				return;
+			}
+			
+			this._stdItvl = Math.floor( stdItvl );
+			this._minItvl = Math.floor( this._stdItvl * 0.5 );
+			if ( typeof minItvl === "number" )
+			{
+				this._minItvl = Math.floor( minItvl );
+			}
+			if ( this._minItvl < 1 )
+			{
+				this._minItvl = 1;
+			}
+			
+			this._callBack = callBack;
+			this._t = currTime - this._stdItvl;
+			this._t0 = this._t;
+			this._init = true;
+		}
+		, dispose: function ()
+		{
+			this._init = false;
+			this._callBack = null;
+		}
+		, process: function ()
+		{
+			if ( !this._run )
+			{
+				return;
+			}
+			
+			var t2 = this._t;
+			this._t = currTime;
+			var diff2 = this._t - this._t0;
+			this._t0 = this._t;
+			var diff = this._stdItvl + t2 - this._t;
+			if ( diff < this._minItvl - this._stdItvl )
+			{
+				diff = this._minItvl - this._stdItvl;
+			}
+			
+			this._t += diff;
+			
+			if ( callBack.length === 1 )
+			{
+				callBack( diff2 );
+			}
+			else
+			{
+				callBack();
+			}
+			
+			// to do
+			delay( this.process, diff + this._stdItvl );
+		}
+		, run: function ()
+		{
+			if ( !this._init )
+			{
+				return;
+			}
+			delay( this.process, 1 );
+		}
+	});
+	
+	var timer = function ( callBack, stdItvl, minItvl )
+	{
+		var inst = new Timer( callBack, stdItvl, minItvl );
+		return inst;
+	};
+	
+	inst.delay = delay;
+	inst.timer = timer;
+	inst.time = function ()
+	{
+		return currTime;
+	}
+	
+	setTimeout( handler, 1 );
+	
+	return inst;
+} ());
+
+TimeCore.timer( function ( diff ) {
+	console.log( TimeCore.time() + " - " + diff );
+}, 50 );
 
 var buildClass = tools.buildClass;
 var doExist = tools.doExist;
