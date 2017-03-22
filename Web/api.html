@@ -4,79 +4,79 @@
 <title></title>
 <style>
 .abc:hover {
-    background-color: #086912;
+	background-color: #086912;
 }
 .abc {
-    background-attachment: scroll;
-    background-clip: border-box;
-    background-color: rgb(51, 172, 63);
-    background-image: none;
-    background-origin: padding-box;
-    background-position-x: 0%;
-    background-position-y: 0%;
-    background-repeat-x: initial;
-    background-repeat-y: initial;
-    background-size: auto;
-    border-bottom-color: rgb(255, 255, 255);
-    border-bottom-left-radius: 3px;
-    border-bottom-right-radius: 3px;
-    border-bottom-style: none;
-    border-bottom-width: 0px;
-    border-image-outset: 0px;
-    border-image-repeat: stretch;
-    border-image-slice: 100%;
-    border-image-source: none;
-    border-image-width: 1;
-    border-left-color: rgb(255, 255, 255);
-    border-left-style: none;
-    border-left-width: 0px;
-    border-right-color: rgb(255, 255, 255);
-    border-right-style: none;
-    border-right-width: 0px;
-    border-top-color: rgb(255, 255, 255);
-    border-top-left-radius: 3px;
-    border-top-right-radius: 3px;
-    border-top-style: none;
-    border-top-width: 0px;
-    box-sizing: border-box;
-    color: rgb(255, 255, 255);
-    cursor: default;
-    display: inline-block;
-    font-family: Arial;
-    font-size: 15px;
-    font-stretch: normal;
-    font-style: normal;
-    font-variant-caps: normal;
-    font-variant-ligatures: normal;
-    font-variant-numeric: normal;
-    font-weight: normal;
-    height: 33px;
-    letter-spacing: normal;
-    line-height: normal;
-    margin-bottom: 0px;
-    margin-left: 0px;
-    margin-right: 0px;
-    margin-top: 0px;
-    outline-color: rgb(255, 255, 255);
-    outline-style: none;
-    outline-width: 0px;
-    padding-bottom: 8px;
-    padding-left: 20px;
-    padding-right: 20px;
-    padding-top: 8px;
-    text-align: center;
-    text-indent: 0px;
-    text-rendering: auto;
-    text-shadow: none;
-    text-transform: none;
-    user-select: none;
-    white-space: pre;
-    width: 87px;
-    word-spacing: 0px;
-    writing-mode: horizontal-tb;
-    -webkit-appearance: none;
-    -webkit-rtl-ordering: logical;
-    -webkit-border-image: none;
+	background-attachment: scroll;
+	background-clip: border-box;
+	background-color: rgb(51, 172, 63);
+	background-image: none;
+	background-origin: padding-box;
+	background-position-x: 0%;
+	background-position-y: 0%;
+	background-repeat-x: initial;
+	background-repeat-y: initial;
+	background-size: auto;
+	border-bottom-color: rgb(255, 255, 255);
+	border-bottom-left-radius: 3px;
+	border-bottom-right-radius: 3px;
+	border-bottom-style: none;
+	border-bottom-width: 0px;
+	border-image-outset: 0px;
+	border-image-repeat: stretch;
+	border-image-slice: 100%;
+	border-image-source: none;
+	border-image-width: 1;
+	border-left-color: rgb(255, 255, 255);
+	border-left-style: none;
+	border-left-width: 0px;
+	border-right-color: rgb(255, 255, 255);
+	border-right-style: none;
+	border-right-width: 0px;
+	border-top-color: rgb(255, 255, 255);
+	border-top-left-radius: 3px;
+	border-top-right-radius: 3px;
+	border-top-style: none;
+	border-top-width: 0px;
+	box-sizing: border-box;
+	color: rgb(255, 255, 255);
+	cursor: default;
+	display: inline-block;
+	font-family: Arial;
+	font-size: 15px;
+	font-stretch: normal;
+	font-style: normal;
+	font-variant-caps: normal;
+	font-variant-ligatures: normal;
+	font-variant-numeric: normal;
+	font-weight: normal;
+	height: 33px;
+	letter-spacing: normal;
+	line-height: normal;
+	margin-bottom: 0px;
+	margin-left: 0px;
+	margin-right: 0px;
+	margin-top: 0px;
+	outline-color: rgb(255, 255, 255);
+	outline-style: none;
+	outline-width: 0px;
+	padding-bottom: 8px;
+	padding-left: 20px;
+	padding-right: 20px;
+	padding-top: 8px;
+	text-align: center;
+	text-indent: 0px;
+	text-rendering: auto;
+	text-shadow: none;
+	text-transform: none;
+	user-select: none;
+	white-space: pre;
+	width: 87px;
+	word-spacing: 0px;
+	writing-mode: horizontal-tb;
+	-webkit-appearance: none;
+	-webkit-rtl-ordering: logical;
+	-webkit-border-image: none;
 }
 </style>
 </head>
@@ -100,33 +100,199 @@ var tools = (function () {
 		console.log( arguments );
 	};
 	
+	var setter = {};
+	
+	var isValidInt = function ( value ) {
+		if ( value !== parseInt( value ) ) {
+			return false;
+		}
+		if ( value === NaN || value === Infinity || value === -Infinity ) {
+			return false;
+		}
+		return true;
+	};
+	
+	var isValidNum = function ( value ) {
+		if ( typeof value !== 'number' ) {
+			return false;
+		}
+		if ( value === NaN || value === Infinity || value === -Infinity ) {
+			return false;
+		}
+		return true;
+	};
+	
+	var isValidObj = function ( value ) {
+		if ( typeof value !== 'object' ) {
+			return false;
+		}
+		return ( value !== null );
+	};
+	
+	var isValidFunc = function ( value ) {
+		return ( typeof value === 'function' );
+	};
+	
+	var hasValidNum = function ( obj, key ) {
+		if ( !isValidObj( obj ) ) {
+			return false;
+		}
+		if ( typeof obj[key] !== 'number' ) {
+			return false;
+		}
+		var value = obj[key];
+		if ( value === NaN || value === Infinity || value === -Infinity ) {
+			return false;
+		}
+		return true;
+	}
+	
+	var toInt = function ( p_value ) {
+		var value = parseInt( p_value );
+		if ( value === NaN || value === Infinity || value === -Infinity ) {
+			return 0;
+		}
+		return value;
+	}
+	
+	var toNum = function ( p_value ) {
+		var value = Number( p_value );
+		if ( value === NaN || value === Infinity || value === -Infinity ) {
+			return 0;
+		}
+		return value;
+	}
+	
+	var toStr = function ( value ) {
+		if ( typeof value === 'string' ) {
+			return value;
+		}
+		if ( typeof value === 'number' ) {
+			return String( value );
+		}
+		if ( typeof value === 'boolean' ) {
+			return String( value );
+		}
+		return '';
+	};
+	
+	var setStr = function ( value, defaultValue ) {
+		if ( typeof value === 'string' ) {
+			return value;
+		}
+		if ( typeof value === 'number' ) {
+			return String( value );
+		}
+		if ( typeof value === 'boolean' ) {
+			return String( value );
+		}
+		return toStr( defaultValue );
+	};
+	
+	var setNum = function ( value, defaultValue, option ) {
+		var rslt = 0;
+		if ( isValidNum( value ) ) {
+			rslt = value;
+		} else {
+			rslt = toNum( defaultValue );
+		}
+		if ( isValidObj( option ) ) {
+			if ( hasValidNum( option, 'min' ) ) {
+				var min = option.min;
+				if ( rslt < min )
+				{
+					rslt = min;
+				}
+			}
+			if ( hasValidNum( option, 'max' ) ) {
+				var max = option.max;
+				if ( rslt > max )
+				{
+					rslt = max;
+				}
+			}
+		}
+		return rslt;
+	};
+	
+	var setInt = function ( value, defaultValue, option ) {
+		var rslt = 0;
+		if ( isValidInt( value ) ) {
+			rslt = value;
+		} else {
+			rslt = toInt( defaultValue );
+		}
+		if ( isValidObj( option ) ) {
+			if ( hasValidNum( option, 'min' ) ) {
+				var min = toInt( option.min );
+				if ( rslt < min )
+				{
+					rslt = min;
+				}
+			}
+			if ( hasValidNum( option, 'max' ) ) {
+				var max = toInt( option.max );
+				if ( rslt > max )
+				{
+					rslt = max;
+				}
+			}
+		}
+		return rslt;
+	};
+	
+	setter.isValidInt = isValidInt;
+	setter.isValidNum = isValidNum;
+	setter.isValidObj = isValidObj;
+	setter.isValidFunc = isValidFunc;
+	setter.hasValidNum = hasValidNum;
+	setter.toInt = toInt;
+	setter.toNum = toNum;
+	setter.toStr = toStr;
+	setter.setStr = setStr;
+	setter.setNum = setNum;
+	setter.setInt = setInt;
+	
+	// key of Array always string
 	var isExist = function ( obj ) {
 		if ( typeof obj === 'undefined' ) {
 			return false;
+		}
+		if ( typeof obj === 'number' ) {
+			if ( obj === NaN || obj === Infinity || obj === -Infinity ) {
+				return false;
+			}
+			return true;
+		}
+		if ( typeof obj === 'string' ) {
+			if ( obj === '' ) {
+				return false;
+			}
+			return true;
 		}
 		if ( typeof obj === 'object' ) {
 			if ( obj === null ) {
 				return false;
 			}
+			return true;
 		}
 		return true;
 	};
 	
-	var doExist = function ( obj, key, func, defaultValue ) {
-		var result = false;
-		if ( typeof defaultValue !== 'undefined' ) {
+	var ifExistDo = function ( obj, key, func, defaultValue ) {
+		var result;
+		if ( isExist( defaultValue ) ) {
 			result = defaultValue;
+		} else {
+			result = false;
 		}
-		if ( !isExist( obj ) ) {
+		if ( !isValidObj( obj ) ) {
 			return result;
 		}
-		if ( !isExist( key ) ) {
+		if ( typeof key === 'undefined' ) {
 			return result;
 		}
-		if ( !isExist( func ) ) {
-			return result;
-		}
-		if ( typeof obj !== 'object' ) {
+		if ( typeof func !== 'function' ) {
 			return result;
 		}
 		if ( !isExist( obj[key] ) ) {
@@ -135,26 +301,6 @@ var tools = (function () {
 		return func( obj[key] );
 	};
 	
-	var setExist = function ( obj, key, defaultValue ) {
-		var result = null;
-		if ( typeof defaultValue !== 'undefined' ) {
-			result = defaultValue;
-		}
-		if ( !isExist( obj ) ) {
-			return result;
-		}
-		if ( !isExist( key ) ) {
-			return result;
-		}
-		if ( typeof obj !== 'object' ) {
-			return result;
-		}
-		if ( typeof obj[key] === 'undefined' ) {
-			return result;
-		}
-		return obj[key];
-	};
-
 	var getChildById = function ( inst, id ) {
 		if ( !isExist( inst ) ) {
 			return null;
@@ -172,73 +318,64 @@ var tools = (function () {
 	};
 	
 	var buildClass = function ( setting ) {
-		if ( !isExist( setting ) ) {
+		if ( !isValidObj( setting ) ) {
 			return function () {};
 		}
 		
-		var extend = function( child, parent ) {
-			var hasProp = {}.hasOwnProperty;
-			
-			for (var key in parent) {
-				if ( hasProp.call( parent, key )) {
-					child[key] = parent[key];
-				}
-			}
-
-			function ctor() {
-				this.constructor = child;
-			}
-			ctor.prototype = parent.prototype;
-			child.prototype = new ctor();
-			child.__super__ = parent.prototype;
-			return child;
-		};
+		var TAG = setStr( setting['TAG'], 'Unknown' );
 		
-		var superClass = setting.superClass;
+		var superClass;
+		if ( typeof setting.superClass === 'function' ) {
+			superClass = setting.superClass;
+		}
 		
-		var constructor = setting.constructor;
+		var constructor;
+		if ( typeof setting.constructor === 'function' ) {
+			constructor = setting.constructor;
+		} else {
+			constructor = function () {};
+		}
 		
 		var __static__ = setting.__static__;
 		
-		var TAG = setExist( setting, 'TAG', 'Unknown' );
+		var hasProp = {}.hasOwnProperty;
 		
 		var newClass = function () {
-			if ( isExist( newClass.__super__ ) ) {
-				newClass.__super__.constructor.apply( this, arguments );
-			}
-			if ( isExist( constructor ) ) {
-				constructor.apply( this, arguments );
-			}
+			constructor.apply( this, arguments );
 		};
-
-		if ( isExist( superClass ) ) {
-			extend( newClass, superClass );
+		
+		// inherit super class
+		if ( typeof superClass === 'function' ) {
+			// set static param / method
+			for (var key in superClass) {
+				if ( hasProp.call( superClass, key )) {
+					newClass[key] = superClass[key];
+				}
+			}
+			
+			newClass.__super__ = superClass.prototype;
+			newClass.prototype = {};
+			
+			// set dynamic param / method
+			for (var key in superClass.prototype) {
+			//	if ( hasProp.call( superClass.prototype, key )) {
+					newClass.prototype[key] = superClass.prototype[key];
+			//	}
+			}
 		}
 		
+		delete setting['TAG'];
+		delete setting['__static__'];
+		delete setting['constructor'];
+		delete setting['superClass'];
+		delete setting['err'];
+		delete setting['log'];
+		
 		for (var key in setting) {
-			if ( key === 'TAG' ) {
-				continue;
-			}
-			if ( key === '__static__' ) {
-				continue;
-			}
-			if ( key === 'constructor' ) {
-				continue;
-			}
-			if ( key === 'super' ) {
-				continue;
-			}
-			if ( key === 'superClass' ) {
-				continue;
-			}
-			if ( key === 'err' ) {
-				continue;
-			}
-			if ( key === 'log' ) {
-				continue;
-			}
 			newClass.prototype[key] = setting[key];
 		}
+		
+		newClass.prototype.constructor = constructor;
 		
 		newClass.prototype.err = function () {
 			console.log( 'ERROR', TAG, arguments );
@@ -248,11 +385,7 @@ var tools = (function () {
 			console.log( TAG, arguments );
 		};
 		
-		if ( isExist( newClass.__super__ ) ) {
-			newClass.prototype.super = newClass.__super__;
-		}
-
-		if ( isExist( __static__ ) ) {
+		if ( isValidObj( __static__ ) ) {
 			for (var key in __static__) {
 				newClass[key] = __static__[key];
 				/*
@@ -268,22 +401,30 @@ var tools = (function () {
 		
 		return newClass;
 	};
+	
 	instance.buildClass = buildClass;
-	instance.doExist = doExist;
+	instance.ifExistDo = ifExistDo;
 	instance.isExist = isExist;
-	instance.setExist = setExist;
+	instance.setter = setter;
 	instance.getChildById = getChildById;
 	instance.log = log;
 	return instance;
 } ());
 
+var buildClass = tools.buildClass;
+var ifExistDo = tools.ifExistDo;
+var isExist = tools.isExist;
+var setter = tools.setter;
+var getChildById = tools.getChildById;
+var log = tools.log;
+
 var TimeCore = (function () {
 	var inst = {};
 	var currTime = 0;
+	var delayList = [{}];
 	var timeSlot = {};
 	
-	var updateCurrTime = function ()
-	{
+	var updateCurrTime = function () {
 		var d = new Date();
 		currTime = d.getTime();
 	};
@@ -294,93 +435,104 @@ var TimeCore = (function () {
 	handler = function () {
 		var lastTime = currTime;
 		updateCurrTime();
-		for(var i = lastTime + 1; i <= currTime; i++)
-		{
+		for(var i = lastTime + 1; i <= currTime; i++) {
 			var nextSlot = timeSlot[i];
-			if ( !nextSlot )
-			{
+			if ( !setter.isValidObj( nextSlot ) ) {
 				continue;
 			}
-			for(var j = 0; j < nextSlot.length; j++)
-			{
-				nextSlot[j]();
+			for(var j = 0; j < nextSlot.length; j++) {
+				if ( setter.isValidFunc( nextSlot[j] ) ) {
+					nextSlot[j]();
+					delete nextSlot[j];
+				}
 			}
+			delete timeSlot[i];
 		}
 		setTimeout( handler, 1 );
 	};
 	
-	var delay = function ( callBack, interval ) {
-		if ( typeof callBack !== "function" )
-		{
-			return;
+	var delay = function ( callBack, p_interval ) {
+		if ( !setter.isValidFunc( callBack ) ) {
+			return 0;
 		}
-		if ( typeof interval !== "number" )
-		{
-			return;
-		}
-		if ( interval < 1 )
-		{
-			return;
+		
+		var interval = setter.setInt( p_interval, 0 );
+		
+		if ( interval < 1 ) {
+			return 0;
 		}
 		
 		var nextTime = Math.floor(currTime + interval);
 		var nextSlot = timeSlot[nextTime];
-		if ( !nextSlot )
-		{
+		if ( !setter.isValidObj( nextSlot ) ) {
 			nextSlot = [];
 			timeSlot[nextTime] = nextSlot;
 		}
+		
+		var delayId = delayList.length;
+		delayList.push( {slot: nextTime, idx: nextSlot.length} );
+		
 		nextSlot.push( callBack );
+		
+		return delayId;
 	};
+	
+	var killDelay = function ( delayId ) {
+		if ( !setter.isValidInt( delayId ) ) {
+			return;
+		}
+		if ( delayId <= 0 ) {
+			return;
+		}
+		if ( setter.isValidObj( delayList[delayId] ) ) {
+			var slot = delayList[delayId].slot;
+			var idx = delayList[delayId].idx;
+			delete delayList[delayId];
+			
+			var nextSlot = timeSlot[slot];
+			if ( setter.isValidObj( nextSlot ) ) {
+				nextSlot[idx] = null;
+			}
+		}
+	}
 	
 	var Timer = buildClass({
 		  TAG: 'Timer'
-		, _callBack
+		, _callBack: null
+		, _delayId: 0
 		, _init: false
 		, _minItvl: 0
+		, _run: false
 		, _stdItvl: 0
 		, _t: 0
 		, _t0: 0
-		, constructor: function ( callBack, stdItvl, minItvl )
-		{
-			if ( typeof callBack !== "function" )
-			{
-				return;
+		, constructor: function ( callBack, p_stdItvl, p_minItvl ) {
+			if ( !setter.isValidFunc( callBack ) ) {
+				return 0;
 			}
-			if ( typeof stdItvl !== "number" )
-			{
-				return;
-			}
-			if ( stdItvl < 1 )
-			{
+			
+			var stdItvl = setter.setInt( p_stdItvl, 0 );
+			if ( stdItvl < 1 ) {
 				return;
 			}
 			
-			this._stdItvl = Math.floor( stdItvl );
-			this._minItvl = Math.floor( this._stdItvl * 0.5 );
-			if ( typeof minItvl === "number" )
-			{
-				this._minItvl = Math.floor( minItvl );
-			}
-			if ( this._minItvl < 1 )
-			{
-				this._minItvl = 1;
-			}
+			this._stdItvl = stdItvl;
+			this._minItvl = setter.setInt( p_minItvl, stdItvl * 0.5, { min: 1 } );
 			
 			this._callBack = callBack;
 			this._t = currTime - this._stdItvl;
 			this._t0 = this._t;
 			this._init = true;
 		}
-		, dispose: function ()
-		{
+		, dispose: function () {
+			this.stop();
+			
 			this._init = false;
+			
 			this._callBack = null;
 		}
-		, process: function ()
-		{
-			if ( !this._run )
-			{
+		, process: function () {
+			if ( !this._run ) {
 				return;
 			}
 			
@@ -389,45 +541,58 @@ var TimeCore = (function () {
 			var diff2 = this._t - this._t0;
 			this._t0 = this._t;
 			var diff = this._stdItvl + t2 - this._t;
-			if ( diff < this._minItvl - this._stdItvl )
-			{
+			if ( diff < this._minItvl - this._stdItvl ) {
 				diff = this._minItvl - this._stdItvl;
 			}
 			
 			this._t += diff;
 			
-			if ( callBack.length === 1 )
-			{
-				callBack( diff2 );
+			if ( this._callBack.length === 1 ) {
+				this._callBack( diff2 );
 			}
-			else
-			{
-				callBack();
+			else {
+				this._callBack();
 			}
 			
-			// to do
-			delay( this.process, diff + this._stdItvl );
+			var self = this;
+			var selfArgs = arguments;
+			this._delayId = delay( function () {
+				self.process.apply( self, selfArgs );
+			}, diff + this._stdItvl );
 		}
-		, run: function ()
-		{
-			if ( !this._init )
-			{
+		, run: function () {
+			if ( !this._init ) {
 				return;
 			}
-			delay( this.process, 1 );
+			
+			if ( this._run ) {
+				return;
+			}
+			
+			this._run = true;
+			
+			var self = this;
+			var selfArgs = arguments;
+			this._delayId = delay( function () {
+				self.process.apply( self, selfArgs );
+			}, 1 );
+		}
+		, stop: function () {
+			this._run = false;
+			
+			killDelay( this._delayId );
+			this._delayId = 0;
 		}
 	});
 	
-	var timer = function ( callBack, stdItvl, minItvl )
-	{
+	var timer = function ( callBack, stdItvl, minItvl ) {
 		var inst = new Timer( callBack, stdItvl, minItvl );
 		return inst;
 	};
 	
 	inst.delay = delay;
 	inst.timer = timer;
-	inst.time = function ()
-	{
+	inst.time = function () {
 		return currTime;
 	}
 	
@@ -436,31 +601,92 @@ var TimeCore = (function () {
 	return inst;
 } ());
 
-TimeCore.timer( function ( diff ) {
-	console.log( TimeCore.time() + " - " + diff );
-}, 50 );
+var DisplayObject = buildClass({
+	  TAG: 'DisplayObject'
+	, _inst: null
+	, _type: ''
+	, constructor: function ( type ) {
+		this._type = type;
+		this.init();
+	}
+	, init: function () {
+		this._inst = document.createElement( this._type );
+		this._inst.style.position = "absolute";
+		this._inst.style.left = 0;
+		this._inst.style.top = 0;
+		this._inst.style.transformOrigin = "0 0";
+	}
+	, dispose: function () {
+		this._inst = null;
+	}
+	, getInst: function () {
+		return this._inst;
+	}
+});
 
-var buildClass = tools.buildClass;
-var doExist = tools.doExist;
-var isExist = tools.isExist;
-var setExist = tools.setExist;
-var getChildById = tools.getChildById;
-var log = tools.log;
+var Quad = buildClass({
+	  TAG: 'Quad'
+	, superClass: DisplayObject
+	, _width: 0
+	, _height: 0
+	, _color: ''
+	, _alpha: 0
+	, constructor: function ( width, height, color, alpha ) {
+		this._width = setter.setInt( width, 0, { min: 0 } );
+		this._height = setter.setInt( height, 0, { min: 0 } );
+		this._color = setter.setStr( color );
+		this._alpha = setter.setNum( alpha, 1, { min: 0, max: 1 } );
+		Quad.__super__.constructor.apply( this, ['div'] );
+	}
+	, init: function () {
+		Quad.__super__.init.apply( this, arguments );
+		this._inst.style.width = this._width;
+		this._inst.style.height = this._height;
+		this._inst.style.backgroundColor = this._color;
+	}
+	, dispose: function () {
+		Quad.__super__.dispose.apply( this, arguments );
+	}
+});
+
+var sp = new Quad( 0, 0, '#ff0000' );
+//document.body.appendChild( sp.getInst() );
+
+var quad = new Quad( 100, 100, '#ff0000' );
+//quad.getInst().style.left = -50;
+//quad.getInst().style.top = -50;
+//sp.getInst().appendChild( quad.getInst() );
+document.body.appendChild( quad.getInst() );
+
+var angle = 0;
+var speed = 0.0001;
+
+TimeCore.timer( function ( diff ) {
+	log( diff );
+	angle += ( diff * speed ) % 1;
+	var s = Math.sin( angle * Math.PI * 2 );
+	var c = Math.cos( angle * Math.PI * 2 );
+	quad.getInst().style.transform = "matrix(" + c + "," + s + "," + (-s) + "," + c + ",0,0)";
+}, 1 ).run();
 
 var BaseObject = buildClass({
 	  TAG: 'BaseObject'
 	, _inst: null
 	, constructor: function ( inst ) {
-		if ( !isExist( inst ) ) {
+		if ( !setter.isValidObj( inst ) ) {
 			this.err( 'No inst' );
 			return;
 		}
 		this._inst = inst;
+		this.init();
+	}
+	, init: function () {
+		;
 	}
 	, dispose: function () {
 		this._inst = null;
 	}
-	, instance: function () {
+	, getInst: function () {
 		return this._inst;
 	}
 });
@@ -472,84 +698,30 @@ to do -
 */
 
 <!-- Testing Area -->
+
+
+/*
+var num = 0;
+var t = TimeCore.timer( function ( diff ) {
+	num++;
+	if ( num > 200 )
+	{
+		t.stop();
+	}
+	console.log( TimeCore.time() + " - " + diff + " " + num );
+}, 50 );
+t.run();
+*/
+
+/*
 var aniObj = {};
 aniObj['testObj'] = 0;
 
 log( "Testing A" );
 
-tools.doExist( aniObj, 'testObj', function ( obj ) {
+tools.ifExistDo( aniObj, 'testObj', function ( obj ) {
 	log( "Testing B" );
 });
-
-log( "Testing C" );
-
-var ClassA = buildClass({
-	  TAG: 'ClassA'
-	, __static__: {
-		  C_A0: 321
-		, C_A1: 432
-	}
-	, _a: 1
-	, _b: 2
-	, constructor: function ( data ) {
-		this.log( "ClassA constructor >> " + data + " >> " + this._a + ", " + this._b );
-	}
-	, start: function ( data ) {
-		this.log( "ClassA start >> " + data );
-		this.err( "ClassA err >> " + data );
-	}
-});
-
-var ClassB = buildClass({
-	  TAG: 'ClassB'
-	, superClass: ClassA
-	, _a: 3
-	, constructor: function ( data ) {
-		this.log( "ClassB constructor >> " + data + " >> " + this._a + ", " + this._b );
-	}
-	, start: function ( data ) {
-		this.super.start.apply( this, arguments );
-		this.log( 'ClassB start >> ' + data );
-	}
-	, start2: function ( data ) {
-		this.log( "ClassB start2 >> " + data );
-	}
-});
-
-var ClassC = buildClass({
-	  TAG: 'ClassC'
-	, superClass: ClassA
-	, _b: 6
-	, constructor: function ( data ) {
-		this.log( 'ClassC constructor >> ' + data );
-		this._a = 4;
-	}
-	, start: function ( data ) {
-		this.super.start( data );
-		this.log( 'ClassC start ' + this._a + ' start >> ' + data );
-	}
-});
-
-var a = new ClassA( 'a 123' );
-a.start('a 234');
-
-var a2 = new ClassB( 'b 123' );
-a2.start('b 234');
-a2.start2('b 345');
-
-var a3 = new ClassA( 'c 123' );
-a3.start('c 234');
-
-var a4 = new ClassC( 'd 123' );
-a4.start('d 234');
-
-log( "ClassA.C_A0 >> " + ClassA.C_A0 );
-log( "ClassA.C_A1 >> " + ClassA.C_A1 );
-log( "ClassB.C_A0 >> " + ClassB.C_A0 );
-log( "ClassB.C_A1 >> " + ClassB.C_A1 );
-log( "ClassC.C_A0 >> " + ClassC.C_A0 );
-log( "ClassC.C_A1 >> " + ClassC.C_A1 );
-
 
 var mainView = document.createElement( 'div' );
 document.body.appendChild( mainView );
@@ -558,6 +730,6 @@ var btn = getChildById( assets, 'btn' );
 var newBtn = btn.cloneNode(true);
 newBtn.id = 'aaa';
 mainView.appendChild( newBtn );
-
+*/
 </script>
 </html>
