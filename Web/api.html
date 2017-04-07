@@ -583,6 +583,9 @@ var TimeCore = (function () {
 			killDelay( this._delayId );
 			this._delayId = 0;
 		}
+		, running: function () {
+			return this._run;
+		}
 	});
 	
 	var timer = function ( callBack, stdItvl, minItvl ) {
@@ -601,10 +604,37 @@ var TimeCore = (function () {
 	return inst;
 } ());
 
+var Signal = buildClass({
+	  TAG: 'Signal'
+	, _list: null
+	, constructor: function () {
+		this.init();
+	}
+	, init: function () {
+		this._list = [];
+	}
+	, dispose: function () {
+		this._list = null;
+	}
+	, add: function ( func ) {
+		if ( !setter.isValidFunc( func ) ) {
+			return;
+		}
+		this._list.push( func );
+	}
+	, dispatch: function ( data ) {
+		for(var i = 0; i < this._list.length; i++) {
+			this._list[i]( data );
+		}
+	}
+});
+
 var DisplayObject = buildClass({
 	  TAG: 'DisplayObject'
 	, _inst: null
 	, _type: ''
+	, _posX: 0
+	, _posY: 0
 	, constructor: function ( type ) {
 		this._type = type;
 		this.init();
@@ -621,6 +651,20 @@ var DisplayObject = buildClass({
 	}
 	, getInst: function () {
 		return this._inst;
+	}
+	, getPosX: function () {
+		return this._posX;
+	}
+	, getPosY: function () {
+		return this._posY;
+	}
+	, setPosX: function ( x ) {
+		this._posX = setter.setInt( x, this._posX );
+		this._inst.style.left = this._posX;
+	}
+	, setPosY: function ( y ) {
+		this._posY = setter.setInt( y, this._posY );
+		this._inst.style.top = this._posY;
 	}
 });
 
@@ -649,25 +693,110 @@ var Quad = buildClass({
 	}
 });
 
+var globalSignal = (function () {
+	var instance = {};
+	
+	var mouseMove = new Signal();
+	var mouseUp = new Signal();
+	
+	document.body.onmousemove = function ( e ) {
+		mouseMove.dispatch( e );
+	};
+	
+	document.body.onmouseup = function ( e ) {
+		mouseUp.dispatch( e );
+	};
+	
+	instance.mouseMove = mouseMove;
+	instance.mouseUp = mouseUp;
+	
+	return instance;
+} ());
+
+var dragManager = (function () {
+	var instance = {};
+	
+	var dragTarget = null;
+	var dragX = 0;
+	var dragY = 0;
+	
+	globalSignal.mouseMove.add( function ( e ) {
+		/*
+		if ( e.buttons === 0 ) {
+			dragTarget = null;
+		}
+		*/
+		
+		if ( dragTarget === null ) {
+			return;
+		}
+		
+		dragTarget.setPosX( e.pageX - dragX );
+		dragTarget.setPosY( e.pageY - dragY );
+	});
+	
+	globalSignal.mouseUp.add( function ( e ) {
+		dragTarget = null;
+	});
+	
+	var enableDrag = function ( target ) {
+		if ( !setter.isValidObj( target ) ) {
+			return;
+		}
+		
+		target.getInst().style.userSelect = 'none';
+		
+		target.getInst().onmousedown = function ( e ) {
+			dragTarget = target;
+			dragX = e.pageX - target.getPosX();
+			dragY = e.pageY - target.getPosY();
+		};
+	};
+	
+	var disableDrag = function ( target ) {
+		if ( !setter.isValidObj( target ) ) {
+			return;
+		}
+		if ( dragTarget === target ) {
+			dragTarget = null;
+		}
+		target.getInst().onmousedown = null;
+	};
+	
+	instance.enableDrag = enableDrag;
+	instance.disableDrag = disableDrag;
+	
+	return instance;
+} ());
+
 var sp = new Quad( 0, 0, '#ff0000' );
 //document.body.appendChild( sp.getInst() );
 
 var quad = new Quad( 100, 100, '#ff0000' );
-//quad.getInst().style.left = -50;
-//quad.getInst().style.top = -50;
+quad.setPosX( 50 );
+quad.setPosY( 50 );
 //sp.getInst().appendChild( quad.getInst() );
 document.body.appendChild( quad.getInst() );
+dragManager.enableDrag( quad );
+
+var quad2 = new Quad( 100, 100, '#ffff00' );
+quad2.setPosX( 150 );
+quad2.setPosY( 150 );
+document.body.appendChild( quad2.getInst() );
+dragManager.enableDrag( quad2 );
 
 var angle = 0;
-var speed = 0.0001;
+var speed = 0.0005;
 
-TimeCore.timer( function ( diff ) {
-	log( diff );
-	angle += ( diff * speed ) % 1;
+var t = TimeCore.timer( function ( diff ) {
+//	log( diff );
+	angle += ( speed ) % 1;
 	var s = Math.sin( angle * Math.PI * 2 );
 	var c = Math.cos( angle * Math.PI * 2 );
 	quad.getInst().style.transform = "matrix(" + c + "," + s + "," + (-s) + "," + c + ",0,0)";
-}, 1 ).run();
+}, 1 );
+t.run();
+
 
 var BaseObject = buildClass({
 	  TAG: 'BaseObject'
