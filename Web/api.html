@@ -219,8 +219,8 @@ var tools = (function () {
 	
 	var setInt = function ( value, defaultValue, option ) {
 		var rslt = 0;
-		if ( isValidInt( value ) ) {
-			rslt = value;
+		if ( isValidNum( value ) ) {
+			rslt = toInt( value );
 		} else {
 			rslt = toInt( defaultValue );
 		}
@@ -342,12 +342,9 @@ var tools = (function () {
 		
 		var hasProp = {}.hasOwnProperty;
 		
-		var newClass = function () {
-			constructor.apply( this, arguments );
-		};
+		var newClass;
 		
-	//	log( TAG );
-	//	Object.defineProperty( newClass.prototype.constructor, 'name', { value: TAG } );
+		eval( "newClass = function " + TAG + "() { constructor.apply( this, arguments ); };" );
 		
 		// inherit super class
 		if ( typeof superClass === 'function' ) {
@@ -407,9 +404,35 @@ var tools = (function () {
 		return newClass;
 	};
 	
+	var looper = {};
+	
+	looper.pairs = function ( list, func ) {
+		if ( !( list instanceof Array ) ) {
+			return;
+		}
+		if ( list === null ) {
+			return;
+		}
+		if ( !setter.isValidFunc( func ) ) {
+			return;
+		}
+		for(var i = 0; i < list.length - 1; i++) {
+			if ( !setter.isValidObj( list[i] ) ) {
+				continue;
+			}
+			for(var j = i + 1; j < list.length; j++) {
+				if ( !setter.isValidObj( list[j] ) ) {
+					continue;
+				}
+				func( list[i], list[j] );
+			}
+		}
+	};
+	
 	instance.buildClass = buildClass;
 	instance.ifExistDo = ifExistDo;
 	instance.isExist = isExist;
+	instance.looper = looper;
 	instance.setter = setter;
 	instance.getChildById = getChildById;
 	instance.log = log;
@@ -419,6 +442,7 @@ var tools = (function () {
 var buildClass = tools.buildClass;
 var ifExistDo = tools.ifExistDo;
 var isExist = tools.isExist;
+var looper = tools.looper;
 var setter = tools.setter;
 var getChildById = tools.getChildById;
 var log = tools.log;
@@ -640,6 +664,7 @@ var DisplayObject = buildClass({
 	, _type: ''
 	, _posX: 0
 	, _posY: 0
+	, _dragable: null
 	, constructor: function ( type ) {
 		this._type = type;
 		this.init();
@@ -671,30 +696,19 @@ var DisplayObject = buildClass({
 		this._posY = setter.setInt( y, this._posY );
 		this._inst.style.top = this._posY;
 	}
-});
-
-var Quad = buildClass({
-	  TAG: 'Quad'
-	, superClass: DisplayObject
-	, _width: 0
-	, _height: 0
-	, _color: ''
-	, _alpha: 0
-	, constructor: function ( width, height, color, alpha ) {
-		this._width = setter.setInt( width, 0, { min: 0 } );
-		this._height = setter.setInt( height, 0, { min: 0 } );
-		this._color = setter.setStr( color );
-		this._alpha = setter.setNum( alpha, 1, { min: 0, max: 1 } );
-		Quad.__super__.constructor.apply( this, ['div'] );
+	, getDragable: function () {
+		return this._dragable;
 	}
-	, init: function () {
-		Quad.__super__.init.apply( this, arguments );
-		this._inst.style.width = this._width;
-		this._inst.style.height = this._height;
-		this._inst.style.backgroundColor = this._color;
-	}
-	, dispose: function () {
-		Quad.__super__.dispose.apply( this, arguments );
+	, setDragable: function ( value ) {
+		if ( value ) {
+			if ( this._dragable === null ) {
+				this._dragable = new Dragable( this );
+				this._dragable.setEnable( true );
+			}
+		}
+		if ( this._dragable !== null ) {
+			this._dragable.setEnable( value );
+		}
 	}
 });
 
@@ -736,43 +750,111 @@ var dragManager = (function () {
 			return;
 		}
 		
-		dragTarget.setPosX( e.pageX - dragX );
-		dragTarget.setPosY( e.pageY - dragY );
+		dragTarget.update( e.pageX - dragX, e.pageY - dragY );
 	});
 	
 	globalSignal.mouseUp.add( function ( e ) {
 		dragTarget = null;
 	});
 	
-	var enableDrag = function ( target ) {
-		if ( !setter.isValidObj( target ) ) {
-			return;
-		}
-		
-		target.getInst().style.userSelect = 'none';
-		
-		target.getInst().onmousedown = function ( e ) {
-			dragTarget = target;
-			dragX = e.pageX - target.getPosX();
-			dragY = e.pageY - target.getPosY();
-		};
+	var setTarget = function ( dragable, e ) {
+		dragTarget = dragable;
+		var pos = dragTarget.getPos();
+		dragX = e.pageX - pos.x;
+		dragY = e.pageY - pos.y;
 	};
 	
-	var disableDrag = function ( target ) {
-		if ( !setter.isValidObj( target ) ) {
-			return;
-		}
-		if ( dragTarget === target ) {
+	var unsetTarget = function ( dragable ) {
+		if ( dragTarget === dragable ) {
 			dragTarget = null;
 		}
-		target.getInst().onmousedown = null;
 	};
 	
-	instance.enableDrag = enableDrag;
-	instance.disableDrag = disableDrag;
+	instance.setTarget = setTarget;
+	instance.unsetTarget = unsetTarget;
 	
 	return instance;
 } ());
+
+var Dragable = buildClass({
+	  TAG: 'Dragable'
+	, _inst: null
+	, _signal: null
+	, constructor: function ( inst ) {
+		this._inst = inst;
+		this.init();
+	}
+	, init: function () {
+		this._signal = new Signal();
+	}
+	, dispose: function () {
+		this._inst = null;
+		if ( this._signal !== null ) {
+			this._signal.dispose();
+			this._signal = null;
+		}
+	}
+	, getInst: function () {
+		return this._inst;
+	}
+	, getPos: function () {
+		return { x: this._inst.getPosX(), y: this._inst.getPosY() };
+	}
+	, setPos: function ( x, y ) {
+		this._x = x;
+		this._y = y;
+	}
+	, getSignal: function () {
+		return this._signal;
+	}
+	, setEnable: function ( value ) {
+		var self = this;
+		if ( value ) {
+			self._inst.getInst().style.userSelect = 'none';
+			self._inst.getInst().onmousedown = function ( e ) {
+				dragManager.setTarget( self, e );
+			};
+		} else {
+			dragManager.unsetTarget( self );
+			self._inst.getInst().onmousedown = null;
+		}
+	}
+	, stop: function () {
+		this._x = this._inst.getPosX();
+		this._y = this._inst.getPosY();
+	}
+	, update: function ( x, y ) {
+		this.setPos( x, y );
+		this._signal.dispatch( { target: this, x: x, y: y } );
+		this._inst.setPosX( this._x );
+		this._inst.setPosY( this._y );
+	}
+});
+
+var Quad = buildClass({
+	  TAG: 'Quad'
+	, superClass: DisplayObject
+	, _width: 0
+	, _height: 0
+	, _color: ''
+	, _alpha: 0
+	, constructor: function ( width, height, color, alpha ) {
+		this._width = setter.setInt( width, 0, { min: 0 } );
+		this._height = setter.setInt( height, 0, { min: 0 } );
+		this._color = setter.setStr( color );
+		this._alpha = setter.setNum( alpha, 1, { min: 0, max: 1 } );
+		Quad.__super__.constructor.apply( this, ['div'] );
+	}
+	, init: function () {
+		Quad.__super__.init.apply( this, arguments );
+		this._inst.style.width = this._width;
+		this._inst.style.height = this._height;
+		this._inst.style.backgroundColor = this._color;
+	}
+	, dispose: function () {
+		Quad.__super__.dispose.apply( this, arguments );
+	}
+});
 
 var BaseObject = buildClass({
 	  TAG: 'BaseObject'
@@ -801,22 +883,119 @@ var Vec2 = buildClass({
 	, x: 0
 	, y: 0
 	, __static__: {
-		isValid: function ( value ) {
-			if ( !setter.isValidObj( inst ) ) {
-				return false;
+		  createFromObj: function ( value ) {
+			var rslt = new Vec2();
+			if ( !setter.isValidObj( value ) ) {
+				return rslt;
 			}
-			if ( !setter.isValidNum( value.x ) ) {
-				return false;
-			}
-			if ( !setter.isValidNum( value.y ) ) {
-				return false;
-			}
-			return true;
+			rslt.x = setter.setNum( value.x, 0 );
+			rslt.y = setter.setNum( value.y, 0 );
+			return rslt;
 		}
 	}
 	, constructor: function ( x, y ) {
 		this.x = setter.setNum( x, 0 );
 		this.y = setter.setNum( y, 0 );
+	}
+	, clone: function () {
+		return new Vec2( this.x, this.y );
+	}
+	, convertToObj: function () {
+		return { x: this.x, y: this.y };
+	}
+	, addEql: function ( value ) {
+		if ( value instanceof Vec2 ) {
+			this.x += value.x;
+			this.y += value.y;
+		} else {
+			this.err( 'addEql fail' );
+		}
+		return this;
+	}
+	, minusEql: function ( value ) {
+		if ( value instanceof Vec2 ) {
+			this.x -= value.x;
+			this.y -= value.y;
+		} else {
+			this.err( 'minus fail' );
+		}
+		return this;
+	}
+	, mulEql: function ( value ) {
+		if ( setter.isValidNum( value ) ) {
+			this.x *= value;
+			this.y *= value;
+		} else {
+			this.err( 'mulEql fail' );
+		}
+		return this;
+	}
+	, divEql: function ( value ) {
+		if ( setter.isValidNum( value ) && value !== 0 ) {
+			var inv = 1 / value;
+			this.x *= inv;
+			this.y *= inv;
+		} else {
+			this.err( 'divEql fail' );
+		}
+		return this;
+	}
+	, add: function ( value ) {
+		var rslt = this.clone();
+		if ( value instanceof Vec2 ) {
+			rslt.x += value.x;
+			rslt.y += value.y;
+		} else {
+			this.err( 'add fail' );
+		}
+		return rslt;
+	}
+	, minus: function ( value ) {
+		var rslt = this.clone();
+		if ( value instanceof Vec2 ) {
+			rslt.x -= value.x;
+			rslt.y -= value.y;
+		} else {
+			this.err( 'minus fail' );
+		}
+		return rslt;
+	}
+	, mul: function ( value ) {
+		var rslt = this.clone();
+		if ( setter.isValidNum( value ) ) {
+			rslt.x *= value;
+			rslt.y *= value;
+		} else {
+			this.err( 'mul fail' );
+		}
+		return rslt;
+	}
+	, div: function ( value ) {
+		var rslt = this.clone();
+		if ( setter.isValidNum( value ) && value !== 0 ) {
+			var inv = 1 / value;
+			rslt.x *= inv;
+			rslt.y *= inv;
+		} else {
+			this.err( 'div fail' );
+		}
+		return rslt;
+	}
+	, magSqr: function () {
+		return this.x * this.x + this.y * this.y;
+	}
+	, mag: function () {
+		return Math.sqrt( this.magSqr() );
+	}
+	, normalize: function () {
+		if ( this.x !== 0 || this.y !== 0 ) {
+			var magInv = 1 / this.mag();
+			return this.mulEql( magInv );
+		}
+		return this;
+	}
+	, dot: function ( value ) {
+		return this.x * value.x + this.y * value.y;
 	}
 });
 
@@ -826,26 +1005,126 @@ var Vec3 = buildClass({
 	, y: 0
 	, z: 0
 	, __static__: {
-		isValid: function ( value ) {
-			if ( !setter.isValidObj( inst ) ) {
-				return false;
+		  createFromObj: function ( value ) {
+			var rslt = new Vec3();
+			if ( !setter.isValidObj( value ) ) {
+				return rslt;
 			}
-			if ( !setter.isValidNum( value.x ) ) {
-				return false;
-			}
-			if ( !setter.isValidNum( value.y ) ) {
-				return false;
-			}
-			if ( !setter.isValidNum( value.z ) ) {
-				return false;
-			}
-			return true;
+			rslt.x = setter.setNum( value.x, 0 );
+			rslt.y = setter.setNum( value.y, 0 );
+			rslt.z = setter.setNum( value.z, 0 );
+			return rslt;
 		}
 	}
 	, constructor: function ( x, y, z ) {
 		this.x = setter.setNum( x, 0 );
 		this.y = setter.setNum( y, 0 );
 		this.z = setter.setNum( z, 0 );
+	}
+	, clone: function () {
+		return new Vec3( this.x, this.y, this.z );
+	}
+	, convertToObj: function () {
+		return { x: this.x, y: this.y, z: this.z };
+	}
+	, addEql: function ( value ) {
+		if ( value instanceof Vec3 ) {
+			this.x += value.x;
+			this.y += value.y;
+			this.z += value.z;
+		} else {
+			this.err( 'addEql fail' );
+		}
+		return this;
+	}
+	, minusEql: function ( value ) {
+		if ( value instanceof Vec3 ) {
+			this.x -= value.x;
+			this.y -= value.y;
+			this.z -= value.z;
+		} else {
+			this.err( 'minus fail' );
+		}
+		return this;
+	}
+	, mulEql: function ( value ) {
+		if ( setter.isValidNum( value ) ) {
+			this.x *= value;
+			this.y *= value;
+			this.z *= value;
+		} else {
+			this.err( 'mulEql fail' );
+		}
+		return this;
+	}
+	, divEql: function ( value ) {
+		if ( setter.isValidNum( value ) && value !== 0 ) {
+			var inv = 1 / value;
+			this.x *= inv;
+			this.y *= inv;
+			this.z *= inv;
+		} else {
+			this.err( 'divEql fail' );
+		}
+		return this;
+	}
+	, add: function ( value ) {
+		var rslt = this.clone();
+		if ( value instanceof Vec3 ) {
+			rslt.x += value.x;
+			rslt.y += value.y;
+			rslt.z += value.z;
+		} else {
+			this.err( 'add fail' );
+		}
+		return rslt;
+	}
+	, minus: function ( value ) {
+		var rslt = this.clone();
+		if ( value instanceof Vec3 ) {
+			rslt.x -= value.x;
+			rslt.y -= value.y;
+			rslt.z -= value.z;
+		} else {
+			this.err( 'minus fail' );
+		}
+		return rslt;
+	}
+	, mul: function ( value ) {
+		var rslt = this.clone();
+		if ( setter.isValidNum( value ) ) {
+			rslt.x *= value;
+			rslt.y *= value;
+			rslt.z *= value;
+		} else {
+			this.err( 'mul fail' );
+		}
+		return rslt;
+	}
+	, div: function ( value ) {
+		var rslt = this.clone();
+		if ( setter.isValidNum( value ) && value !== 0 ) {
+			var inv = 1 / value;
+			rslt.x *= inv;
+			rslt.y *= inv;
+			rslt.z *= inv;
+		} else {
+			this.err( 'div fail' );
+		}
+		return rslt;
+	}
+	, magSqr: function () {
+		return this.x * this.x + this.y * this.y + this.z * this.z;
+	}
+	, mag: function () {
+		return Math.sqrt( this.magSqr() );
+	}
+	, normalize: function () {
+		if ( this.x !== 0 || this.y !== 0 || this.z !== 0 ) {
+			var magInv = 1 / this.mag();
+			return this.mulEql( magInv );
+		}
+		return this;
 	}
 });
 
@@ -856,8 +1135,138 @@ log( a2 instanceof Vec2 );
 log( a2 instanceof Vec3 );
 log( a3 instanceof Vec2 );
 log( a3 instanceof Vec3 );
-log( a2 );
-log( a3 );
+
+var b0 = new Vec2( 1, 2 );
+var b1 = new Vec2( 2, 3 );
+var b2 = new Vec2( 3, 5 );
+var b3 = b0.add( b1 ).add( b2 );
+
+var list = [a2, b0, b1, b2, b3];
+looper.pairs( list, function ( a, b ) {
+	log( a.add( b ) );
+});
+
+var GravityItem = buildClass({
+	  TAG: 'GravityItem'
+	, _pos: null
+	, _vec: null
+	, _mass: 0
+	, _radius: 0
+	, _impVec: null
+	, constructor: function ( pos, vec, mass, radius ) {
+		this._pos = Vec2.createFromObj( pos );
+		this._vec = Vec2.createFromObj( vec );
+		this._mass = setter.setNum( mass, 0, { min: 0 } );
+		this._radius = setter.setNum( radius, 0, { min: 0 } );
+		this.init();
+	}
+	, init: function () {
+		;
+	}
+	, dispose: function () {
+		;
+	}
+	, getPos: function () {
+		return this._pos;
+	}
+	, accelerate: function ( value ) {
+		this._vec.addEql( value );
+	}
+	, preCalc: function () {
+		this._impVec = null;
+	}
+	// value: unit vector
+	, blockDir: function ( value ) {
+		var testDir = this._impVec;
+		if ( testDir === null ) {
+			testDir = this._vec;
+		}
+		
+		// same dir, no block
+		var testDot = testDir.dot( value );
+		if ( testDot >= 0 ) {
+			return;
+		}
+		
+		if ( this._impVec !== null ) {
+			this._impVec = new Vec2();
+			return;
+		}
+		
+		var minusVec = value.mul( testDot );
+		this._impVec = this._vec.minus( minusVec );
+	}
+	, isOverlap: function ( pos0, pos1, dist ) {
+		return ( (pos0.x - pos1.x) * (pos0.x - pos1.x) + (pos0.y - pos1.y) * (pos0.y - pos1.y) < dist * dist );
+	}
+	, isCloseTo: function ( pos0, pos1, vec0, vec1 ) {
+		var dir0 = pos1.minus( pos0 );
+		var dir1 = vec0.minus( vec1 );
+		return ( dir0.dot( dir1 ) > 0 );
+	}
+	, collide: function ( target ) {
+		if ( this._mass + target._mass <= 0 ) {
+			return;
+		}
+		if ( !this.isOverlap( this._pos, target._pos, this._radius + target._radius ) ) {
+			return;
+		}
+		if ( !this.isCloseTo( this._pos, target._pos, this._vec, target._vec ) ) {
+			return;
+		}
+		var dir = target._pos.minus( this._pos ).normalize();
+		var speed0 = this._vec.dot( dir );
+		var speed1 = target._vec.dot( dir );
+		var speedAfter0 = ( speed0 * ( 0 + this._mass - target._mass ) + 2 * target._mass * speed1 ) / ( this._mass + target._mass );
+		var speedAfter1 = ( speed1 * ( 0 - this._mass + target._mass ) + 2 *   this._mass * speed0 ) / ( this._mass + target._mass );
+		this._vec.addEql( dir.mul( speedAfter0 - speed0 ) );
+		target._vec.addEql( dir.mul( speedAfter1 - speed1 ) );
+	}
+	, collideSurface: function ( pos, dir ) {
+		var distVec = this._pos.minus( pos );
+		var dist = distVec.dot( dir );
+		if ( dist >= this._radius ) {
+			return;
+		}
+		
+		var minusMag = this._vec.dot( dir );
+		var addVec = dir.mul( -2 * minusMag );
+		this._vec.addEql( addVec );
+	}
+	, limitSpeed: function ( value ) {
+		if ( value <= 0 ) {
+			this._vec = new Vec2();
+			return;
+		}
+		var mag = this._vec.mag();
+		if ( mag > value ) {
+			this._vec.normalize();
+			this._vec.mulEql( value );
+		}
+	}
+	, blockFromItem: function ( target ) {
+		if ( !this.isOverlap( this._pos, target._pos, this._radius + target._radius ) ) {
+			return;
+		}
+		this.blockDir( this._pos.minus( target._pos ).normalize() );
+	}
+	// dir: unit vector
+	, blockFromSurface: function ( pos, dir ) {
+		var distVec = this._pos.minus( pos );
+		var dist = distVec.dot( dir );
+		if ( dist >= this._radius ) {
+			return;
+		}
+		this.blockDir( dir );
+	}
+	, impCalc: function () {
+		if ( this._impVec === null ) {
+			this._pos.addEql( this._vec );
+		} else {
+			this._pos.addEql( this._impVec );
+		}
+	}
+});
 
 var GravityWorld = buildClass({
 	  TAG: 'GravityWorld'
@@ -866,7 +1275,9 @@ var GravityWorld = buildClass({
 	, _w: 0
 	, _h: 0
 	, _maxSpeed: 0
+	, _gravity: null
 	, _child: null
+	, _signal: null
 	, _timer: null
 	, constructor: function () {
 		this.init();
@@ -874,7 +1285,11 @@ var GravityWorld = buildClass({
 	, init: function () {
 		var self = this;
 		
+		this._gravity = new Vec2();
+		
 		this._child = [];
+		
+		this._signal = new Signal();
 		
 		this._timer = TimeCore.timer( function ( diff ) {
 			self.run( diff );
@@ -883,10 +1298,17 @@ var GravityWorld = buildClass({
 	}
 	, dispose: function () {
 		this._child = null;
+		if ( this._signal !== null ) {
+			this._signal.dispose();
+			this._signal = null;
+		}
 		if ( this._timer !== null ) {
 			this._timer.dispose();
 			this._timer = null;
 		}
+	}
+	, setGravity: function ( value ) {
+		this._gravity = Vec2.createFromObj( value );
 	}
 	, setMaxSpeed: function ( value ) {
 		this._maxSpeed = setter.setNum( value, 0, { min: 0 } );
@@ -897,26 +1319,61 @@ var GravityWorld = buildClass({
 		this._w = setter.setInt( w, 0, { min: 0 } );
 		this._h = setter.setInt( h, 0, { min: 0 } );
 	}
-	, add: function ( x, y, radius, mass, p_velocity ) {
+	, add: function ( pos, vec, mass, radius ) {
 		if ( this._child === null ) {
 			return -1;
 		}
 		
 		var id = this._child.length;
 		
-		// to do, check p_velocity
-		
-		this._child.push({
-			x: setter.setNum( x, 0 ),
-			y: setter.setNum( y, 0 ),
-			radius: setter.setNum( radius, 0, { min: 0 } ),
-			mass: setter.setNum( mass, 0, { min: 0 } ),
-			velocity: p_velocity
-		});
+		var item = new GravityItem( pos, vec, mass, radius );
+		this._child.push( item );
 		return id;
 	}
+	, collision: function ( child0, child1 ) {
+		child0.collide( child1 );
+	}
+	, blockCheck: function ( child0, child1 ) {
+		child0.blockFromItem( child1 );
+		child1.blockFromItem( child0 );
+	}
 	, run: function ( diff ) {
-		
+		var i = 0;
+		var item = null;
+		for(i = 0; i < this._child.length; i++) {
+			this._child[i].preCalc();
+		}
+		for(i = 0; i < this._child.length; i++) {
+			this._child[i].accelerate( this._gravity );
+		}
+		looper.pairs( this._child, this.collision );
+		for(i = 0; i < this._child.length; i++) {
+			this._child[i].collideSurface( new Vec2( this._x, this._y + this._h * 0.5 ), new Vec2( 1, 0 ) );
+			this._child[i].collideSurface( new Vec2( this._x + this._w, this._y + this._h * 0.5 ), new Vec2( -1, 0 ) );
+			this._child[i].collideSurface( new Vec2( this._x + this._w * 0.5, this._y ), new Vec2( 0, 1 ) );
+			this._child[i].collideSurface( new Vec2( this._x + this._w * 0.5, this._y + this._h ), new Vec2( 0, -1 ) );
+		}
+		for(i = 0; i < this._child.length; i++) {
+			this._child[i].limitSpeed( this._maxSpeed );
+		}
+		looper.pairs( this._child, this.blockCheck );
+		for(i = 0; i < this._child.length; i++) {
+			this._child[i].blockFromSurface( new Vec2( this._x, this._y + this._h * 0.5 ), new Vec2( 1, 0 ) );
+			this._child[i].blockFromSurface( new Vec2( this._x + this._w, this._y + this._h * 0.5 ), new Vec2( -1, 0 ) );
+			this._child[i].blockFromSurface( new Vec2( this._x + this._w * 0.5, this._y ), new Vec2( 0, 1 ) );
+			this._child[i].blockFromSurface( new Vec2( this._x + this._w * 0.5, this._y + this._h ), new Vec2( 0, -1 ) );
+		}
+		for(i = 0; i < this._child.length; i++) {
+			this._child[i].impCalc();
+		}
+		for(i = 0; i < this._child.length; i++) {
+			item = this._child[i];
+			var pos = item.getPos();
+			this._signal.dispatch( { id: i, x: pos.x, y: pos.y } );
+		}
+	}
+	, getSignal: function () {
+		return this._signal;
 	}
 });
 
@@ -924,6 +1381,7 @@ var ProjctA = buildClass({
 	  TAG: 'ProjctA'
 	, _inst: null
 	, _parent: null
+	, _circleMap: null
 	, constructor: function ( parent ) {
 		if ( !setter.isValidObj( parent ) ) {
 			this.err( 'No parent' );
@@ -933,16 +1391,27 @@ var ProjctA = buildClass({
 		this.init();
 	}
 	, init: function () {
+		var self = this;
+		
 		this._inst = new Quad( 0, 0, '#000000' );
 		this._parent.appendChild( this._inst.getInst() );
-		/*
+		
 		var quad = new Quad( 100, 100, '#ff0000' );
 		quad.setPosX( 50 );
 		quad.setPosY( 50 );
+		quad.setDragable( true );
 		this._inst.getInst().appendChild( quad.getInst() );
-		//document.body.appendChild( quad.getInst() );
-		dragManager.enableDrag( quad );
-
+		
+		quad.getDragable().getSignal().add( function ( rslt ) {
+			var target = rslt.target;
+			var x = rslt.x;
+			var y = rslt.y;
+			if ( x > 1000 && x > target.getInst().getPosX() ) {
+				target.stop();
+			}
+		});
+		
+		/*
 		var quad2 = new Quad( 100, 100, '#ffff00' );
 		quad2.setPosX( 150 );
 		quad2.setPosY( 150 );
@@ -961,13 +1430,34 @@ var ProjctA = buildClass({
 		}, 1 );
 		// t.run();
 		*/
+		this._circleMap = {};
+		
 		var world = new GravityWorld();
-		world.setRect( 0, 0, 1000, 500 );
-		world.add(  );
+		world.setRect( 0, 0, 1000, 400 );
+		world.setGravity( { x: 0, y: 0.01 } );
+		world.setMaxSpeed( 5 );
+		world.getSignal().add( function ( data ) {
+			self.updateCircle( data );
+		});
+		
+		for(var i = 0; i < 300; i++) {
+			var id = world.add( { x: 50 + Math.random() * 900, y: 50 + Math.random() * 400 },  { x: Math.random() * 3, y: Math.random() * 3 }, 1, 10 );
+			var circle = new Quad( 20, 20, '#ff0000' );
+			this._inst.getInst().appendChild( circle.getInst() );
+			this._circleMap[id] = circle;
+		}
 	}
 	, dispose: function () {
 		this._inst = null;
 		this._parent = null;
+	}
+	, updateCircle: function ( data ) {
+		var id = data.id;
+		var x = data.x;
+		var y = data.y;
+		var circle = this._circleMap[id];
+		circle.setPosX( x - 10 );
+		circle.setPosY( y - 10 );
 	}
 });
 
