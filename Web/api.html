@@ -854,6 +854,10 @@ var Quad = buildClass({
 	, dispose: function () {
 		Quad.__super__.dispose.apply( this, arguments );
 	}
+	, setColor: function ( value ) {
+		this._color = setter.setStr( value );
+		this._inst.style.backgroundColor = this._color;
+	}
 });
 
 var BaseObject = buildClass({
@@ -1169,6 +1173,9 @@ var GravityItem = buildClass({
 	, getPos: function () {
 		return this._pos;
 	}
+	, getVec: function () {
+		return this._vec;
+	}
 	, accelerate: function ( value ) {
 		this._vec.addEql( value );
 	}
@@ -1369,7 +1376,7 @@ var GravityWorld = buildClass({
 		for(i = 0; i < this._child.length; i++) {
 			item = this._child[i];
 			var pos = item.getPos();
-			this._signal.dispatch( { id: i, x: pos.x, y: pos.y } );
+			this._signal.dispatch( { id: i, x: pos.x, y: pos.y, vec: item.getVec().clone() } );
 		}
 	}
 	, getSignal: function () {
@@ -1434,15 +1441,15 @@ var ProjctA = buildClass({
 		
 		var world = new GravityWorld();
 		world.setRect( 0, 0, 1000, 400 );
-		world.setGravity( { x: 0, y: 0.01 } );
+		world.setGravity( { x: 0, y: 0.05 } );
 		world.setMaxSpeed( 5 );
 		world.getSignal().add( function ( data ) {
 			self.updateCircle( data );
 		});
 		
-		for(var i = 0; i < 300; i++) {
+		for(var i = 0; i < 600; i++) {
 			var id = world.add( { x: 50 + Math.random() * 900, y: 50 + Math.random() * 400 },  { x: Math.random() * 3, y: Math.random() * 3 }, 1, 10 );
-			var circle = new Quad( 20, 20, '#ff0000' );
+			var circle = new Quad( 20, 20, '#888888' );
 			this._inst.getInst().appendChild( circle.getInst() );
 			this._circleMap[id] = circle;
 		}
@@ -1455,9 +1462,15 @@ var ProjctA = buildClass({
 		var id = data.id;
 		var x = data.x;
 		var y = data.y;
+		var vec = data.vec;
 		var circle = this._circleMap[id];
 		circle.setPosX( x - 10 );
 		circle.setPosY( y - 10 );
+		
+		var c = Math.floor( (1 - vec.mag() / 5) * 100 );
+		var cStr = "rgb(" + c + "%," + c + "%," + c + "%)";
+	//	this.log( cStr );
+		circle.setColor( cStr );
 	}
 });
 
