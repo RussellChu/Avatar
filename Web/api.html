@@ -90,16 +90,34 @@
 <!--
 
 -->
+<script src="./lib/core.js"></script>
 <script>
 
-<!-- API -->
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////
+////////////////////////////////////////
+////////////////////
+//	API
+////////////////////
+////////////////////////////////////////
+////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 var tools = (function () {
 	var instance = {};
-
+	
 	var log = function () {
+		var str = "";
 		for(var i = 0; i < arguments.length; i++) {
-			console.log( arguments[i] );
+			if ( i > 0 ) {
+				str += " ";
+			}
+			str += arguments[i];
 		}
+		console.log( str );
 	};
 	
 	var setter = {};
@@ -147,7 +165,17 @@ var tools = (function () {
 			return false;
 		}
 		return true;
-	}
+	};
+	
+	var hasValidStr = function ( obj, key ) {
+		if ( !isValidObj( obj ) ) {
+			return false;
+		}
+		if ( typeof obj[key] !== 'string' ) {
+			return false;
+		}
+		return true;
+	};
 	
 	var toInt = function ( p_value ) {
 		var value = parseInt( p_value );
@@ -155,7 +183,7 @@ var tools = (function () {
 			return 0;
 		}
 		return value;
-	}
+	};
 	
 	var toNum = function ( p_value ) {
 		var value = Number( p_value );
@@ -163,7 +191,7 @@ var tools = (function () {
 			return 0;
 		}
 		return value;
-	}
+	};
 	
 	var toStr = function ( value ) {
 		if ( typeof value === 'string' ) {
@@ -176,6 +204,16 @@ var tools = (function () {
 			return String( value );
 		}
 		return '';
+	};
+	
+	var setBool = function ( value, defaultValue ) {
+		if ( typeof value === 'boolean' ) {
+			return value;
+		}
+		if ( typeof defaultValue === 'boolean' ) {
+			return defaultValue;
+		}
+		return false;
 	};
 	
 	var setStr = function ( value, defaultValue ) {
@@ -248,9 +286,11 @@ var tools = (function () {
 	setter.isValidObj = isValidObj;
 	setter.isValidFunc = isValidFunc;
 	setter.hasValidNum = hasValidNum;
+	setter.hasValidStr = hasValidStr;
 	setter.toInt = toInt;
 	setter.toNum = toNum;
 	setter.toStr = toStr;
+	setter.setBool = setBool;
 	setter.setStr = setStr;
 	setter.setNum = setNum;
 	setter.setInt = setInt;
@@ -346,13 +386,27 @@ var tools = (function () {
 		
 		eval( "newClass = function " + TAG + "() { constructor.apply( this, arguments ); };" );
 		
+		newClass.__tag__ = TAG;
+		newClass.__tags__ = {};
+		newClass.__tags__[TAG] = true;
+		
 		// inherit super class
 		if ( typeof superClass === 'function' ) {
 			// set static param / method
 			for (var key in superClass) {
+				if ( key === '__tag__' ) {
+					continue;
+				}
+				if ( key === '__tags__' ) {
+					continue;
+				}
 				if ( hasProp.call( superClass, key )) {
 					newClass[key] = superClass[key];
 				}
+			}
+			
+			for (var key in superClass.__tags__) {
+				newClass.__tags__[key] = true;
 			}
 			
 			newClass.__super__ = superClass.prototype;
@@ -372,6 +426,8 @@ var tools = (function () {
 		delete setting['superClass'];
 		delete setting['err'];
 		delete setting['log'];
+		delete setting['getTag'];
+		delete setting['hasTagOfClass'];
 		
 		for (var key in setting) {
 			newClass.prototype[key] = setting[key];
@@ -380,11 +436,47 @@ var tools = (function () {
 		newClass.prototype.constructor = constructor;
 		
 		newClass.prototype.err = function () {
-			console.log( 'ERROR', TAG, arguments );
+			var str = "";
+			for(var i = 0; i < arguments.length; i++) {
+				if ( i > 0 ) {
+					str += " ";
+				}
+				str += arguments[i];
+			}
+			log( '[ERROR]', '[' + TAG + ']', str );
 		};
 		
 		newClass.prototype.log = function () {
-			console.log( TAG, arguments );
+			var str = "";
+			for(var i = 0; i < arguments.length; i++) {
+				if ( i > 0 ) {
+					str += " ";
+				}
+				str += arguments[i];
+			}
+			log( '[LOG]', '[' + TAG + ']', str );
+		};
+		
+		newClass.prototype.getTag = function () {
+			return newClass.__tag__;
+		};
+		
+		newClass.prototype.hasTagOfClass = function ( value ) {
+			if ( !( typeof value === 'function' ) ) {
+				return false;
+			}
+			if ( !( typeof value.__tag__ === 'string' ) ) {
+				return false;
+			}
+			
+			var tag = value.__tag__;
+			for (var key in newClass.__tags__) {
+				if ( key === tag ) {
+					return true;
+				}
+			}
+			
+			return false;
 		};
 		
 		if ( isValidObj( __static__ ) ) {
@@ -658,497 +750,435 @@ var Signal = buildClass({
 	}
 });
 
-var DisplayObject = buildClass({
-	  TAG: 'DisplayObject'
-	, _inst: null
-	, _type: ''
-	, _posX: 0
-	, _posY: 0
-	, _dragable: null
-	, constructor: function ( type ) {
-		this._type = type;
-		this.init();
-	}
-	, init: function () {
-		this._inst = document.createElement( this._type );
-		this._inst.style.position = "absolute";
-		this._inst.style.left = 0;
-		this._inst.style.top = 0;
-		this._inst.style.transformOrigin = "0 0";
-	}
-	, dispose: function () {
-		this._inst = null;
-	}
-	, getInst: function () {
-		return this._inst;
-	}
-	, getPosX: function () {
-		return this._posX;
-	}
-	, getPosY: function () {
-		return this._posY;
-	}
-	, setPosX: function ( x ) {
-		this._posX = setter.setInt( x, this._posX );
-		this._inst.style.left = this._posX;
-	}
-	, setPosY: function ( y ) {
-		this._posY = setter.setInt( y, this._posY );
-		this._inst.style.top = this._posY;
-	}
-	, getDragable: function () {
-		return this._dragable;
-	}
-	, setDragable: function ( value ) {
-		if ( value ) {
-			if ( this._dragable === null ) {
-				this._dragable = new Dragable( this );
-				this._dragable.setEnable( true );
+////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////
+////////////////////////////////////////
+////////////////////
+//	CMath
+////////////////////
+////////////////////////////////////////
+////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+var CMath = (function () {
+	var inst = {};
+	
+	var Vec2 = buildClass({
+		  TAG: 'Vec2'
+		, x: 0
+		, y: 0
+		, __static__: {
+			  createFromObj: function ( value ) {
+				var rslt = new Vec2();
+				if ( !setter.isValidObj( value ) ) {
+					return rslt;
+				}
+				rslt.x = setter.setNum( value.x, 0 );
+				rslt.y = setter.setNum( value.y, 0 );
+				return rslt;
 			}
 		}
-		if ( this._dragable !== null ) {
-			this._dragable.setEnable( value );
+		, constructor: function ( x, y ) {
+			this.x = setter.setNum( x, 0 );
+			this.y = setter.setNum( y, 0 );
 		}
-	}
-});
+		, clone: function () {
+			return new Vec2( this.x, this.y );
+		}
+		, convertToObj: function () {
+			return { x: this.x, y: this.y };
+		}
+		, addEql: function ( value ) {
+			if ( value.hasTagOfClass( Vec2 ) ) {
+				this.x += value.x;
+				this.y += value.y;
+			} else {
+				this.err( 'addEql fail' );
+			}
+			return this;
+		}
+		, minusEql: function ( value ) {
+			if ( value.hasTagOfClass( Vec2 ) ) {
+				this.x -= value.x;
+				this.y -= value.y;
+			} else {
+				this.err( 'minus fail' );
+			}
+			return this;
+		}
+		, mulEql: function ( value ) {
+			if ( setter.isValidNum( value ) ) {
+				this.x *= value;
+				this.y *= value;
+			} else {
+				this.err( 'mulEql fail' );
+			}
+			return this;
+		}
+		, divEql: function ( value ) {
+			if ( setter.isValidNum( value ) && value !== 0 ) {
+				var inv = 1 / value;
+				this.x *= inv;
+				this.y *= inv;
+			} else {
+				this.err( 'divEql fail' );
+			}
+			return this;
+		}
+		, add: function ( value ) {
+			var rslt = this.clone();
+			if ( value.hasTagOfClass( Vec2 ) ) {
+				rslt.x += value.x;
+				rslt.y += value.y;
+			} else {
+				this.err( 'add fail' );
+			}
+			return rslt;
+		}
+		, minus: function ( value ) {
+			var rslt = this.clone();
+			if ( value.hasTagOfClass( Vec2 ) ) {
+				rslt.x -= value.x;
+				rslt.y -= value.y;
+			} else {
+				this.err( 'minus fail' );
+			}
+			return rslt;
+		}
+		, mul: function ( value ) {
+			var rslt = this.clone();
+			if ( setter.isValidNum( value ) ) {
+				rslt.x *= value;
+				rslt.y *= value;
+			} else {
+				this.err( 'mul fail' );
+			}
+			return rslt;
+		}
+		, div: function ( value ) {
+			var rslt = this.clone();
+			if ( setter.isValidNum( value ) && value !== 0 ) {
+				var inv = 1 / value;
+				rslt.x *= inv;
+				rslt.y *= inv;
+			} else {
+				this.err( 'div fail' );
+			}
+			return rslt;
+		}
+		, magSqr: function () {
+			return this.x * this.x + this.y * this.y;
+		}
+		, mag: function () {
+			return Math.sqrt( this.magSqr() );
+		}
+		, normalize: function () {
+			if ( this.x !== 0 || this.y !== 0 ) {
+				var magInv = 1 / this.mag();
+				return this.mulEql( magInv );
+			}
+			return this;
+		}
+		, dot: function ( value ) {
+			return this.x * value.x + this.y * value.y;
+		}
+	});
 
-var globalSignal = (function () {
-	var instance = {};
-	
-	var mouseMove = new Signal();
-	var mouseUp = new Signal();
-	
-	document.body.onmousemove = function ( e ) {
-		mouseMove.dispatch( e );
-	};
-	
-	document.body.onmouseup = function ( e ) {
-		mouseUp.dispatch( e );
-	};
-	
-	instance.mouseMove = mouseMove;
-	instance.mouseUp = mouseUp;
-	
-	return instance;
-} ());
-
-var dragManager = (function () {
-	var instance = {};
-	
-	var dragTarget = null;
-	var dragX = 0;
-	var dragY = 0;
-	
-	globalSignal.mouseMove.add( function ( e ) {
-		/*
-		if ( e.buttons === 0 ) {
-			dragTarget = null;
+	var Vec3 = buildClass({
+		  TAG: 'Vec3'
+		, x: 0
+		, y: 0
+		, z: 0
+		, __static__: {
+			  createFromObj: function ( value ) {
+				var rslt = new Vec3();
+				if ( !setter.isValidObj( value ) ) {
+					return rslt;
+				}
+				rslt.x = setter.setNum( value.x, 0 );
+				rslt.y = setter.setNum( value.y, 0 );
+				rslt.z = setter.setNum( value.z, 0 );
+				return rslt;
+			}
 		}
-		*/
-		
-		if ( dragTarget === null ) {
-			return;
+		, constructor: function ( x, y, z ) {
+			this.x = setter.setNum( x, 0 );
+			this.y = setter.setNum( y, 0 );
+			this.z = setter.setNum( z, 0 );
 		}
-		
-		dragTarget.update( e.pageX - dragX, e.pageY - dragY );
+		, clone: function () {
+			return new Vec3( this.x, this.y, this.z );
+		}
+		, convertToObj: function () {
+			return { x: this.x, y: this.y, z: this.z };
+		}
+		, addEql: function ( value ) {
+			if ( value.hasTagOfClass( Vec3 ) ) {
+				this.x += value.x;
+				this.y += value.y;
+				this.z += value.z;
+			} else {
+				this.err( 'addEql fail' );
+			}
+			return this;
+		}
+		, minusEql: function ( value ) {
+			if ( value.hasTagOfClass( Vec3 ) ) {
+				this.x -= value.x;
+				this.y -= value.y;
+				this.z -= value.z;
+			} else {
+				this.err( 'minus fail' );
+			}
+			return this;
+		}
+		, mulEql: function ( value ) {
+			if ( setter.isValidNum( value ) ) {
+				this.x *= value;
+				this.y *= value;
+				this.z *= value;
+			} else {
+				this.err( 'mulEql fail' );
+			}
+			return this;
+		}
+		, divEql: function ( value ) {
+			if ( setter.isValidNum( value ) && value !== 0 ) {
+				var inv = 1 / value;
+				this.x *= inv;
+				this.y *= inv;
+				this.z *= inv;
+			} else {
+				this.err( 'divEql fail' );
+			}
+			return this;
+		}
+		, add: function ( value ) {
+			var rslt = this.clone();
+			if ( value.hasTagOfClass( Vec3 ) ) {
+				rslt.x += value.x;
+				rslt.y += value.y;
+				rslt.z += value.z;
+			} else {
+				this.err( 'add fail' );
+			}
+			return rslt;
+		}
+		, minus: function ( value ) {
+			var rslt = this.clone();
+			if ( value.hasTagOfClass( Vec3 ) ) {
+				rslt.x -= value.x;
+				rslt.y -= value.y;
+				rslt.z -= value.z;
+			} else {
+				this.err( 'minus fail' );
+			}
+			return rslt;
+		}
+		, mul: function ( value ) {
+			var rslt = this.clone();
+			if ( setter.isValidNum( value ) ) {
+				rslt.x *= value;
+				rslt.y *= value;
+				rslt.z *= value;
+			} else {
+				this.err( 'mul fail' );
+			}
+			return rslt;
+		}
+		, div: function ( value ) {
+			var rslt = this.clone();
+			if ( setter.isValidNum( value ) && value !== 0 ) {
+				var inv = 1 / value;
+				rslt.x *= inv;
+				rslt.y *= inv;
+				rslt.z *= inv;
+			} else {
+				this.err( 'div fail' );
+			}
+			return rslt;
+		}
+		, magSqr: function () {
+			return this.x * this.x + this.y * this.y + this.z * this.z;
+		}
+		, mag: function () {
+			return Math.sqrt( this.magSqr() );
+		}
+		, normalize: function () {
+			if ( this.x !== 0 || this.y !== 0 || this.z !== 0 ) {
+				var magInv = 1 / this.mag();
+				return this.mulEql( magInv );
+			}
+			return this;
+		}
 	});
 	
-	globalSignal.mouseUp.add( function ( e ) {
-		dragTarget = null;
-	});
+	inst.Vec2 = Vec2;
+	inst.Vec3 = Vec3;
 	
-	var setTarget = function ( dragable, e ) {
-		dragTarget = dragable;
-		var pos = dragTarget.getPos();
-		dragX = e.pageX - pos.x;
-		dragY = e.pageY - pos.y;
-	};
-	
-	var unsetTarget = function ( dragable ) {
-		if ( dragTarget === dragable ) {
-			dragTarget = null;
-		}
-	};
-	
-	instance.setTarget = setTarget;
-	instance.unsetTarget = unsetTarget;
-	
-	return instance;
+	return inst;
 } ());
+var Vec2 = CMath.Vec2;
+var Vec3 = CMath.Vec3;
 
-var Dragable = buildClass({
-	  TAG: 'Dragable'
-	, _inst: null
-	, _signal: null
-	, constructor: function ( inst ) {
-		this._inst = inst;
+////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////
+////////////////////////////////////////
+////////////////////
+//	Model
+////////////////////
+////////////////////////////////////////
+////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+var Plane2D = buildClass({
+	  TAG: 'Plane2D'
+	, _pos: null
+	, constructor: function () {
 		this.init();
 	}
 	, init: function () {
-		this._signal = new Signal();
+		this._pos = new Vec2();
 	}
 	, dispose: function () {
-		this._inst = null;
-		if ( this._signal !== null ) {
-			this._signal.dispose();
-			this._signal = null;
-		}
-	}
-	, getInst: function () {
-		return this._inst;
+		this._pos = null;
 	}
 	, getPos: function () {
-		return { x: this._inst.getPosX(), y: this._inst.getPosY() };
+		return this._pos.clone();
 	}
-	, setPos: function ( x, y ) {
-		this._x = x;
-		this._y = y;
-	}
-	, getSignal: function () {
-		return this._signal;
-	}
-	, setEnable: function ( value ) {
-		var self = this;
-		if ( value ) {
-			self._inst.getInst().style.userSelect = 'none';
-			self._inst.getInst().onmousedown = function ( e ) {
-				dragManager.setTarget( self, e );
-			};
-		} else {
-			dragManager.unsetTarget( self );
-			self._inst.getInst().onmousedown = null;
-		}
-	}
-	, stop: function () {
-		this._x = this._inst.getPosX();
-		this._y = this._inst.getPosY();
-	}
-	, update: function ( x, y ) {
-		this.setPos( x, y );
-		this._signal.dispatch( { target: this, x: x, y: y } );
-		this._inst.setPosX( this._x );
-		this._inst.setPosY( this._y );
+	, isOverlap: function ( target ) {
+		return Plane2DOverlapChecker.calc( this, target );
 	}
 });
 
-var Quad = buildClass({
-	  TAG: 'Quad'
-	, superClass: DisplayObject
-	, _width: 0
-	, _height: 0
-	, _color: ''
-	, _alpha: 0
-	, constructor: function ( width, height, color, alpha ) {
-		this._width = setter.setInt( width, 0, { min: 0 } );
-		this._height = setter.setInt( height, 0, { min: 0 } );
-		this._color = setter.setStr( color );
-		this._alpha = setter.setNum( alpha, 1, { min: 0, max: 1 } );
-		Quad.__super__.constructor.apply( this, ['div'] );
+var Plane2D_Cirle = buildClass({
+	  TAG: 'Plane2D_Cirle'
+	, _radius: 0
+	, constructor: function ( radius ) {
+		this._radius = setter.setNum( radius, 0, { min: 0 } );
+		this.init();
 	}
 	, init: function () {
 		Quad.__super__.init.apply( this, arguments );
-		this._inst.style.width = this._width;
-		this._inst.style.height = this._height;
-		this._inst.style.backgroundColor = this._color;
+		//
 	}
 	, dispose: function () {
-		Quad.__super__.dispose.apply( this, arguments );
-	}
-	, setColor: function ( value ) {
-		this._color = setter.setStr( value );
-		this._inst.style.backgroundColor = this._color;
+		//
+		Quad.__super__.init.apply( this, dispose );
 	}
 });
 
-var BaseObject = buildClass({
-	  TAG: 'BaseObject'
-	, _inst: null
-	, constructor: function ( inst ) {
-		if ( !setter.isValidObj( inst ) ) {
-			this.err( 'No inst' );
-			return;
-		}
-		this._inst = inst;
+var Plane2D_Rect = buildClass({
+	  TAG: 'Plane2D_Rect'
+	, _cornerX: 0
+	, _cornerY: 0
+	, _width: 0
+	, _height: 0
+	, constructor: function ( width, height, cornerX, cornerY ) {
+		this._cornerX = setter.setNum( cornerX, 0 );
+		this._cornerY = setter.setNum( cornerY, 0 );
+		this._width = setter.setNum( width, 0, { min: 0 } );
+		this._height = setter.setNum( height, 0, { min: 0 } );
 		this.init();
 	}
 	, init: function () {
-		;
+		Quad.__super__.init.apply( this, arguments );
+		//
 	}
 	, dispose: function () {
-		this._inst = null;
-	}
-	, getInst: function () {
-		return this._inst;
+		//
+		Quad.__super__.init.apply( this, dispose );
 	}
 });
 
-var Vec2 = buildClass({
-	  TAG: 'Vec2'
-	, x: 0
-	, y: 0
-	, __static__: {
-		  createFromObj: function ( value ) {
-			var rslt = new Vec2();
-			if ( !setter.isValidObj( value ) ) {
-				return rslt;
+Plane2DOverlapChecker = (function () {
+	var inst = {};
+	
+	var calcPointVsCircle = function ( objPt, objCir ) {
+		if ( objPt._pos.minus( objCir._pos ).mag() < objCir._radius ) {
+			return true;
+		}
+		return false;
+	};
+	var calcPointVsRect = function ( objPt, objRec ) {
+		if ( objPt._pos.x < objRec._pos.x + objRec._cornerX ) {
+			return false;
+		}
+		if ( objPt._pos.x > objRec._pos.x + objRec._cornerX + objRec._width ) {
+			return false;
+		}
+		if ( objPt._pos.y < objRec._pos.y + objRec._cornerY ) {
+			return false;
+		}
+		if ( objPt._pos.y > objRec._pos.y + objRec._cornerY + objRec._height ) {
+			return false;
+		}
+		return true;
+	};
+	var calcCircleVsCircle = function ( objCir0, objCir1 ) {
+		if ( objCir0._pos.minus( objCir1._pos ).mag() < objCir0._radius + objCir1._radius ) {
+			return true;
+		}
+		return false;
+	};
+	var calcRectVsRect = function ( objRec0, objRec1 ) {
+		if ( objRec0._pos.x + objRec0._cornerX + objRec0._width < objRec1._pos.x + objRec1._cornerX ) {
+			return false;
+		}
+		if ( objRec0._pos.x + objRec0._cornerX > objRec1._pos.x + objRec1._cornerX + objRec1._width ) {
+			return false;
+		}
+		if ( objRec0._pos.y + objRec0._cornerY + objRec0._height < objRec1._pos.y + objRec1._cornerY ) {
+			return false;
+		}
+		if ( objRec0._pos.y + objRec0._cornerY > objRec1._pos.y + objRec1._cornerY + objRec1._height ) {
+			return false;
+		}
+		return true;
+	};
+	
+	var map = {};
+	
+	map['Plane2D'] = {};
+	map['Plane2D_Cirle'] = {};
+	map['Plane2D_Rect'] = {};
+	
+	map['Plane2D']['Plane2D_Cirle'] = calcPointVsCircle;
+	map['Plane2D']['Plane2D_Rect'] = calcPointVsCircle;
+	map['Plane2D_Cirle']['Plane2D_Cirle'] = calcCircleVsCircle;
+	map['Plane2D_Rect']['Plane2D_Rect'] = calcRectVsRect;
+	
+	var calc = function ( obj0, obj1 ) {
+		var tag0 = obj0.getTag();
+		var tag1 = obj1.getTag();
+		var pre = map[tag0];
+		var func;
+		if ( !pre ) {
+			pre = map[tag1];
+			if ( !pre ) {
+				return false;
 			}
-			rslt.x = setter.setNum( value.x, 0 );
-			rslt.y = setter.setNum( value.y, 0 );
-			return rslt;
-		}
-	}
-	, constructor: function ( x, y ) {
-		this.x = setter.setNum( x, 0 );
-		this.y = setter.setNum( y, 0 );
-	}
-	, clone: function () {
-		return new Vec2( this.x, this.y );
-	}
-	, convertToObj: function () {
-		return { x: this.x, y: this.y };
-	}
-	, addEql: function ( value ) {
-		if ( value instanceof Vec2 ) {
-			this.x += value.x;
-			this.y += value.y;
-		} else {
-			this.err( 'addEql fail' );
-		}
-		return this;
-	}
-	, minusEql: function ( value ) {
-		if ( value instanceof Vec2 ) {
-			this.x -= value.x;
-			this.y -= value.y;
-		} else {
-			this.err( 'minus fail' );
-		}
-		return this;
-	}
-	, mulEql: function ( value ) {
-		if ( setter.isValidNum( value ) ) {
-			this.x *= value;
-			this.y *= value;
-		} else {
-			this.err( 'mulEql fail' );
-		}
-		return this;
-	}
-	, divEql: function ( value ) {
-		if ( setter.isValidNum( value ) && value !== 0 ) {
-			var inv = 1 / value;
-			this.x *= inv;
-			this.y *= inv;
-		} else {
-			this.err( 'divEql fail' );
-		}
-		return this;
-	}
-	, add: function ( value ) {
-		var rslt = this.clone();
-		if ( value instanceof Vec2 ) {
-			rslt.x += value.x;
-			rslt.y += value.y;
-		} else {
-			this.err( 'add fail' );
-		}
-		return rslt;
-	}
-	, minus: function ( value ) {
-		var rslt = this.clone();
-		if ( value instanceof Vec2 ) {
-			rslt.x -= value.x;
-			rslt.y -= value.y;
-		} else {
-			this.err( 'minus fail' );
-		}
-		return rslt;
-	}
-	, mul: function ( value ) {
-		var rslt = this.clone();
-		if ( setter.isValidNum( value ) ) {
-			rslt.x *= value;
-			rslt.y *= value;
-		} else {
-			this.err( 'mul fail' );
-		}
-		return rslt;
-	}
-	, div: function ( value ) {
-		var rslt = this.clone();
-		if ( setter.isValidNum( value ) && value !== 0 ) {
-			var inv = 1 / value;
-			rslt.x *= inv;
-			rslt.y *= inv;
-		} else {
-			this.err( 'div fail' );
-		}
-		return rslt;
-	}
-	, magSqr: function () {
-		return this.x * this.x + this.y * this.y;
-	}
-	, mag: function () {
-		return Math.sqrt( this.magSqr() );
-	}
-	, normalize: function () {
-		if ( this.x !== 0 || this.y !== 0 ) {
-			var magInv = 1 / this.mag();
-			return this.mulEql( magInv );
-		}
-		return this;
-	}
-	, dot: function ( value ) {
-		return this.x * value.x + this.y * value.y;
-	}
-});
-
-var Vec3 = buildClass({
-	  TAG: 'Vec3'
-	, x: 0
-	, y: 0
-	, z: 0
-	, __static__: {
-		  createFromObj: function ( value ) {
-			var rslt = new Vec3();
-			if ( !setter.isValidObj( value ) ) {
-				return rslt;
+			func = pre[tag0];
+			if ( !func ) {
+				return false;
 			}
-			rslt.x = setter.setNum( value.x, 0 );
-			rslt.y = setter.setNum( value.y, 0 );
-			rslt.z = setter.setNum( value.z, 0 );
-			return rslt;
+			return func( obj1, obj0 );
 		}
-	}
-	, constructor: function ( x, y, z ) {
-		this.x = setter.setNum( x, 0 );
-		this.y = setter.setNum( y, 0 );
-		this.z = setter.setNum( z, 0 );
-	}
-	, clone: function () {
-		return new Vec3( this.x, this.y, this.z );
-	}
-	, convertToObj: function () {
-		return { x: this.x, y: this.y, z: this.z };
-	}
-	, addEql: function ( value ) {
-		if ( value instanceof Vec3 ) {
-			this.x += value.x;
-			this.y += value.y;
-			this.z += value.z;
-		} else {
-			this.err( 'addEql fail' );
+		
+		func = pre[tag1];
+		if ( !func ) {
+			return false;
 		}
-		return this;
-	}
-	, minusEql: function ( value ) {
-		if ( value instanceof Vec3 ) {
-			this.x -= value.x;
-			this.y -= value.y;
-			this.z -= value.z;
-		} else {
-			this.err( 'minus fail' );
-		}
-		return this;
-	}
-	, mulEql: function ( value ) {
-		if ( setter.isValidNum( value ) ) {
-			this.x *= value;
-			this.y *= value;
-			this.z *= value;
-		} else {
-			this.err( 'mulEql fail' );
-		}
-		return this;
-	}
-	, divEql: function ( value ) {
-		if ( setter.isValidNum( value ) && value !== 0 ) {
-			var inv = 1 / value;
-			this.x *= inv;
-			this.y *= inv;
-			this.z *= inv;
-		} else {
-			this.err( 'divEql fail' );
-		}
-		return this;
-	}
-	, add: function ( value ) {
-		var rslt = this.clone();
-		if ( value instanceof Vec3 ) {
-			rslt.x += value.x;
-			rslt.y += value.y;
-			rslt.z += value.z;
-		} else {
-			this.err( 'add fail' );
-		}
-		return rslt;
-	}
-	, minus: function ( value ) {
-		var rslt = this.clone();
-		if ( value instanceof Vec3 ) {
-			rslt.x -= value.x;
-			rslt.y -= value.y;
-			rslt.z -= value.z;
-		} else {
-			this.err( 'minus fail' );
-		}
-		return rslt;
-	}
-	, mul: function ( value ) {
-		var rslt = this.clone();
-		if ( setter.isValidNum( value ) ) {
-			rslt.x *= value;
-			rslt.y *= value;
-			rslt.z *= value;
-		} else {
-			this.err( 'mul fail' );
-		}
-		return rslt;
-	}
-	, div: function ( value ) {
-		var rslt = this.clone();
-		if ( setter.isValidNum( value ) && value !== 0 ) {
-			var inv = 1 / value;
-			rslt.x *= inv;
-			rslt.y *= inv;
-			rslt.z *= inv;
-		} else {
-			this.err( 'div fail' );
-		}
-		return rslt;
-	}
-	, magSqr: function () {
-		return this.x * this.x + this.y * this.y + this.z * this.z;
-	}
-	, mag: function () {
-		return Math.sqrt( this.magSqr() );
-	}
-	, normalize: function () {
-		if ( this.x !== 0 || this.y !== 0 || this.z !== 0 ) {
-			var magInv = 1 / this.mag();
-			return this.mulEql( magInv );
-		}
-		return this;
-	}
-});
-
-var a2 = new Vec2();
-var a3 = new Vec3();
-
-log( a2 instanceof Vec2 );
-log( a2 instanceof Vec3 );
-log( a3 instanceof Vec2 );
-log( a3 instanceof Vec3 );
-
-var b0 = new Vec2( 1, 2 );
-var b1 = new Vec2( 2, 3 );
-var b2 = new Vec2( 3, 5 );
-var b3 = b0.add( b1 ).add( b2 );
-
-var list = [a2, b0, b1, b2, b3];
-looper.pairs( list, function ( a, b ) {
-	log( a.add( b ) );
-});
+		return func( obj0, obj1 );
+	};
+	
+	inst.calc = calc;
+	return inst;
+} ());
 
 var GravityItem = buildClass({
 	  TAG: 'GravityItem'
@@ -1169,6 +1199,9 @@ var GravityItem = buildClass({
 	}
 	, dispose: function () {
 		;
+	}
+	, getMass: function () {
+		return this._mass;
 	}
 	, getPos: function () {
 		return this._pos;
@@ -1275,6 +1308,94 @@ var GravityItem = buildClass({
 	}
 });
 
+var GravityForce = buildClass({
+	  TAG: 'GravityForce'
+	, constructor: function () {
+		this.init();
+	}
+	, init: function () {
+		;
+	}
+	, dispose: function () {
+		;
+	}
+	, calcAcc: function ( pos, mass ) {
+		return new Vec2();
+	}
+});
+
+var GravityForce_Point = buildClass({
+	  TAG: 'GravityForce_Point'
+	, superClass: GravityForce
+	, _pos: null
+	, _mag: 0
+	, _isConst: false
+	, constructor: function ( pos, mag, isConst ) {
+		this._pos = Vec2.createFromObj( pos );
+		this._mag = setter.setNum( mag, 0 );
+		this._isConst = setter.setBool( isConst, false );
+		this.init();
+	}
+	, init: function () {
+		;
+	}
+	, dispose: function () {
+		this._pos = null;
+	}
+	, calcAcc: function ( pos, mass ) {
+		var rslt = new Vec2();
+		if ( this._pos === null ) {
+			return rslt;
+		}
+		
+		rslt = this._pos.minus( pos ).normalize().mul( this._mag );
+		if ( !this._isConst ) {
+			if ( mass === 0 ) {
+				rslt = new Vec2();
+			} else {
+				rslt.divEql( mass );
+			}
+		}
+		
+		return rslt;
+	}
+});
+
+var GravityForce_Earth = buildClass({
+	  TAG: 'GravityForce_Earth'
+	, superClass: GravityForce
+	, _force: null
+	, _isConst: false
+	, constructor: function ( force, isConst ) {
+		this._force = Vec2.createFromObj( force );
+		this._isConst = setter.setBool( isConst, false );
+		this.init();
+	}
+	, init: function () {
+		;
+	}
+	, dispose: function () {
+		this._force = null;
+	}
+	, calcAcc: function ( pos, mass ) {
+		var rslt = new Vec2();
+		if ( this._force === null ) {
+			return rslt;
+		}
+		
+		rslt = this._force.clone();
+		if ( !this._isConst ) {
+			if ( mass === 0 ) {
+				rslt = new Vec2();
+			} else {
+				rslt.divEql( mass );
+			}
+		}
+		
+		return rslt;
+	}
+});
+
 var GravityWorld = buildClass({
 	  TAG: 'GravityWorld'
 	, _x: 0
@@ -1282,7 +1403,7 @@ var GravityWorld = buildClass({
 	, _w: 0
 	, _h: 0
 	, _maxSpeed: 0
-	, _gravity: null
+	, _force: null
 	, _child: null
 	, _signal: null
 	, _timer: null
@@ -1292,9 +1413,9 @@ var GravityWorld = buildClass({
 	, init: function () {
 		var self = this;
 		
-		this._gravity = new Vec2();
-		
 		this._child = [];
+		
+		this._force = [];
 		
 		this._signal = new Signal();
 		
@@ -1314,9 +1435,6 @@ var GravityWorld = buildClass({
 			this._timer = null;
 		}
 	}
-	, setGravity: function ( value ) {
-		this._gravity = Vec2.createFromObj( value );
-	}
 	, setMaxSpeed: function ( value ) {
 		this._maxSpeed = setter.setNum( value, 0, { min: 0 } );
 	}
@@ -1326,15 +1444,28 @@ var GravityWorld = buildClass({
 		this._w = setter.setInt( w, 0, { min: 0 } );
 		this._h = setter.setInt( h, 0, { min: 0 } );
 	}
-	, add: function ( pos, vec, mass, radius ) {
+	, addForce: function ( obj ) {
+		if ( this._force === null ) {
+			return -1;
+		}
+		if ( !setter.isValidObj( obj ) ) {
+			return -1;
+		}
+		
+		var id = this._force.length;
+		this._force.push( obj );
+		return id;
+	}
+	, addItem: function ( obj ) {
 		if ( this._child === null ) {
+			return -1;
+		}
+		if ( !setter.isValidObj( obj ) ) {
 			return -1;
 		}
 		
 		var id = this._child.length;
-		
-		var item = new GravityItem( pos, vec, mass, radius );
-		this._child.push( item );
+		this._child.push( obj );
 		return id;
 	}
 	, collision: function ( child0, child1 ) {
@@ -1346,33 +1477,59 @@ var GravityWorld = buildClass({
 	}
 	, run: function ( diff ) {
 		var i = 0;
+		var j = 0;
 		var item = null;
+		var force = null;
+		
+		// preCalc
 		for(i = 0; i < this._child.length; i++) {
-			this._child[i].preCalc();
+			item = this._child[i];
+			item.preCalc();
 		}
-		for(i = 0; i < this._child.length; i++) {
-			this._child[i].accelerate( this._gravity );
+		
+		// force
+		for(j = 0; j < this._force.length; j++) {
+			force = this._force[j];
+			for(i = 0; i < this._child.length; i++) {
+				item = this._child[i];
+				var accVtr = force.calcAcc( item.getPos(), item.getMass() );
+				item.accelerate( accVtr );
+			}
 		}
+		
+		// collision
 		looper.pairs( this._child, this.collision );
 		for(i = 0; i < this._child.length; i++) {
-			this._child[i].collideSurface( new Vec2( this._x, this._y + this._h * 0.5 ), new Vec2( 1, 0 ) );
-			this._child[i].collideSurface( new Vec2( this._x + this._w, this._y + this._h * 0.5 ), new Vec2( -1, 0 ) );
-			this._child[i].collideSurface( new Vec2( this._x + this._w * 0.5, this._y ), new Vec2( 0, 1 ) );
-			this._child[i].collideSurface( new Vec2( this._x + this._w * 0.5, this._y + this._h ), new Vec2( 0, -1 ) );
+			item = this._child[i];
+			item.collideSurface( new Vec2( this._x, this._y + this._h * 0.5 ), new Vec2( 1, 0 ) );
+			item.collideSurface( new Vec2( this._x + this._w, this._y + this._h * 0.5 ), new Vec2( -1, 0 ) );
+			item.collideSurface( new Vec2( this._x + this._w * 0.5, this._y ), new Vec2( 0, 1 ) );
+			item.collideSurface( new Vec2( this._x + this._w * 0.5, this._y + this._h ), new Vec2( 0, -1 ) );
 		}
+		
+		// limitSpeed
 		for(i = 0; i < this._child.length; i++) {
-			this._child[i].limitSpeed( this._maxSpeed );
+			item = this._child[i];
+			item.limitSpeed( this._maxSpeed );
 		}
+		
+		// blockCheck
 		looper.pairs( this._child, this.blockCheck );
 		for(i = 0; i < this._child.length; i++) {
-			this._child[i].blockFromSurface( new Vec2( this._x, this._y + this._h * 0.5 ), new Vec2( 1, 0 ) );
-			this._child[i].blockFromSurface( new Vec2( this._x + this._w, this._y + this._h * 0.5 ), new Vec2( -1, 0 ) );
-			this._child[i].blockFromSurface( new Vec2( this._x + this._w * 0.5, this._y ), new Vec2( 0, 1 ) );
-			this._child[i].blockFromSurface( new Vec2( this._x + this._w * 0.5, this._y + this._h ), new Vec2( 0, -1 ) );
+			item = this._child[i];
+			item.blockFromSurface( new Vec2( this._x, this._y + this._h * 0.5 ), new Vec2( 1, 0 ) );
+			item.blockFromSurface( new Vec2( this._x + this._w, this._y + this._h * 0.5 ), new Vec2( -1, 0 ) );
+			item.blockFromSurface( new Vec2( this._x + this._w * 0.5, this._y ), new Vec2( 0, 1 ) );
+			item.blockFromSurface( new Vec2( this._x + this._w * 0.5, this._y + this._h ), new Vec2( 0, -1 ) );
 		}
+		
+		// impCalc
 		for(i = 0; i < this._child.length; i++) {
-			this._child[i].impCalc();
+			item = this._child[i];
+			item.impCalc();
 		}
+		
+		
 		for(i = 0; i < this._child.length; i++) {
 			item = this._child[i];
 			var pos = item.getPos();
@@ -1381,6 +1538,239 @@ var GravityWorld = buildClass({
 	}
 	, getSignal: function () {
 		return this._signal;
+	}
+});
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////
+////////////////////////////////////////
+////////////////////
+//	UI
+////////////////////
+////////////////////////////////////////
+////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+var GlobalSignal = (function () {
+	var instance = {};
+	
+	var mouseMove = new Signal();
+	var mouseUp = new Signal();
+	
+	document.body.onmousemove = function ( e ) {
+		mouseMove.dispatch( e );
+	};
+	
+	document.body.onmouseup = function ( e ) {
+		mouseUp.dispatch( e );
+	};
+	
+	instance.mouseMove = mouseMove;
+	instance.mouseUp = mouseUp;
+	
+	return instance;
+} ());
+
+var DisplayObject = buildClass({
+	  TAG: 'DisplayObject'
+	, _inst: null
+	, _type: ''
+	, _posX: 0
+	, _posY: 0
+	, _dragable: null
+	, constructor: function ( type ) {
+		this._type = type;
+		this.init();
+	}
+	, init: function () {
+		this._inst = document.createElement( this._type );
+		this._inst.style.position = "absolute";
+		this._inst.style.left = 0;
+		this._inst.style.top = 0;
+		this._inst.style.transformOrigin = "0 0";
+	}
+	, dispose: function () {
+		this._inst = null;
+	}
+	, getInst: function () {
+		return this._inst;
+	}
+	, getPosX: function () {
+		return this._posX;
+	}
+	, getPosY: function () {
+		return this._posY;
+	}
+	, setPosX: function ( x ) {
+		this._posX = setter.setInt( x, this._posX );
+		this._inst.style.left = this._posX;
+	}
+	, setPosY: function ( y ) {
+		this._posY = setter.setInt( y, this._posY );
+		this._inst.style.top = this._posY;
+	}
+	, getDragable: function () {
+		if ( this._dragable === null ) {
+			this._dragable = new Dragable( this );
+		}
+		return this._dragable;
+	}
+});
+
+var DragManager = (function () {
+	var instance = {};
+	
+	var dragTarget = null;
+	var dragX = 0;
+	var dragY = 0;
+	
+	GlobalSignal.mouseMove.add( function ( e ) {
+		/*
+		if ( e.buttons === 0 ) {
+			dragTarget = null;
+		}
+		*/
+		
+		if ( dragTarget === null ) {
+			return;
+		}
+		
+		dragTarget.update( e.pageX - dragX, e.pageY - dragY );
+	});
+	
+	GlobalSignal.mouseUp.add( function ( e ) {
+		dragTarget = null;
+	});
+	
+	var setTarget = function ( dragable, e ) {
+		dragTarget = dragable;
+		var pos = dragTarget.getPos();
+		dragX = e.pageX - pos.x;
+		dragY = e.pageY - pos.y;
+	};
+	
+	var unsetTarget = function ( dragable ) {
+		if ( dragTarget === dragable ) {
+			dragTarget = null;
+		}
+	};
+	
+	instance.setTarget = setTarget;
+	instance.unsetTarget = unsetTarget;
+	
+	return instance;
+} ());
+
+var Dragable = buildClass({
+	  TAG: 'Dragable'
+	, _inst: null
+	, _signal: null
+	, constructor: function ( inst ) {
+		this._inst = inst;
+		this.init();
+	}
+	, init: function () {
+		this._signal = new Signal();
+	}
+	, dispose: function () {
+		this._inst = null;
+		if ( this._signal !== null ) {
+			this._signal.dispose();
+			this._signal = null;
+		}
+	}
+	, getInst: function () {
+		return this._inst;
+	}
+	, getPos: function () {
+		return { x: this._inst.getPosX(), y: this._inst.getPosY() };
+	}
+	, setPos: function ( x, y ) {
+		this._x = x;
+		this._y = y;
+	}
+	, getSignal: function () {
+		return this._signal;
+	}
+	, enable: function ( value ) {
+		var self = this;
+		if ( value ) {
+		//	self._inst.getInst().style.pointerEvents = "none";
+			self._inst.getInst().style.userSelect = 'none';
+			self._inst.getInst().style.userDrag = 'none';
+			self._inst.getInst().onselectstart = function () { return false; };
+			self._inst.getInst().ondragstart = function () { return false; };
+			
+			self._inst.getInst().onmousedown = function ( e ) {
+				DragManager.setTarget( self, e );
+			};
+		} else {
+			DragManager.unsetTarget( self );
+			self._inst.getInst().onmousedown = null;
+		}
+	}
+	, stop: function () {
+		this._x = this._inst.getPosX();
+		this._y = this._inst.getPosY();
+	}
+	, update: function ( x, y ) {
+		this.setPos( x, y );
+		this._signal.dispatch( { target: this, x: x, y: y } );
+		this._inst.setPosX( this._x );
+		this._inst.setPosY( this._y );
+	}
+});
+
+var Quad = buildClass({
+	  TAG: 'Quad'
+	, superClass: DisplayObject
+	, _width: 0
+	, _height: 0
+	, _color: ''
+	, _alpha: 0
+	, constructor: function ( width, height, color, alpha ) {
+		this._width = setter.setInt( width, 0, { min: 0 } );
+		this._height = setter.setInt( height, 0, { min: 0 } );
+		this._color = setter.setStr( color );
+		this._alpha = setter.setNum( alpha, 1, { min: 0, max: 1 } );
+		Quad.__super__.constructor.apply( this, ['div'] );
+	}
+	, init: function () {
+		Quad.__super__.init.apply( this, arguments );
+		this._inst.style.width = this._width;
+		this._inst.style.height = this._height;
+		this._inst.style.backgroundColor = this._color;
+	}
+	, dispose: function () {
+		Quad.__super__.dispose.apply( this, arguments );
+	}
+	, setColor: function ( value ) {
+		this._color = setter.setStr( value );
+		this._inst.style.backgroundColor = this._color;
+	}
+});
+
+var BaseObject = buildClass({
+	  TAG: 'BaseObject'
+	, _inst: null
+	, constructor: function ( inst ) {
+		if ( !setter.isValidObj( inst ) ) {
+			this.err( 'No inst' );
+			return;
+		}
+		this._inst = inst;
+		this.init();
+	}
+	, init: function () {
+		;
+	}
+	, dispose: function () {
+		this._inst = null;
+	}
+	, getInst: function () {
+		return this._inst;
 	}
 });
 
@@ -1406,7 +1796,7 @@ var ProjctA = buildClass({
 		var quad = new Quad( 100, 100, '#ff0000' );
 		quad.setPosX( 50 );
 		quad.setPosY( 50 );
-		quad.setDragable( true );
+		quad.getDragable().enable( true );
 		this._inst.getInst().appendChild( quad.getInst() );
 		
 		quad.getDragable().getSignal().add( function ( rslt ) {
@@ -1419,12 +1809,6 @@ var ProjctA = buildClass({
 		});
 		
 		/*
-		var quad2 = new Quad( 100, 100, '#ffff00' );
-		quad2.setPosX( 150 );
-		quad2.setPosY( 150 );
-		this._inst.getInst().appendChild( quad2.getInst() );
-		dragManager.enableDrag( quad2 );
-
 		var angle = 0;
 		var speed = 0.0005;
 
@@ -1440,16 +1824,21 @@ var ProjctA = buildClass({
 		this._circleMap = {};
 		
 		var world = new GravityWorld();
-		world.setRect( 0, 0, 1000, 400 );
-		world.setGravity( { x: 0, y: 0.05 } );
+		world.setRect( 0, 0, 960, 580 );
 		world.setMaxSpeed( 5 );
 		world.getSignal().add( function ( data ) {
 			self.updateCircle( data );
 		});
 		
-		for(var i = 0; i < 600; i++) {
-			var id = world.add( { x: 50 + Math.random() * 900, y: 50 + Math.random() * 400 },  { x: Math.random() * 3, y: Math.random() * 3 }, 1, 10 );
-			var circle = new Quad( 20, 20, '#888888' );
+		world.addForce( new GravityForce_Point( { x: 480, y: 290 }, 0.05, true ) );
+	//	world.addForce( new GravityForce_Point( { x: 200, y: 200 }, 0.05, true ) );
+	//	world.addForce( new GravityForce_Point( { x: 600, y: 600 }, 0.05, true ) );
+	//	world.addForce( new GravityForce_Earth( { x: 0, y: 0.05 }, true ) );
+		
+		for(var i = 0; i < 1; i++) {
+			var item = new GravityItem( { x: 50 + Math.random() * 860, y: 50 + Math.random() * 480 },  { x: Math.random() * 3, y: Math.random() * 3 }, 1, 5 );
+			var id = world.addItem( item );
+			var circle = new Quad( 10, 10, '#888888' );
 			this._inst.getInst().appendChild( circle.getInst() );
 			this._circleMap[id] = circle;
 		}
@@ -1464,8 +1853,8 @@ var ProjctA = buildClass({
 		var y = data.y;
 		var vec = data.vec;
 		var circle = this._circleMap[id];
-		circle.setPosX( x - 10 );
-		circle.setPosY( y - 10 );
+		circle.setPosX( x - 5 );
+		circle.setPosY( y - 5 );
 		
 		var c = Math.floor( (1 - vec.mag() / 5) * 100 );
 		var cStr = "rgb(" + c + "%," + c + "%," + c + "%)";
@@ -1474,7 +1863,111 @@ var ProjctA = buildClass({
 	}
 });
 
-new ProjctA( document.body );
+var Image = buildClass({
+	  TAG: 'Image'
+	, superClass: DisplayObject
+	, _url: ''
+	, constructor: function ( url ) {
+		this._url = setter.setStr( url, '' );
+		Image.__super__.constructor.apply( this, ['img'] );
+	}
+	, init: function () {
+		Image.__super__.init.apply( this, arguments );
+		log( 'set img >> ' +  this._url );
+		this._inst.src = this._url;
+	}
+	, dispose: function () {
+		Image.__super__.dispose.apply( this, arguments );
+	}
+});
+
+var Drawer2D = buildClass({
+	  TAG: 'Drawer2D'
+	, superClass: DisplayObject
+	, _width: 0
+	, _height: 0
+	, constructor: function ( width, height ) {
+		this._width = setter.setInt( width, 0, { min: 0 } );
+		this._height = setter.setInt( height, 0, { min: 0 } );
+		Drawer2D.__super__.constructor.apply( this, ['canvas'] );
+	}
+	, init: function () {
+		Drawer2D.__super__.init.apply( this, arguments );
+		this._inst.width = this._width;
+		this._inst.height = this._height;
+	}
+	, dispose: function () {
+		Drawer2D.__super__.dispose.apply( this, arguments );
+	}
+	, clear: function () {
+		var ctx = this._inst.getContext( '2d' );
+		ctx.clearRect( 0, 0, this._inst.width, this._inst.height );
+	}
+	, drawCircle: function ( x, y, radius ) {
+		var ctx = this._inst.getContext( '2d' );
+		ctx.beginPath();
+		ctx.arc( x, y, radius - 1, 0, 2 * Math.PI );
+		ctx.stroke();
+	}
+	, drawRect: function ( x, y, width, height ) {
+		var ctx = this._inst.getContext( '2d' );
+		ctx.beginPath();
+		ctx.rect( x + 0.5, y + 0.5, width - 1, height - 1 );
+		ctx.stroke();
+	}
+	, getImage: function () {
+		var dataUrl = this._inst.toDataURL();
+		var img = new Image( dataUrl );
+		return img;
+	}
+	, resize: function ( width, height ) {
+		this._width = setter.setInt( width, 0, { min: 0 } );
+		this._height = setter.setInt( height, 0, { min: 0 } );
+		this._inst.width = this._width;
+		this._inst.height = this._height;
+	}
+});
+
+var ProjctOverlapTest = buildClass({
+	  TAG: 'ProjctOverlapTest'
+	, _inst: null
+	, _parent: null
+	, constructor: function ( parent ) {
+		if ( !setter.isValidObj( parent ) ) {
+			this.err( 'No parent' );
+			return;
+		}
+		this._parent = parent;
+		this.init();
+	}
+	, init: function () {
+		var self = this;
+		
+		this._inst = new Quad( 0, 0, '#000000' );
+		this._parent.appendChild( this._inst.getInst() );
+		
+		var drawer = new Drawer2D( 300, 150 );
+		drawer.resize( 40, 40 );
+		drawer.drawCircle( 20, 20, 20 );
+		drawer.clear();
+		drawer.drawRect( 0, 0, 40, 40 );
+		
+		var img = drawer.getImage();
+		img.setPosX( 200 );
+		img.getDragable().enable( true );
+		this._inst.getInst().appendChild( img.getInst() );
+		
+		this.log( 'ProjctOverlapTest init()' );
+	}
+	, dispose: function () {
+		this._inst = null;
+		this._parent = null;
+	}
+});
+
+new ProjctOverlapTest( document.body );
+
+ new ProjctA( document.body );
 
 <!-- Notices -->
 /*
