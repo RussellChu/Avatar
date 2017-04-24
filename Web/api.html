@@ -83,7 +83,9 @@
 <body style="margin:0;">
 <div id="assets">
 <div id="btn">
+<!--
 <input type="button" value="Search A" class="abc"><input type="button" value="Search" id="btnSearch" class="abc">
+-->
 </div>
 </div>
 </body>
@@ -767,8 +769,6 @@ var CMath = (function () {
 	
 	var Vec2 = buildClass({
 		  TAG: 'Vec2'
-		, x: 0
-		, y: 0
 		, __static__: {
 			  createFromObj: function ( value ) {
 				var rslt = new Vec2();
@@ -780,6 +780,8 @@ var CMath = (function () {
 				return rslt;
 			}
 		}
+		, x: 0
+		, y: 0
 		, constructor: function ( x, y ) {
 			this.x = setter.setNum( x, 0 );
 			this.y = setter.setNum( y, 0 );
@@ -1050,6 +1052,9 @@ var Plane2D = buildClass({
 	, getPos: function () {
 		return this._pos.clone();
 	}
+	, setPos: function ( value ) {
+		this._pos = Vec2.createFromObj( value );
+	}
 	, isOverlap: function ( target ) {
 		return Plane2DOverlapChecker.calc( this, target );
 	}
@@ -1057,6 +1062,7 @@ var Plane2D = buildClass({
 
 var Plane2D_Cirle = buildClass({
 	  TAG: 'Plane2D_Cirle'
+	, superClass: Plane2D
 	, _radius: 0
 	, constructor: function ( radius ) {
 		this._radius = setter.setNum( radius, 0, { min: 0 } );
@@ -1070,10 +1076,14 @@ var Plane2D_Cirle = buildClass({
 		//
 		Quad.__super__.init.apply( this, dispose );
 	}
+	, getRadius: function () {
+		return this._radius;
+	}
 });
 
 var Plane2D_Rect = buildClass({
 	  TAG: 'Plane2D_Rect'
+	, superClass: Plane2D
 	, _cornerX: 0
 	, _cornerY: 0
 	, _width: 0
@@ -1092,6 +1102,12 @@ var Plane2D_Rect = buildClass({
 	, dispose: function () {
 		//
 		Quad.__super__.init.apply( this, dispose );
+	}
+	, getCorner: function () {
+		return new Vec2( this._cornerX, this._cornerY );
+	}
+	, getSize: function () {
+		return new Vec2( this._width, this._height );
 	}
 });
 
@@ -1125,6 +1141,50 @@ Plane2DOverlapChecker = (function () {
 		}
 		return false;
 	};
+	var calcCircleVsRect = function ( objCir, objRec ) {
+		var rslt = true;
+		if ( objCir._pos.x + objCir._radius < objRec._pos.x + objRec._cornerX ) {
+			rslt = false;
+		} else if ( objCir._pos.x - objCir._radius > objRec._pos.x + objRec._cornerX + objRec._width ) {
+			rslt = false;
+		} else if ( objCir._pos.y < objRec._pos.y + objRec._cornerY ) {
+			rslt = false;
+		} else if ( objCir._pos.y > objRec._pos.y + objRec._cornerY + objRec._height ) {
+			rslt = false;
+		}
+		if ( rslt ) {
+			return true;
+		}
+		
+		var rslt = true;
+		if ( objCir._pos.x < objRec._pos.x + objRec._cornerX ) {
+			rslt = false;
+		} else if ( objCir._pos.x > objRec._pos.x + objRec._cornerX + objRec._width ) {
+			rslt = false;
+		} else if ( objCir._pos.y + objCir._radius < objRec._pos.y + objRec._cornerY ) {
+			rslt = false;
+		} else if ( objCir._pos.y - objCir._radius > objRec._pos.y + objRec._cornerY + objRec._height ) {
+			rslt = false;
+		}
+		if ( rslt ) {
+			return true;
+		}
+		
+		if ( objCir._pos.minus( new Vec2( objRec._pos.x + objRec._cornerX, objRec._pos.y + objRec._cornerY ) ).mag() < objCir._radius ) {
+			return true;
+		}
+		if ( objCir._pos.minus( new Vec2( objRec._pos.x + objRec._cornerX, objRec._pos.y + objRec._cornerY + objRec._height ) ).mag() < objCir._radius ) {
+			return true;
+		}
+		if ( objCir._pos.minus( new Vec2( objRec._pos.x + objRec._cornerX + objRec._width, objRec._pos.y + objRec._cornerY ) ).mag() < objCir._radius ) {
+			return true;
+		}
+		if ( objCir._pos.minus( new Vec2( objRec._pos.x + objRec._cornerX + objRec._width, objRec._pos.y + objRec._cornerY + objRec._height ) ).mag() < objCir._radius ) {
+			return true;
+		}
+		
+		return false;
+	};
 	var calcRectVsRect = function ( objRec0, objRec1 ) {
 		if ( objRec0._pos.x + objRec0._cornerX + objRec0._width < objRec1._pos.x + objRec1._cornerX ) {
 			return false;
@@ -1150,6 +1210,7 @@ Plane2DOverlapChecker = (function () {
 	map['Plane2D']['Plane2D_Cirle'] = calcPointVsCircle;
 	map['Plane2D']['Plane2D_Rect'] = calcPointVsCircle;
 	map['Plane2D_Cirle']['Plane2D_Cirle'] = calcCircleVsCircle;
+	map['Plane2D_Cirle']['Plane2D_Rect'] = calcCircleVsRect;
 	map['Plane2D_Rect']['Plane2D_Rect'] = calcRectVsRect;
 	
 	var calc = function ( obj0, obj1 ) {
@@ -1166,6 +1227,7 @@ Plane2DOverlapChecker = (function () {
 			if ( !func ) {
 				return false;
 			}
+			
 			return func( obj1, obj0 );
 		}
 		
@@ -1173,6 +1235,7 @@ Plane2DOverlapChecker = (function () {
 		if ( !func ) {
 			return false;
 		}
+		
 		return func( obj0, obj1 );
 	};
 	
@@ -1577,6 +1640,7 @@ var DisplayObject = buildClass({
 	  TAG: 'DisplayObject'
 	, _inst: null
 	, _type: ''
+	, _data: null
 	, _posX: 0
 	, _posY: 0
 	, _dragable: null
@@ -1590,9 +1654,22 @@ var DisplayObject = buildClass({
 		this._inst.style.left = 0;
 		this._inst.style.top = 0;
 		this._inst.style.transformOrigin = "0 0";
+		
+		this._data = {};
 	}
 	, dispose: function () {
+		this._data = null;
 		this._inst = null;
+		if ( this._dragable !== null ) {
+			this._dragable.dispose();
+			this._dragable = null;
+		}
+	}
+	, clearData: function () {
+		this._data = {};
+	}
+	, getData: function () {
+		return this._data;
 	}
 	, getInst: function () {
 		return this._inst;
@@ -1665,6 +1742,11 @@ var DragManager = (function () {
 
 var Dragable = buildClass({
 	  TAG: 'Dragable'
+	, __static__: {
+		  ACTION_NULL: 'Dragable.ACTION_NULL'
+		, ACTION_BEFORE_MOVE: 'Dragable.ACTION_BEFORE_MOVE'
+		, ACTION_AFTER_MOVE: 'Dragable.ACTION_AFTER_MOVE'
+	}
 	, _inst: null
 	, _signal: null
 	, constructor: function ( inst ) {
@@ -1717,9 +1799,10 @@ var Dragable = buildClass({
 	}
 	, update: function ( x, y ) {
 		this.setPos( x, y );
-		this._signal.dispatch( { target: this, x: x, y: y } );
+		this._signal.dispatch( { action: Dragable.ACTION_BEFORE_MOVE, target: this, x: this._x, y: this._y } );
 		this._inst.setPosX( this._x );
 		this._inst.setPosY( this._y );
+		this._signal.dispatch( { action: Dragable.ACTION_AFTER_MOVE, target: this, x: this._x, y: this._y } );
 	}
 });
 
@@ -1752,27 +1835,101 @@ var Quad = buildClass({
 	}
 });
 
-var BaseObject = buildClass({
-	  TAG: 'BaseObject'
-	, _inst: null
-	, constructor: function ( inst ) {
-		if ( !setter.isValidObj( inst ) ) {
-			this.err( 'No inst' );
-			return;
-		}
-		this._inst = inst;
-		this.init();
+var Image = buildClass({
+	  TAG: 'Image'
+	, superClass: DisplayObject
+	, _url: ''
+	, constructor: function ( url ) {
+		this._url = setter.setStr( url, '' );
+		Image.__super__.constructor.apply( this, ['img'] );
 	}
 	, init: function () {
-		;
+		Image.__super__.init.apply( this, arguments );
+		log( 'set img >> ' +  this._url );
+		this._inst.src = this._url;
 	}
 	, dispose: function () {
-		this._inst = null;
-	}
-	, getInst: function () {
-		return this._inst;
+		Image.__super__.dispose.apply( this, arguments );
 	}
 });
+
+var Drawer2D = buildClass({
+	  TAG: 'Drawer2D'
+	, superClass: DisplayObject
+	, _width: 0
+	, _height: 0
+	, _ctx: null
+	, constructor: function ( width, height ) {
+		this._width = setter.setInt( width, 0, { min: 0 } );
+		this._height = setter.setInt( height, 0, { min: 0 } );
+		Drawer2D.__super__.constructor.apply( this, ['canvas'] );
+	}
+	, init: function () {
+		Drawer2D.__super__.init.apply( this, arguments );
+		this._inst.width = this._width;
+		this._inst.height = this._height;
+		this._ctx = this._inst.getContext( '2d' );
+	}
+	, dispose: function () {
+		this._ctx = null;
+		
+		Drawer2D.__super__.dispose.apply( this, arguments );
+	}
+	, clear: function () {
+		if ( this._ctx === null ) {
+			return;
+		}
+		this._ctx.clearRect( 0, 0, this._inst.width, this._inst.height );
+	}
+	, drawCircle: function ( x, y, radius ) {
+		if ( this._ctx === null ) {
+			return;
+		}
+		this._ctx.beginPath();
+		this._ctx.arc( x, y, radius - 1, 0, 2 * Math.PI );
+		this._ctx.stroke();
+	}
+	, drawLine: function ( x0, y0, x1, y1 ) {
+		if ( this._ctx === null ) {
+			return;
+		}
+		this._ctx.beginPath();
+		this._ctx.moveTo( x0 + 0.5, y0 + 0.5 );
+		this._ctx.lineTo( x1 + 0.5, y1 + 0.5 );
+		this._ctx.stroke();
+	}
+	, drawRect: function ( x, y, width, height ) {
+		if ( this._ctx === null ) {
+			return;
+		}
+		this._ctx.beginPath();
+		this._ctx.rect( x + 0.5, y + 0.5, width - 1, height - 1 );
+		this._ctx.stroke();
+	}
+	, getImage: function () {
+		var dataUrl = this._inst.toDataURL();
+		var img = new Image( dataUrl );
+		return img;
+	}
+	, resize: function ( width, height ) {
+		this._width = setter.setInt( width, 0, { min: 0 } );
+		this._height = setter.setInt( height, 0, { min: 0 } );
+		this._inst.width = this._width;
+		this._inst.height = this._height;
+	}
+});
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////
+////////////////////////////////////////
+////////////////////
+//	Project
+////////////////////
+////////////////////////////////////////
+////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 var ProjctA = buildClass({
 	  TAG: 'ProjctA'
@@ -1863,75 +2020,12 @@ var ProjctA = buildClass({
 	}
 });
 
-var Image = buildClass({
-	  TAG: 'Image'
-	, superClass: DisplayObject
-	, _url: ''
-	, constructor: function ( url ) {
-		this._url = setter.setStr( url, '' );
-		Image.__super__.constructor.apply( this, ['img'] );
-	}
-	, init: function () {
-		Image.__super__.init.apply( this, arguments );
-		log( 'set img >> ' +  this._url );
-		this._inst.src = this._url;
-	}
-	, dispose: function () {
-		Image.__super__.dispose.apply( this, arguments );
-	}
-});
-
-var Drawer2D = buildClass({
-	  TAG: 'Drawer2D'
-	, superClass: DisplayObject
-	, _width: 0
-	, _height: 0
-	, constructor: function ( width, height ) {
-		this._width = setter.setInt( width, 0, { min: 0 } );
-		this._height = setter.setInt( height, 0, { min: 0 } );
-		Drawer2D.__super__.constructor.apply( this, ['canvas'] );
-	}
-	, init: function () {
-		Drawer2D.__super__.init.apply( this, arguments );
-		this._inst.width = this._width;
-		this._inst.height = this._height;
-	}
-	, dispose: function () {
-		Drawer2D.__super__.dispose.apply( this, arguments );
-	}
-	, clear: function () {
-		var ctx = this._inst.getContext( '2d' );
-		ctx.clearRect( 0, 0, this._inst.width, this._inst.height );
-	}
-	, drawCircle: function ( x, y, radius ) {
-		var ctx = this._inst.getContext( '2d' );
-		ctx.beginPath();
-		ctx.arc( x, y, radius - 1, 0, 2 * Math.PI );
-		ctx.stroke();
-	}
-	, drawRect: function ( x, y, width, height ) {
-		var ctx = this._inst.getContext( '2d' );
-		ctx.beginPath();
-		ctx.rect( x + 0.5, y + 0.5, width - 1, height - 1 );
-		ctx.stroke();
-	}
-	, getImage: function () {
-		var dataUrl = this._inst.toDataURL();
-		var img = new Image( dataUrl );
-		return img;
-	}
-	, resize: function ( width, height ) {
-		this._width = setter.setInt( width, 0, { min: 0 } );
-		this._height = setter.setInt( height, 0, { min: 0 } );
-		this._inst.width = this._width;
-		this._inst.height = this._height;
-	}
-});
-
 var ProjctOverlapTest = buildClass({
 	  TAG: 'ProjctOverlapTest'
 	, _inst: null
 	, _parent: null
+	, _drawer: null
+	, _planeList: null
 	, constructor: function ( parent ) {
 		if ( !setter.isValidObj( parent ) ) {
 			this.err( 'No parent' );
@@ -1941,73 +2035,138 @@ var ProjctOverlapTest = buildClass({
 		this.init();
 	}
 	, init: function () {
-		var self = this;
-		
 		this._inst = new Quad( 0, 0, '#000000' );
 		this._parent.appendChild( this._inst.getInst() );
+		this._drawer = new Drawer2D( 300, 150 );
 		
-		var drawer = new Drawer2D( 300, 150 );
-		drawer.resize( 40, 40 );
-		drawer.drawCircle( 20, 20, 20 );
-		drawer.clear();
-		drawer.drawRect( 0, 0, 40, 40 );
+		this._planeList = [];
 		
-		var img = drawer.getImage();
-		img.setPosX( 200 );
-		img.getDragable().enable( true );
-		this._inst.getInst().appendChild( img.getInst() );
+		this.createCircle( 100, 100, 20 );
+		
+		this.createCircle( 200, 100, 20 );
+		
+		this.createRect( 100, 200, 40, 40 );
+		
+		this.createRect( 200, 200, 40, 40 );
 		
 		this.log( 'ProjctOverlapTest init()' );
 	}
 	, dispose: function () {
 		this._inst = null;
 		this._parent = null;
+		if ( this._drawer ) {
+			this._drawer.dispose();
+			this._drawer = null;
+		}
+		this._planeList = null;
+	}
+	, addItem: function ( item, plane ) {
+		var self = this;
+		item.getData().index = this._planeList.length;
+		item.getDragable().enable( true );
+		item.getDragable().getSignal().add( function ( rslt ) {
+			var action = rslt.action;
+			if ( action !== Dragable.ACTION_AFTER_MOVE ) {
+				return;
+			}
+			var target = rslt.target;
+			var x = rslt.x;
+			var y = rslt.y;
+			var item = target.getInst();
+			var index = item.getData().index;
+			self.checkItemOverlap( index, x, y );
+		});
+		this._inst.getInst().appendChild( item.getInst() );
+		
+		this._planeList.push( plane );
+	}
+	, createCircle: function ( x, y, radius ) {
+		this._drawer.clear();
+		this._drawer.resize( radius * 2, radius * 2 );
+		this._drawer.drawCircle( radius, radius, radius );
+		var img = this._drawer.getImage();
+		img.setPosX( x - radius );
+		img.setPosY( y - radius );
+		
+		var plane = new Plane2D_Cirle( radius );
+		plane.setPos( { x: x, y: y } );
+		
+		this.addItem( img, plane );
+	}
+	, createRect: function ( x, y, width, height ) {
+		var cornerX = -width * 0.5;
+		var cornerY = -height * 0.5;
+		
+		this._drawer.clear();
+		this._drawer.resize( width, height );
+		this._drawer.drawRect( 0, 0, width, height );
+		var img = this._drawer.getImage();
+		img.setPosX( x + cornerX );
+		img.setPosY( y + cornerY );
+		
+		var plane = new Plane2D_Rect( width, height, cornerX, cornerY );
+		plane.setPos( { x: x, y: y } );
+		
+		this.addItem( img, plane );
+	}
+	, checkItemOverlap: function ( index, x, y ) {
+		var plane = this._planeList[index];
+		if ( plane instanceof Plane2D_Cirle ) {
+			var radius = plane.getRadius();
+			plane.setPos( { x: x + radius, y: y + radius } );
+		} else if ( plane instanceof Plane2D_Rect ) {
+			var corner = plane.getCorner();
+			plane.setPos( { x: x - corner.x, y: y - corner.y } );
+		} else {
+			plane.setPos( { x: x, y: y } );
+		}
+		
+		for(var i = 0; i < this._planeList.length; i++) {
+			if ( i === index ) {
+				continue;
+			}
+			
+			var plane2 = this._planeList[i];
+			if ( plane.isOverlap( plane2 ) ) {
+				this.log( 'checkItemOverlap', index, 'vs', i );
+			}
+		}
 	}
 });
 
-new ProjctOverlapTest( document.body );
+// new ProjctOverlapTest( document.body );
 
- new ProjctA( document.body );
+// new ProjctA( document.body );
 
 <!-- Notices -->
 /*
-to do -
-	find children by name?
+
 */
 
 <!-- Testing Area -->
+var r0 = 150;
+var r1 = 50;
+var cx = 200;
+var cy = 200;
+var drawer = new Drawer2D( cx * 2, cy * 4 );
+drawer.clear();
+document.body.appendChild( drawer.getInst() );
 
-
-/*
-var num = 0;
-var t = TimeCore.timer( function ( diff ) {
-	num++;
-	if ( num > 200 )
-	{
-		t.stop();
+var cut = 1000;
+var x0 = 0;
+var y0 = 0;
+for(var i = 0; i <= cut; i++) {
+	var x = r0 * i / cut;
+	var y = Math.sqrt( r0 * r0 - x * x ) * r1 / r0;
+	drawer.drawLine( x, 0, x, y );
+	if ( i > 0 ) {
+		var len = Math.sqrt( (x0 - x) * (x0 - x) + (y0 - y) * (y0 - y) );
+		
+		drawer.drawLine( x + cx, 0, x + cx, 10 / len );
 	}
-	console.log( TimeCore.time() + " - " + diff + " " + num );
-}, 50 );
-t.run();
-*/
+	x0 = x;
+	y0 = y;
+}
 
-/*
-var aniObj = {};
-aniObj['testObj'] = 0;
-
-log( "Testing A" );
-
-tools.ifExistDo( aniObj, 'testObj', function ( obj ) {
-	log( "Testing B" );
-});
-
-var mainView = document.createElement( 'div' );
-document.body.appendChild( mainView );
-var assets = getChildById( document.body, 'assets' );
-var btn = getChildById( assets, 'btn' );
-var newBtn = btn.cloneNode(true);
-newBtn.id = 'aaa';
-mainView.appendChild( newBtn );
-*/
 </script>
 </html>
