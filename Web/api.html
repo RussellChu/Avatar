@@ -1040,14 +1040,23 @@ var Vec3 = CMath.Vec3;
 var Plane2D = buildClass({
 	  TAG: 'Plane2D'
 	, _pos: null
+	, _dir: null
 	, constructor: function () {
 		this.init();
 	}
 	, init: function () {
 		this._pos = new Vec2();
+		this._dir = new Vec2( 1, 0 );
 	}
 	, dispose: function () {
 		this._pos = null;
+		this._dir = null;
+	}
+	, getDir: function () {
+		return this._pos.clone();
+	}
+	, setDir: function ( value ) {
+		this._pos = Vec2.createFromObj( value );
 	}
 	, getPos: function () {
 		return this._pos.clone();
@@ -1057,6 +1066,22 @@ var Plane2D = buildClass({
 	}
 	, isOverlap: function ( target ) {
 		return Plane2DOverlapChecker.calc( this, target );
+	}
+});
+
+var Plane2D_Wall = buildClass({
+	  TAG: 'Plane2D_Wall'
+	, superClass: Plane2D
+	, constructor: function () {
+		this.init();
+	}
+	, init: function () {
+		Quad.__super__.init.apply( this, arguments );
+		//
+	}
+	, dispose: function () {
+		//
+		Quad.__super__.init.apply( this, dispose );
 	}
 });
 
@@ -1114,6 +1139,12 @@ var Plane2D_Rect = buildClass({
 Plane2DOverlapChecker = (function () {
 	var inst = {};
 	
+	var calcPointVsWall = function ( objPt, objWall ) {
+		if ( objWall._pos.minus( objPt._pos ).dot( objWall._dir ) > 0 ) {
+			return true;
+		}
+		return false;
+	};
 	var calcPointVsCircle = function ( objPt, objCir ) {
 		if ( objPt._pos.minus( objCir._pos ).mag() < objCir._radius ) {
 			return true;
@@ -1134,6 +1165,27 @@ Plane2DOverlapChecker = (function () {
 			return false;
 		}
 		return true;
+	};
+	var calcWallVsCircle = function ( objWall, objCir ) {
+		if ( objWall._pos.minus( objCir._pos ).dot( objWall._dir ) > -objCir._radius ) {
+			return true;
+		}
+		return false;
+	};
+	var calcWallVsRect = function ( objWall, objRec ) {
+		if ( objWall._pos.minus( new Vec2( objRec._pos.x + objRec._cornerX, objRec._pos.y + objRec._cornerY ) ).dot( objWall._dir ) > 0 ) {
+			return true;
+		}
+		if ( objWall._pos.minus( new Vec2( objRec._pos.x + objRec._cornerX, objRec._pos.y + objRec._cornerY + objRec._height ) ).dot( objWall._dir ) > 0 ) {
+			return true;
+		}
+		if ( objWall._pos.minus( new Vec2( objRec._pos.x + objRec._cornerX + objRec._width, objRec._pos.y + objRec._cornerY ) ).dot( objWall._dir ) > 0 ) {
+			return true;
+		}
+		if ( objWall._pos.minus( new Vec2( objRec._pos.x + objRec._cornerX + objRec._width, objRec._pos.y + objRec._cornerY + objRec._height ) ).dot( objWall._dir ) > 0 ) {
+			return true;
+		}
+		return false;
 	};
 	var calcCircleVsCircle = function ( objCir0, objCir1 ) {
 		if ( objCir0._pos.minus( objCir1._pos ).mag() < objCir0._radius + objCir1._radius ) {
@@ -1204,11 +1256,15 @@ Plane2DOverlapChecker = (function () {
 	var map = {};
 	
 	map['Plane2D'] = {};
+	map['Plane2D_Wall'] = {};
 	map['Plane2D_Cirle'] = {};
 	map['Plane2D_Rect'] = {};
 	
+	map['Plane2D']['Plane2D_Wall'] = calcPointVsWall;
 	map['Plane2D']['Plane2D_Cirle'] = calcPointVsCircle;
 	map['Plane2D']['Plane2D_Rect'] = calcPointVsCircle;
+	map['Plane2D_Wall']['Plane2D_Cirle'] = calcWallVsCircle;
+	map['Plane2D_Wall']['Plane2D_Rect'] = calcWallVsRect;
 	map['Plane2D_Cirle']['Plane2D_Cirle'] = calcCircleVsCircle;
 	map['Plane2D_Cirle']['Plane2D_Rect'] = calcCircleVsRect;
 	map['Plane2D_Rect']['Plane2D_Rect'] = calcRectVsRect;
@@ -1636,6 +1692,7 @@ var GlobalSignal = (function () {
 	return instance;
 } ());
 
+// to do: add sensor
 var DisplayObject = buildClass({
 	  TAG: 'DisplayObject'
 	, _inst: null
@@ -1644,6 +1701,7 @@ var DisplayObject = buildClass({
 	, _posX: 0
 	, _posY: 0
 	, _dragable: null
+	, _sensor: null
 	, constructor: function ( type ) {
 		this._type = type;
 		this.init();
@@ -1664,6 +1722,7 @@ var DisplayObject = buildClass({
 			this._dragable.dispose();
 			this._dragable = null;
 		}
+		this._sensor = null;
 	}
 	, clearData: function () {
 		this._data = {};
@@ -1693,6 +1752,12 @@ var DisplayObject = buildClass({
 			this._dragable = new Dragable( this );
 		}
 		return this._dragable;
+	}
+	, getSensor: function () {
+		return this._sensor;
+	}
+	, setSensor: function ( obj ) {
+		this._sensor = obj;
 	}
 });
 
@@ -1803,6 +1868,20 @@ var Dragable = buildClass({
 		this._inst.setPosX( this._x );
 		this._inst.setPosY( this._y );
 		this._signal.dispatch( { action: Dragable.ACTION_AFTER_MOVE, target: this, x: this._x, y: this._y } );
+	}
+});
+
+var Holder = buildClass({
+	  TAG: 'Holder'
+	, superClass: DisplayObject
+	, constructor: function () {
+		Quad.__super__.constructor.apply( this, ['div'] );
+	}
+	, init: function () {
+		Quad.__super__.init.apply( this, arguments );
+	}
+	, dispose: function () {
+		Quad.__super__.dispose.apply( this, arguments );
 	}
 });
 
@@ -2085,13 +2164,15 @@ var ProjctOverlapTest = buildClass({
 		this._drawer.resize( radius * 2, radius * 2 );
 		this._drawer.drawCircle( radius, radius, radius );
 		var img = this._drawer.getImage();
-		img.setPosX( x - radius );
-		img.setPosY( y - radius );
+		img.setPosX( -radius );
+		img.setPosY( -radius );
+		var sp = new Holder();
+		sp.getInst().appendChild( img.getInst() );
 		
 		var plane = new Plane2D_Cirle( radius );
 		plane.setPos( { x: x, y: y } );
 		
-		this.addItem( img, plane );
+		this.addItem( sp, plane );
 	}
 	, createRect: function ( x, y, width, height ) {
 		var cornerX = -width * 0.5;
@@ -2101,13 +2182,15 @@ var ProjctOverlapTest = buildClass({
 		this._drawer.resize( width, height );
 		this._drawer.drawRect( 0, 0, width, height );
 		var img = this._drawer.getImage();
-		img.setPosX( x + cornerX );
-		img.setPosY( y + cornerY );
+		img.setPosX( cornerX );
+		img.setPosY( cornerY );
+		var sp = new Holder();
+		sp.getInst().appendChild( img.getInst() );
 		
 		var plane = new Plane2D_Rect( width, height, cornerX, cornerY );
 		plane.setPos( { x: x, y: y } );
 		
-		this.addItem( img, plane );
+		this.addItem( sp, plane );
 	}
 	, checkItemOverlap: function ( index, x, y ) {
 		var plane = this._planeList[index];
@@ -2144,6 +2227,7 @@ var ProjctOverlapTest = buildClass({
 */
 
 <!-- Testing Area -->
+/*
 var r0 = 150;
 var r1 = 50;
 var cx = 200;
@@ -2167,6 +2251,6 @@ for(var i = 0; i <= cut; i++) {
 	x0 = x;
 	y0 = y;
 }
-
+*/
 </script>
 </html>
