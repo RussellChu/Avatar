@@ -1692,7 +1692,6 @@ var GlobalSignal = (function () {
 	return instance;
 } ());
 
-// to do: add sensor
 var DisplayObject = buildClass({
 	  TAG: 'DisplayObject'
 	, _inst: null
@@ -1701,7 +1700,7 @@ var DisplayObject = buildClass({
 	, _posX: 0
 	, _posY: 0
 	, _dragable: null
-	, _sensor: null
+	, _sensor: null // html object
 	, constructor: function ( type ) {
 		this._type = type;
 		this.init();
@@ -1757,6 +1756,7 @@ var DisplayObject = buildClass({
 		return this._sensor;
 	}
 	, setSensor: function ( obj ) {
+		// to do, update sensor for _dragable
 		this._sensor = obj;
 	}
 });
@@ -1767,6 +1767,8 @@ var DragManager = (function () {
 	var dragTarget = null;
 	var dragX = 0;
 	var dragY = 0;
+	var prevX = 0;
+	var prevY = 0;
 	
 	GlobalSignal.mouseMove.add( function ( e ) {
 		/*
@@ -1779,7 +1781,9 @@ var DragManager = (function () {
 			return;
 		}
 		
-		dragTarget.update( e.pageX - dragX, e.pageY - dragY );
+		dragTarget.update( { position: { x: e.pageX - dragX, y: e.pageY - dragY }, move: { x: e.pageX - prevX, y: e.pageY - prevY } } );
+		prevX = e.pageX;
+		prevY = e.pageY;
 	});
 	
 	GlobalSignal.mouseUp.add( function ( e ) {
@@ -1791,6 +1795,8 @@ var DragManager = (function () {
 		var pos = dragTarget.getPos();
 		dragX = e.pageX - pos.x;
 		dragY = e.pageY - pos.y;
+		prevX = e.pageX;
+		prevY = e.pageY;
 	};
 	
 	var unsetTarget = function ( dragable ) {
@@ -1822,6 +1828,7 @@ var Dragable = buildClass({
 		this._signal = new Signal();
 	}
 	, dispose: function () {
+		this.enable( false );
 		this._inst = null;
 		if ( this._signal !== null ) {
 			this._signal.dispose();
@@ -1834,40 +1841,40 @@ var Dragable = buildClass({
 	, getPos: function () {
 		return { x: this._inst.getPosX(), y: this._inst.getPosY() };
 	}
-	, setPos: function ( x, y ) {
-		this._x = x;
-		this._y = y;
-	}
 	, getSignal: function () {
 		return this._signal;
 	}
 	, enable: function ( value ) {
 		var self = this;
 		if ( value ) {
-		//	self._inst.getInst().style.pointerEvents = "none";
-			self._inst.getInst().style.userSelect = 'none';
-			self._inst.getInst().style.userDrag = 'none';
-			self._inst.getInst().onselectstart = function () { return false; };
-			self._inst.getInst().ondragstart = function () { return false; };
+			var sensor = self._inst.getSensor();
+			if ( sensor === null )
+			{
+				sensor = self._inst.getInst();
+			}
+		//	sensor.style.pointerEvents = "none";
+			sensor.style.userSelect = 'none';
+			sensor.style.userDrag = 'none';
+			sensor.onselectstart = function () { return false; };
+			sensor.ondragstart = function () { return false; };
 			
-			self._inst.getInst().onmousedown = function ( e ) {
+			sensor.onmousedown = function ( e ) {
 				DragManager.setTarget( self, e );
 			};
 		} else {
 			DragManager.unsetTarget( self );
-			self._inst.getInst().onmousedown = null;
+			sensor.onmousedown = null;
 		}
 	}
-	, stop: function () {
-		this._x = this._inst.getPosX();
-		this._y = this._inst.getPosY();
-	}
-	, update: function ( x, y ) {
-		this.setPos( x, y );
-		this._signal.dispatch( { action: Dragable.ACTION_BEFORE_MOVE, target: this, x: this._x, y: this._y } );
-		this._inst.setPosX( this._x );
-		this._inst.setPosY( this._y );
-		this._signal.dispatch( { action: Dragable.ACTION_AFTER_MOVE, target: this, x: this._x, y: this._y } );
+	, update: function ( data ) {
+		var position = data.position;
+		var move = data.move;
+		this._signal.dispatch( { action: Dragable.ACTION_BEFORE_MOVE, target: this, position: position, move: move } );
+		
+		var currPos = this.getPos();
+		this._inst.setPosX( this._inst.getPosX() + move.x );
+		this._inst.setPosY( this._inst.getPosY() + move.y );
+		this._signal.dispatch( { action: Dragable.ACTION_AFTER_MOVE, target: this, position: position, move: move } );
 	}
 });
 
@@ -2141,22 +2148,23 @@ var ProjctOverlapTest = buildClass({
 	}
 	, addItem: function ( item, plane ) {
 		var self = this;
-		item.getData().index = this._planeList.length;
-		item.getDragable().enable( true );
-		item.getDragable().getSignal().add( function ( rslt ) {
+		var sp = new Holder();
+		sp.setSensor( item.getInst() );
+		sp.getInst().appendChild( item.getInst() );
+		
+		sp.getData().index = this._planeList.length;
+		sp.getDragable().enable( true );
+		sp.getDragable().getSignal().add( function ( rslt ) {
 			var action = rslt.action;
 			if ( action !== Dragable.ACTION_AFTER_MOVE ) {
 				return;
 			}
 			var target = rslt.target;
-			var x = rslt.x;
-			var y = rslt.y;
 			var item = target.getInst();
 			var index = item.getData().index;
-			self.checkItemOverlap( index, x, y );
+			self.checkItemOverlap( index, item.getPosX(), item.getPosY() );
 		});
-		this._inst.getInst().appendChild( item.getInst() );
-		
+		this._inst.getInst().appendChild( sp.getInst() );
 		this._planeList.push( plane );
 	}
 	, createCircle: function ( x, y, radius ) {
@@ -2217,7 +2225,7 @@ var ProjctOverlapTest = buildClass({
 	}
 });
 
-// new ProjctOverlapTest( document.body );
+new ProjctOverlapTest( document.body );
 
 // new ProjctA( document.body );
 
