@@ -1052,11 +1052,17 @@ var Plane2D = buildClass({
 		this._pos = null;
 		this._dir = null;
 	}
+	, clone: function () {
+		var obj = new Plane2D();
+		obj._pos = this._pos.clone();
+		obj._dir = this._dir.clone();
+		return obj;
+	}
 	, getDir: function () {
-		return this._pos.clone();
+		return this._dir.clone();
 	}
 	, setDir: function ( value ) {
-		this._pos = Vec2.createFromObj( value );
+		this._dir = Vec2.createFromObj( value );
 	}
 	, getPos: function () {
 		return this._pos.clone();
@@ -1076,12 +1082,18 @@ var Plane2D_Wall = buildClass({
 		this.init();
 	}
 	, init: function () {
-		Quad.__super__.init.apply( this, arguments );
+		Plane2D_Wall.__super__.init.apply( this, arguments );
 		//
 	}
 	, dispose: function () {
 		//
-		Quad.__super__.init.apply( this, dispose );
+		Plane2D_Wall.__super__.init.apply( this, dispose );
+	}
+	, clone: function () {
+		var obj = new Plane2D_Wall();
+		obj._pos = this._pos.clone();
+		obj._dir = this._dir.clone();
+		return obj;
 	}
 });
 
@@ -1094,12 +1106,19 @@ var Plane2D_Cirle = buildClass({
 		this.init();
 	}
 	, init: function () {
-		Quad.__super__.init.apply( this, arguments );
+		Plane2D_Cirle.__super__.init.apply( this, arguments );
 		//
 	}
 	, dispose: function () {
 		//
-		Quad.__super__.init.apply( this, dispose );
+		Plane2D_Cirle.__super__.init.apply( this, dispose );
+	}
+	, clone: function () {
+		var obj = new Plane2D_Cirle();
+		obj._pos = this._pos.clone();
+		obj._dir = this._dir.clone();
+		obj._radius = this._radius;
+		return obj;
 	}
 	, getRadius: function () {
 		return this._radius;
@@ -1121,12 +1140,22 @@ var Plane2D_Rect = buildClass({
 		this.init();
 	}
 	, init: function () {
-		Quad.__super__.init.apply( this, arguments );
+		Plane2D_Rect.__super__.init.apply( this, arguments );
 		//
 	}
 	, dispose: function () {
 		//
-		Quad.__super__.init.apply( this, dispose );
+		Plane2D_Rect.__super__.init.apply( this, dispose );
+	}
+	, clone: function () {
+		var obj = new Plane2D_Rect();
+		obj._pos = this._pos.clone();
+		obj._dir = this._dir.clone();
+		obj._cornerX = this._cornerX;
+		obj._cornerY = this._cornerY;
+		obj._width = this._width;
+		obj._height = this._height;
+		return obj;
 	}
 	, getCorner: function () {
 		return new Vec2( this._cornerX, this._cornerY );
@@ -1272,27 +1301,26 @@ Plane2DOverlapChecker = (function () {
 	var calc = function ( obj0, obj1 ) {
 		var tag0 = obj0.getTag();
 		var tag1 = obj1.getTag();
-		var pre = map[tag0];
+		var pre = null;
 		var func;
-		if ( !pre ) {
-			pre = map[tag1];
-			if ( !pre ) {
-				return false;
+		
+		pre = map[tag0];
+		if ( pre ) {
+			func = pre[tag1];
+			if ( func ) {
+				return func( obj0, obj1 );
 			}
+		}
+		
+		pre = map[tag1];
+		if ( pre ) {
 			func = pre[tag0];
-			if ( !func ) {
-				return false;
+			if ( func ) {
+				return func( obj1, obj0 );
 			}
-			
-			return func( obj1, obj0 );
 		}
 		
-		func = pre[tag1];
-		if ( !func ) {
-			return false;
-		}
-		
-		return func( obj0, obj1 );
+		return false;
 	};
 	
 	inst.calc = calc;
@@ -1694,6 +1722,10 @@ var GlobalSignal = (function () {
 
 var DisplayObject = buildClass({
 	  TAG: 'DisplayObject'
+	, __static__: {
+		  ACTION_NULL: 'DisplayObject.ACTION_NULL'
+		, ACTION_SENSOR_UPDATE: 'DisplayObject.ACTION_SENSOR_UPDATE'
+	}
 	, _inst: null
 	, _type: ''
 	, _data: null
@@ -1701,6 +1733,7 @@ var DisplayObject = buildClass({
 	, _posY: 0
 	, _dragable: null
 	, _sensor: null // html object
+	, _signal: null
 	, constructor: function ( type ) {
 		this._type = type;
 		this.init();
@@ -1713,6 +1746,7 @@ var DisplayObject = buildClass({
 		this._inst.style.transformOrigin = "0 0";
 		
 		this._data = {};
+		this._signal = new Signal();
 	}
 	, dispose: function () {
 		this._data = null;
@@ -1722,6 +1756,10 @@ var DisplayObject = buildClass({
 			this._dragable = null;
 		}
 		this._sensor = null;
+		if ( this._signal !== null ) {
+			this._signal.dispose();
+			this._signal = null;
+		}
 	}
 	, clearData: function () {
 		this._data = {};
@@ -1753,11 +1791,17 @@ var DisplayObject = buildClass({
 		return this._dragable;
 	}
 	, getSensor: function () {
-		return this._sensor;
+		if ( this._sensor !== null ) {
+			return this._sensor;
+		}
+		return this._inst;
 	}
 	, setSensor: function ( obj ) {
-		// to do, update sensor for _dragable
 		this._sensor = obj;
+		this._signal.dispatch( { action: DisplayObject.ACTION_SENSOR_UPDATE } );
+	}
+	, getSignal: function () {
+		return this._signal;
 	}
 });
 
@@ -1781,7 +1825,7 @@ var DragManager = (function () {
 			return;
 		}
 		
-		dragTarget.update( { position: { x: e.pageX - dragX, y: e.pageY - dragY }, move: { x: e.pageX - prevX, y: e.pageY - prevY } } );
+		dragTarget.update( { position: { x: e.pageX, y: e.pageY }, point: { x: dragX, y: dragY }, move: { x: e.pageX - prevX, y: e.pageY - prevY } } );
 		prevX = e.pageX;
 		prevY = e.pageY;
 	});
@@ -1793,8 +1837,8 @@ var DragManager = (function () {
 	var setTarget = function ( dragable, e ) {
 		dragTarget = dragable;
 		var pos = dragTarget.getPos();
-		dragX = e.pageX - pos.x;
-		dragY = e.pageY - pos.y;
+		dragX = pos.x - e.pageX;
+		dragY = pos.y - e.pageY;
 		prevX = e.pageX;
 		prevY = e.pageY;
 	};
@@ -1826,6 +1870,12 @@ var Dragable = buildClass({
 	}
 	, init: function () {
 		this._signal = new Signal();
+		this._inst.getSignal().add( function ( rslt ) {
+			if ( rslt.action !== DisplayObject.ACTION_SENSOR_UPDATE ) {
+				return;
+			}
+			self.updateSensor();
+		});
 	}
 	, dispose: function () {
 		this.enable( false );
@@ -1845,36 +1895,40 @@ var Dragable = buildClass({
 		return this._signal;
 	}
 	, enable: function ( value ) {
-		var self = this;
 		if ( value ) {
-			var sensor = self._inst.getSensor();
-			if ( sensor === null )
-			{
-				sensor = self._inst.getInst();
-			}
-		//	sensor.style.pointerEvents = "none";
-			sensor.style.userSelect = 'none';
-			sensor.style.userDrag = 'none';
-			sensor.onselectstart = function () { return false; };
-			sensor.ondragstart = function () { return false; };
-			
-			sensor.onmousedown = function ( e ) {
-				DragManager.setTarget( self, e );
-			};
+			this.updateSensor();
 		} else {
-			DragManager.unsetTarget( self );
+			var sensor = self._inst.getSensor();
+			sensor.style.userSelect = '';
+			sensor.style.userDrag = '';
+			sensor.onselectstart = null;
+			sensor.ondragstart = null;
 			sensor.onmousedown = null;
+			DragManager.unsetTarget( this );
 		}
 	}
 	, update: function ( data ) {
 		var position = data.position;
+		var point = data.point;
 		var move = data.move;
-		this._signal.dispatch( { action: Dragable.ACTION_BEFORE_MOVE, target: this, position: position, move: move } );
+		var targetPos = { x: position.x + point.x, y: position.y + point.y };
+		this._signal.dispatch( { action: Dragable.ACTION_BEFORE_MOVE, target: this, position: targetPos, move: move } );
 		
-		var currPos = this.getPos();
-		this._inst.setPosX( this._inst.getPosX() + move.x );
-		this._inst.setPosY( this._inst.getPosY() + move.y );
-		this._signal.dispatch( { action: Dragable.ACTION_AFTER_MOVE, target: this, position: position, move: move } );
+		this._inst.setPosX( targetPos.x );
+		this._inst.setPosY( targetPos.y );
+		this._signal.dispatch( { action: Dragable.ACTION_AFTER_MOVE, target: this, position: targetPos, move: move } );
+	}
+	, updateSensor: function () {
+		var self = this;
+		var sensor = self._inst.getSensor();
+	//	sensor.style.pointerEvents = "none";
+		sensor.style.userSelect = 'none';
+		sensor.style.userDrag = 'none';
+		sensor.onselectstart = function () { return false; };
+		sensor.ondragstart = function () { return false; };
+		sensor.onmousedown = function ( e ) {
+			DragManager.setTarget( self, e );
+		};
 	}
 });
 
@@ -1882,13 +1936,13 @@ var Holder = buildClass({
 	  TAG: 'Holder'
 	, superClass: DisplayObject
 	, constructor: function () {
-		Quad.__super__.constructor.apply( this, ['div'] );
+		Holder.__super__.constructor.apply( this, ['div'] );
 	}
 	, init: function () {
-		Quad.__super__.init.apply( this, arguments );
+		Holder.__super__.init.apply( this, arguments );
 	}
 	, dispose: function () {
-		Quad.__super__.dispose.apply( this, arguments );
+		Holder.__super__.dispose.apply( this, arguments );
 	}
 });
 
@@ -1927,11 +1981,12 @@ var Image = buildClass({
 	, _url: ''
 	, constructor: function ( url ) {
 		this._url = setter.setStr( url, '' );
+		
 		Image.__super__.constructor.apply( this, ['img'] );
 	}
 	, init: function () {
 		Image.__super__.init.apply( this, arguments );
-		log( 'set img >> ' +  this._url );
+		
 		this._inst.src = this._url;
 	}
 	, dispose: function () {
@@ -2069,8 +2124,8 @@ var ProjctA = buildClass({
 		var world = new GravityWorld();
 		world.setRect( 0, 0, 960, 580 );
 		world.setMaxSpeed( 5 );
-		world.getSignal().add( function ( data ) {
-			self.updateCircle( data );
+		world.getSignal().add( function ( rslt ) {
+			self.updateCircle( rslt );
 		});
 		
 		world.addForce( new GravityForce_Point( { x: 480, y: 290 }, 0.05, true ) );
@@ -2106,12 +2161,10 @@ var ProjctA = buildClass({
 	}
 });
 
-var ProjctOverlapTest = buildClass({
-	  TAG: 'ProjctOverlapTest'
+var ProjectCore = buildClass({
+	  TAG: 'ProjectCore'
 	, _inst: null
 	, _parent: null
-	, _drawer: null
-	, _planeList: null
 	, constructor: function ( parent ) {
 		if ( !setter.isValidObj( parent ) ) {
 			this.err( 'No parent' );
@@ -2119,34 +2172,51 @@ var ProjctOverlapTest = buildClass({
 		}
 		this._parent = parent;
 		this.init();
+		this.log( 'init() ready' );
 	}
 	, init: function () {
-		this._inst = new Quad( 0, 0, '#000000' );
+		this._inst = new Holder();
 		this._parent.appendChild( this._inst.getInst() );
-		this._drawer = new Drawer2D( 300, 150 );
-		
-		this._planeList = [];
-		
-		this.createCircle( 100, 100, 20 );
-		
-		this.createCircle( 200, 100, 20 );
-		
-		this.createRect( 100, 200, 40, 40 );
-		
-		this.createRect( 200, 200, 40, 40 );
-		
-		this.log( 'ProjctOverlapTest init()' );
 	}
 	, dispose: function () {
-		this._inst = null;
+		if ( this._inst ) {
+			this._inst.dispose();
+			this._inst = null;
+		}
 		this._parent = null;
+	}
+});
+
+var ProjctOverlapTest = buildClass({
+	  TAG: 'ProjctOverlapTest'
+	, superClass: ProjectCore
+	, _inst: null
+	, _parent: null
+	, _drawer: null
+	, _planeList: null
+	, constructor: function ( parent ) {
+		ProjctOverlapTest.__super__.constructor.apply( this, arguments );
+	}
+	, init: function () {
+		ProjctOverlapTest.__super__.init.apply( this, arguments );
+		
+		this._drawer = new Drawer2D( 300, 150 );
+		this._planeList = [];
+		this.createCircle( 100, 100, 20 );
+		this.createCircle( 200, 100, 20 );
+		this.createRect( 100, 200, 40, 40 );
+		this.createRect( 200, 200, 40, 40 );
+	}
+	, dispose: function () {
 		if ( this._drawer ) {
 			this._drawer.dispose();
 			this._drawer = null;
 		}
 		this._planeList = null;
+		
+		ProjctOverlapTest.__super__.dispose.apply( this, arguments );
 	}
-	, addItem: function ( item, plane ) {
+	, addItem: function ( item, plane, x, y ) {
 		var self = this;
 		var sp = new Holder();
 		sp.setSensor( item.getInst() );
@@ -2156,15 +2226,30 @@ var ProjctOverlapTest = buildClass({
 		sp.getDragable().enable( true );
 		sp.getDragable().getSignal().add( function ( rslt ) {
 			var action = rslt.action;
-			if ( action !== Dragable.ACTION_AFTER_MOVE ) {
-				return;
-			}
 			var target = rslt.target;
+			var newPos = rslt.position;
 			var item = target.getInst();
 			var index = item.getData().index;
-			self.checkItemOverlap( index, item.getPosX(), item.getPosY() );
+			switch ( action ) {
+			case Dragable.ACTION_BEFORE_MOVE:
+				self.checkItemOverlap( index, newPos );
+				var plane = self._planeList[index];
+				var pos = plane.getPos();
+				newPos.x = pos.x;
+				newPos.y = pos.y;
+				break;
+			case Dragable.ACTION_AFTER_MOVE:
+				break;
+			default:
+				;
+			}
 		});
+		
+		sp.setPosX( x );
+		sp.setPosY( y );
 		this._inst.getInst().appendChild( sp.getInst() );
+		
+		plane.setPos( { x: x, y: y } );
 		this._planeList.push( plane );
 	}
 	, createCircle: function ( x, y, radius ) {
@@ -2174,13 +2259,9 @@ var ProjctOverlapTest = buildClass({
 		var img = this._drawer.getImage();
 		img.setPosX( -radius );
 		img.setPosY( -radius );
-		var sp = new Holder();
-		sp.getInst().appendChild( img.getInst() );
 		
 		var plane = new Plane2D_Cirle( radius );
-		plane.setPos( { x: x, y: y } );
-		
-		this.addItem( sp, plane );
+		this.addItem( img, plane, x, y );
 	}
 	, createRect: function ( x, y, width, height ) {
 		var cornerX = -width * 0.5;
@@ -2192,36 +2273,25 @@ var ProjctOverlapTest = buildClass({
 		var img = this._drawer.getImage();
 		img.setPosX( cornerX );
 		img.setPosY( cornerY );
-		var sp = new Holder();
-		sp.getInst().appendChild( img.getInst() );
 		
 		var plane = new Plane2D_Rect( width, height, cornerX, cornerY );
-		plane.setPos( { x: x, y: y } );
-		
-		this.addItem( sp, plane );
+		this.addItem( img, plane, x, y );
 	}
-	, checkItemOverlap: function ( index, x, y ) {
+	, checkItemOverlap: function ( index, pos ) {
 		var plane = this._planeList[index];
-		if ( plane instanceof Plane2D_Cirle ) {
-			var radius = plane.getRadius();
-			plane.setPos( { x: x + radius, y: y + radius } );
-		} else if ( plane instanceof Plane2D_Rect ) {
-			var corner = plane.getCorner();
-			plane.setPos( { x: x - corner.x, y: y - corner.y } );
-		} else {
-			plane.setPos( { x: x, y: y } );
-		}
-		
+		var planeTest = plane.clone();
+		planeTest.setPos( pos );
 		for(var i = 0; i < this._planeList.length; i++) {
 			if ( i === index ) {
 				continue;
 			}
 			
 			var plane2 = this._planeList[i];
-			if ( plane.isOverlap( plane2 ) ) {
-				this.log( 'checkItemOverlap', index, 'vs', i );
+			if ( planeTest.isOverlap( plane2 ) ) {
+				return;
 			}
 		}
+		plane.setPos( pos );
 	}
 });
 
