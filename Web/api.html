@@ -593,7 +593,7 @@ var TimeCore = (function () {
 		}
 		
 		var delayId = delayList.length;
-		delayList.push( {slot: nextTime, idx: nextSlot.length} );
+		delayList.push( { slot: nextTime, idx: nextSlot.length } );
 		
 		nextSlot.push( callBack );
 		
@@ -2108,7 +2108,7 @@ var Drawer2D = buildClass({
 ////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-
+/*
 var ProjctA = buildClass({
 	  TAG: 'ProjctA'
 	, _inst: null
@@ -2143,7 +2143,6 @@ var ProjctA = buildClass({
 			}
 		});
 		
-		/*
 		var angle = 0;
 		var speed = 0.0005;
 
@@ -2155,7 +2154,7 @@ var ProjctA = buildClass({
 			sp.getInst().style.transform = "matrix(" + c + "," + s + "," + (-s) + "," + c + ",0,0)";
 		}, 1 );
 		// t.run();
-		*/
+		
 		this._circleMap = {};
 		
 		var world = new GravityWorld();
@@ -2197,6 +2196,55 @@ var ProjctA = buildClass({
 		circle.setColor( cStr );
 	}
 });
+*/
+
+var ModelCore = buildClass({
+	  TAG: 'ModelCore'
+	, _commander: null
+	, constructor: function ( commander ) {
+		this._commander = commander;
+		this.init();
+	}
+	, init: function () {
+		;
+	}
+	, dispose: function () {
+		this._commander = null;
+	}
+	, instruct: function ( action, data ) {
+		if ( !this._commander ) {
+			return;
+		}
+		
+		this._commander.instruct( action, data );
+	}
+});
+
+var ViewCore = buildClass({
+	  TAG: 'ViewCore'
+	, superClass: Holder
+	, _commander: null
+	, constructor: function ( commander ) {
+		this._commander = commander;
+		
+		ViewCore.__super__.constructor.apply( this, [] );
+	}
+	, init: function () {
+		ViewCore.__super__.init.apply( this, arguments );
+	}
+	, dispose: function () {
+		this._commander = null;
+		
+		ViewCore.__super__.dispose.apply( this, arguments );
+	}
+	, instruct: function ( action, data ) {
+		if ( !this._commander ) {
+			return;
+		}
+		
+		this._commander.instruct( action, data );
+	}
+});
 
 var ProjectCore = buildClass({
 	  TAG: 'ProjectCore'
@@ -2221,6 +2269,9 @@ var ProjectCore = buildClass({
 		
 		ProjectCore.__super__.dispose.apply( this, arguments );
 	}
+	, instruct: function ( action, data ) {
+		;
+	}
 });
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2228,198 +2279,283 @@ var ProjectCore = buildClass({
 ////////////////////////////////////////////////////////////
 ////////////////////////////////////////
 ////////////////////
-//	ProjctOverlapTest
+//	ProjctModelViewTest
 ////////////////////
 ////////////////////////////////////////
 ////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-var PlaneCollideGroup = buildClass({
-	  TAG: 'PlaneCollideGroup'
-	, superClass: Holder
-	, _drawer: null
-	, _itemList: null
-	, constructor: function () {
-		PlaneCollideGroup.__super__.constructor.apply( this, arguments );
-	}
-	, init: function () {
-		PlaneCollideGroup.__super__.init.apply( this, arguments );
-		
-		this._drawer = new Drawer2D( 300, 150 );
-		this._itemList = [];
-	}
-	, dispose: function () {
-		if ( this._drawer ) {
-			this._drawer.dispose();
-			this._drawer = null;
+var ProjctModelViewTest = (function () {
+	
+////////////////////////////////////////////////////////////
+////////////////////////////////////////
+////////////////////
+//	Model
+////////////////////
+////////////////////////////////////////
+////////////////////////////////////////////////////////////
+	
+	var CollideModel = buildClass({
+		  TAG: 'CollideModel'
+		, superClass: ModelCore
+		, __static__: {
+			  ACTION_ADD_ITEM: 'CollideModel.ACTION_ADD_ITEM'
+			, ACTION_UPDATE_POS: 'CollideModel.ACTION_UPDATE_POS'
+			, ITEM_CIRCLE: 'CollideModel.ITEM_CIRCLE'
+			, ITEM_RECT: 'CollideModel.ITEM_RECT'
 		}
-		if ( this._itemList ) {
-			for(var i = 0; i < this._itemList.length; i++) {
-				var item = this._itemList[i];
-				var plane = item.plane;
-				plane.dispose();
-			}
-			this._itemList = null;
+		, _itemList: null
+		, constructor: function ( commander ) {
+			CollideModel.__super__.constructor.apply( this, arguments );
 		}
-		
-		PlaneCollideGroup.__super__.dispose.apply( this, arguments );
-	}
-	, addItem: function ( inst, plane, x, y ) {
-		var sp = new Holder();
-		sp.setSensor( inst.getInst() );
-		sp.addChild( inst );
-		sp.getData().index = this._itemList.length;
-		sp.setPosX( x );
-		sp.setPosY( y );
-		this.addChild( sp );
-		
-		plane.setPos( { x: x, y: y } );
-		this._itemList.push( { inst: sp, plane: plane } );
-		
-		return sp;
-	}
-	, addItemCircle: function ( x, y, radius ) {
-		this._drawer.clear();
-		this._drawer.resize( radius * 2, radius * 2 );
-		this._drawer.drawCircle( radius, radius, radius );
-		var img = this._drawer.getImage();
-		img.setPosX( -radius );
-		img.setPosY( -radius );
-		
-		var plane = new Plane2D_Cirle( radius );
-		return this.addItem( img, plane, x, y );
-	}
-	, addItemRect: function ( x, y, width, height ) {
-		var cornerX = -width * 0.5;
-		var cornerY = -height * 0.5;
-		
-		this._drawer.clear();
-		this._drawer.resize( width, height );
-		this._drawer.drawRect( 0, 0, width, height );
-		var img = this._drawer.getImage();
-		img.setPosX( cornerX );
-		img.setPosY( cornerY );
-		
-		var plane = new Plane2D_Rect( width, height, cornerX, cornerY );
-		return this.addItem( img, plane, x, y );
-	}
-	, updateItemPos: function ( index, x, y ) {
-		var item = this._itemList[index];
-		var plane = item.plane;
-		var planeTest = plane.clone();
-		planeTest.setPos( { x: x, y: y } );
-		
-		var isUpdate = true;
-		for(var i = 0; i < this._itemList.length; i++) {
-			if ( i === index ) {
-				continue;
-			}
+		, init: function () {
+			CollideModel.__super__.init.apply( this, arguments );
 			
-			var plane2 = this._itemList[i].plane;
-			if ( planeTest.isOverlap( plane2 ) ) {
-				isUpdate = false;
-				break;
-			}
+			this._itemList = [];
 		}
-		
-		if ( isUpdate ) {
-			plane.setPos( { x: x, y: y } );
+		, dispose: function () {
+			CollideModel.__super__.dispose.apply( this, arguments );
 		}
-		
-		var pos = plane.getPos();
-		var inst = item.inst;
-		inst.setPosX( pos.x );
-		inst.setPosY( pos.y );
-	}
-	/*
-		sp.getDragable().enable( true );
-		sp.getDragable().getSignal().add( function ( rslt ) {
-			var action = rslt.action;
-			var target = rslt.target;
-			var newPos = rslt.position;
-			var item = target.getInst();
-			var index = item.getData().index;
-			switch ( action ) {
-			case Dragable.ACTION_BEFORE_MOVE:
-				self.checkItemOverlap( index, newPos );
-				var plane = self._planeList[index];
-				var pos = plane.getPos();
-				newPos.x = pos.x;
-				newPos.y = pos.y;
-				break;
-			case Dragable.ACTION_AFTER_MOVE:
-				break;
-			default:
-				;
-			}
-		});
-	*/
-	, checkItemOverlap: function ( index, pos ) {
-		var plane = this._planeList[index];
-		var planeTest = plane.clone();
-		planeTest.setPos( pos );
-		for(var i = 0; i < this._planeList.length; i++) {
-			if ( i === index ) {
-				continue;
-			}
-			
-			var plane2 = this._planeList[i];
-			if ( planeTest.isOverlap( plane2 ) ) {
+		, addItemCircle: function ( x, y, radius ) {
+			if ( !this._itemList ) {
 				return;
 			}
+			
+			var id = this._itemList.length;
+			var plane = new Plane2D_Cirle( radius );
+			plane.setPos( { x: x, y: y } );
+			this._itemList.push( plane );
+			this.instruct( CollideModel.ACTION_ADD_ITEM, { id: id, type: CollideModel.ITEM_CIRCLE, x: x, y: y, radius: radius } );
 		}
-		plane.setPos( pos );
-	}
-});
-
-var ProjctOverlapTest = buildClass({
-	  TAG: 'ProjctOverlapTest'
-	, superClass: ProjectCore
-	, _group: null
-	, constructor: function ( parent ) {
-		ProjctOverlapTest.__super__.constructor.apply( this, arguments );
-	}
-	, init: function () {
-		ProjctOverlapTest.__super__.init.apply( this, arguments );
-		
-		this._group = new PlaneCollideGroup();
-		this.addItem( this._group.addItemCircle( 100, 100, 20 ) );
-		this.addItem( this._group.addItemCircle( 200, 100, 20 ) );
-		this.addItem( this._group.addItemRect( 100, 200, 40, 40 ) );
-		this.addItem( this._group.addItemRect( 200, 200, 40, 40 ) );
-		
-		this.addChild( this._group );
-	}
-	, dispose: function () {
-		if ( this._group ) {
-			this._group.dispose();
-			this._group = null;
+		, addItemRect: function ( x, y, width, height ) {
+			if ( !this._itemList ) {
+				return;
+			}
+			
+			var id = this._itemList.length;
+			var cornerX = -width * 0.5;
+			var cornerY = -height * 0.5;
+			var plane = new Plane2D_Rect( width, height, cornerX, cornerY );
+			plane.setPos( { x: x, y: y } );
+			this._itemList.push( plane );
+			this.instruct( CollideModel.ACTION_ADD_ITEM, { id: id, type: CollideModel.ITEM_RECT, x: x, y: y, width: width, height: height } );
 		}
-		
-		ProjctOverlapTest.__super__.dispose.apply( this, arguments );
-	}
-	, addItem: function ( item ) {
-		var self = this;
-		item.getDragable().enable( true );
-		item.getDragable().getSignal().add( function ( rslt ) {
+		, updatePos: function ( id, x, y ) {
+			if ( !this._itemList ) {
+				return;
+			}
+			if ( !setter.isValidInt( id ) ) {
+				return;
+			}
+			if ( id < 0 || id >= this._itemList.length ) {
+				return;
+			}
+			
+			var pos = { x: x, y: y };
+			var item = this._itemList[id];
+			var itemTest = item.clone();
+			itemTest.setPos( pos );
+			for(var i = 0; i < this._itemList.length; i++) {
+				if ( i === id ) {
+					continue;
+				}
+				
+				var item2 = this._itemList[i];
+				if ( itemTest.isOverlap( item2 ) ) {
+					pos = item.getPos();
+					break;
+				}
+			}
+			item.setPos( pos );
+			
+			this.instruct( CollideModel.ACTION_UPDATE_POS, { id: id, x: pos.x, y: pos.y } );
+		}
+	});
+	
+////////////////////////////////////////////////////////////
+////////////////////////////////////////
+////////////////////
+//	View
+////////////////////
+////////////////////////////////////////
+////////////////////////////////////////////////////////////
+	
+	var DragView = buildClass({
+		  TAG: 'DragView'
+		, superClass: ViewCore
+		, __static__: {
+			  ACTION_DRAG_ITEM: 'DragView.ACTION_DRAG_ITEM'
+		}
+		, _drawer: null
+		, _itemMap: null
+		, constructor: function ( commander ) {
+			DragView.__super__.constructor.apply( this, arguments );
+		}
+		, init: function () {
+			DragView.__super__.init.apply( this, arguments );
+			
+			this._drawer = new Drawer2D( 300, 150 );
+			this._itemMap = {};
+		}
+		, dispose: function () {
+			if ( this._drawer ) {
+				this._drawer.dispose();
+				this._drawer = null;
+			}
+			this._itemMap = null;
+			
+			DragView.__super__.dispose.apply( this, arguments );
+		}
+		, addItem: function ( id, inst, x, y ) {
+			var sp = new Holder();
+			sp.setSensor( inst.getInst() );
+			sp.addChild( inst );
+			sp.getData().id = id;
+			sp.setPosX( x );
+			sp.setPosY( y );
+			this.addChild( sp );
+			this._itemMap[id] = sp;
+			
+			var self = this;
+			sp.getDragable().enable( true );
+			sp.getDragable().getSignal().add( function ( rslt ) {
+				self.onDrag( rslt );
+			});
+		}
+		, addItemCircle: function ( id, x, y, radius ) {
+			if ( !this._drawer ) {
+				return;
+			}
+			this._drawer.clear();
+			this._drawer.resize( radius * 2, radius * 2 );
+			this._drawer.drawCircle( radius, radius, radius );
+			var img = this._drawer.getImage();
+			img.setPosX( -radius );
+			img.setPosY( -radius );
+			this.addItem( id, img, x, y );
+		}
+		, addItemRect: function ( id, x, y, width, height ) {
+			if ( !this._drawer ) {
+				return;
+			}
+			var cornerX = -width * 0.5;
+			var cornerY = -height * 0.5;
+			this._drawer.clear();
+			this._drawer.resize( width, height );
+			this._drawer.drawRect( 0, 0, width, height );
+			var img = this._drawer.getImage();
+			img.setPosX( cornerX );
+			img.setPosY( cornerY );
+			this.addItem( id, img, x, y );
+		}
+		, onDrag: function ( rslt ) {
 			var action = rslt.action;
 			var target = rslt.target;
 			var pos = rslt.position;
-			var item = target.getInst();
-			var index = item.getData().index;
+			var sp = target.getInst();
+			var id = sp.getData().id;
 			switch ( action ) {
 			case Dragable.ACTION_BEFORE_MOVE:
 				break;
 			case Dragable.ACTION_AFTER_MOVE:
-				self._group.updateItemPos( index, pos.x, pos.y );
+				this.instruct( DragView.ACTION_DRAG_ITEM, { id: id, x: pos.x, y: pos.y } );
 				break;
 			default:
 				;
 			}
-		});
-	}
-});
+		}
+		, update: function ( id, x, y ) {
+			if ( !this._itemMap ) {
+				return;
+			}
+			var sp = this._itemMap[id];
+			if ( !sp ) {
+				return;
+			}
+			sp.setPosX( x );
+			sp.setPosY( y );
+		} 
+	});
+	
+////////////////////////////////////////////////////////////
+////////////////////////////////////////
+////////////////////
+//	Main
+////////////////////
+////////////////////////////////////////
+////////////////////////////////////////////////////////////
+	
+	return buildClass({
+		  TAG: 'ProjctModelViewTest'
+		, superClass: ProjectCore
+		, _dragView: null
+		, _collideModel: null
+		, constructor: function ( parent ) {
+			ProjctModelViewTest.__super__.constructor.apply( this, arguments );
+		}
+		, init: function () {
+			ProjctModelViewTest.__super__.init.apply( this, arguments );
+			
+			this._collideModel = new CollideModel( this );
+			this._dragView = new DragView( this );
+			
+			this.addChild( this._dragView );
+			
+			this._collideModel.addItemCircle( 100, 100, 20 );
+			this._collideModel.addItemCircle( 200, 100, 20 );
+			this._collideModel.addItemRect( 100, 200, 40, 40 );
+			this._collideModel.addItemRect( 200, 200, 40, 40 );
+		}
+		, dispose: function () {
+			if ( this._collideModel ) {
+				this._collideModel.dispose();
+				this._collideModel = null;
+			}
+			if ( this._dragView ) {
+				this._dragView.dispose();
+				this._dragView = null;
+			}
+			
+			ProjctModelViewTest.__super__.dispose.apply( this, arguments );
+		}
+		, instruct: function ( action, data ) {
+			this.log( 'instruct >> ' + action + ', ' + JSON.stringify( data ) );
+			switch ( action ) {
+			case CollideModel.ACTION_ADD_ITEM:
+				var id = data.id;
+				var type = data.type;
+				var x = data.x;
+				var y = data.y;
+				switch ( type ) {
+				case CollideModel.ITEM_CIRCLE:
+					this._dragView.addItemCircle( id, x, y, data.radius );
+					break;
+				case CollideModel.ITEM_RECT:
+					this._dragView.addItemRect( id, x, y, data.width, data.height );
+					break;
+				default:
+					this.log( 'Unknown add item >> ' + type );
+				}
+				break;
+			case CollideModel.ACTION_UPDATE_POS:
+				var id = data.id;
+				var x = data.x;
+				var y = data.y;
+				this._dragView.update( id, x, y );
+				break;
+			case DragView.ACTION_DRAG_ITEM:
+				var id = data.id;
+				var x = data.x;
+				var y = data.y;
+				this._collideModel.updatePos( id, x, y );
+				break;
+			default:
+				this.log( 'Unknown action >> ' + action );
+			}
+		}
+	});
+} ());
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
@@ -2433,42 +2569,73 @@ var ProjctOverlapTest = buildClass({
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-var ProjctCollideTest = buildClass({
-	  TAG: 'ProjctCollideTest'
-	, superClass: ProjectCore
-	, constructor: function ( parent ) {
-		ProjctCollideTest.__super__.constructor.apply( this, arguments );
-	}
-	, init: function () {
-		ProjctCollideTest.__super__.init.apply( this, arguments );
-		/*
-		var world = new GravityWorld();
-		world.setRect( 0, 0, 960, 580 );
-		world.setMaxSpeed( 5 );
-		world.getSignal().add( function ( rslt ) {
-			self.updateCircle( rslt );
-		});
-		
-		world.addForce( new GravityForce_Point( { x: 480, y: 290 }, 0.05, true ) );
-	//	world.addForce( new GravityForce_Point( { x: 200, y: 200 }, 0.05, true ) );
-	//	world.addForce( new GravityForce_Point( { x: 600, y: 600 }, 0.05, true ) );
-	//	world.addForce( new GravityForce_Earth( { x: 0, y: 0.05 }, true ) );
-		
-		for(var i = 0; i < 1; i++) {
-			var item = new GravityItem( { x: 50 + Math.random() * 860, y: 50 + Math.random() * 480 },  { x: Math.random() * 3, y: Math.random() * 3 }, 1, 5 );
-			var id = world.addItem( item );
-			var circle = new Quad( 10, 10, '#888888' );
-			this._inst.getInst().appendChild( circle.getInst() );
-			this._circleMap[id] = circle;
+var ProjctCollideTest = (function () {
+	
+////////////////////////////////////////////////////////////
+////////////////////////////////////////
+////////////////////
+//	Model
+////////////////////
+////////////////////////////////////////
+////////////////////////////////////////////////////////////
+	
+	
+	
+////////////////////////////////////////////////////////////
+////////////////////////////////////////
+////////////////////
+//	View
+////////////////////
+////////////////////////////////////////
+////////////////////////////////////////////////////////////
+	
+	
+	
+////////////////////////////////////////////////////////////
+////////////////////////////////////////
+////////////////////
+//	Main
+////////////////////
+////////////////////////////////////////
+////////////////////////////////////////////////////////////
+	
+	return buildClass({
+		  TAG: 'ProjctCollideTest'
+		, superClass: ProjectCore
+		, constructor: function ( parent ) {
+			ProjctCollideTest.__super__.constructor.apply( this, arguments );
 		}
-		*/
-	}
-	, dispose: function () {
-		ProjctCollideTest.__super__.dispose.apply( this, arguments );
-	}
-});
+		, init: function () {
+			ProjctCollideTest.__super__.init.apply( this, arguments );
+			/*
+			var world = new GravityWorld();
+			world.setRect( 0, 0, 960, 580 );
+			world.setMaxSpeed( 5 );
+			world.getSignal().add( function ( rslt ) {
+				self.updateCircle( rslt );
+			});
+			
+			world.addForce( new GravityForce_Point( { x: 480, y: 290 }, 0.05, true ) );
+		//	world.addForce( new GravityForce_Point( { x: 200, y: 200 }, 0.05, true ) );
+		//	world.addForce( new GravityForce_Point( { x: 600, y: 600 }, 0.05, true ) );
+		//	world.addForce( new GravityForce_Earth( { x: 0, y: 0.05 }, true ) );
+			
+			for(var i = 0; i < 1; i++) {
+				var item = new GravityItem( { x: 50 + Math.random() * 860, y: 50 + Math.random() * 480 },  { x: Math.random() * 3, y: Math.random() * 3 }, 1, 5 );
+				var id = world.addItem( item );
+				var circle = new Quad( 10, 10, '#888888' );
+				this._inst.getInst().appendChild( circle.getInst() );
+				this._circleMap[id] = circle;
+			}
+			*/
+		}
+		, dispose: function () {
+			ProjctCollideTest.__super__.dispose.apply( this, arguments );
+		}
+	});
+} ());
 
-new ProjctOverlapTest( document.body );
+new ProjctModelViewTest( document.body );
 
 // new ProjctA( document.body );
 
