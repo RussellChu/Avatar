@@ -1729,6 +1729,7 @@ var DisplayObject = buildClass({
 	, _inst: null
 	, _type: ''
 	, _data: null
+	, _parent: null
 	, _posX: 0
 	, _posY: 0
 	, _dragable: null
@@ -1749,6 +1750,7 @@ var DisplayObject = buildClass({
 		this._signal = new Signal();
 	}
 	, dispose: function () {
+		this.removeFromParent();
 		this._data = null;
 		this._inst = null;
 		if ( this._dragable !== null ) {
@@ -1769,6 +1771,9 @@ var DisplayObject = buildClass({
 	}
 	, getInst: function () {
 		return this._inst;
+	}
+	, setParent: function ( parent ) {
+		this._parent = parent
 	}
 	, getPosX: function () {
 		return this._posX;
@@ -1802,6 +1807,13 @@ var DisplayObject = buildClass({
 	}
 	, getSignal: function () {
 		return this._signal;
+	}
+	, removeFromParent: function () {
+		if ( this._parent === null ) {
+			return;
+		}
+		this._parent.removeChild( this );
+		this._parent = null;
 	}
 });
 
@@ -1935,14 +1947,39 @@ var Dragable = buildClass({
 var Holder = buildClass({
 	  TAG: 'Holder'
 	, superClass: DisplayObject
+	, _childList: null
 	, constructor: function () {
 		Holder.__super__.constructor.apply( this, ['div'] );
 	}
 	, init: function () {
 		Holder.__super__.init.apply( this, arguments );
+		
+		this._childList = [];
 	}
 	, dispose: function () {
+		if ( this._childList ) {
+			while ( this._childList.length > 0 ) {
+				this._childList[0].dispose();
+			}
+			this._childList = null;
+		}
+		
 		Holder.__super__.dispose.apply( this, arguments );
+	}
+	, addChild: function ( child ) {
+		child.removeFromParent();
+		this.getInst().appendChild( child.getInst() );
+		child.setParent( this );
+		this._childList.push( child );
+	}
+	, removeChild: function ( child ) {
+		var index = this._childList.indexOf( child );
+		if ( index < 0 ) {
+			return;
+		}
+		
+		this._childList.splice( index, 1 );
+		this.getInst().removeChild( child.getInst() );
 	}
 });
 
@@ -2163,7 +2200,7 @@ var ProjctA = buildClass({
 
 var ProjectCore = buildClass({
 	  TAG: 'ProjectCore'
-	, _inst: null
+	, superClass: Holder
 	, _parent: null
 	, constructor: function ( parent ) {
 		if ( !setter.isValidObj( parent ) ) {
@@ -2171,58 +2208,131 @@ var ProjectCore = buildClass({
 			return;
 		}
 		this._parent = parent;
-		this.init();
+		ProjectCore.__super__.constructor.apply( this, [] );
 		this.log( 'init() ready' );
 	}
 	, init: function () {
-		this._inst = new Holder();
-		this._parent.appendChild( this._inst.getInst() );
+		ProjectCore.__super__.init.apply( this, arguments );
+		
+		this._parent.appendChild( this._inst );
 	}
 	, dispose: function () {
-		if ( this._inst ) {
-			this._inst.dispose();
-			this._inst = null;
-		}
 		this._parent = null;
+		
+		ProjectCore.__super__.dispose.apply( this, arguments );
 	}
 });
 
-var ProjctOverlapTest = buildClass({
-	  TAG: 'ProjctOverlapTest'
-	, superClass: ProjectCore
-	, _inst: null
-	, _parent: null
+////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////
+////////////////////////////////////////
+////////////////////
+//	ProjctOverlapTest
+////////////////////
+////////////////////////////////////////
+////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+var PlaneCollideGroup = buildClass({
+	  TAG: 'PlaneCollideGroup'
+	, superClass: Holder
 	, _drawer: null
-	, _planeList: null
-	, constructor: function ( parent ) {
-		ProjctOverlapTest.__super__.constructor.apply( this, arguments );
+	, _itemList: null
+	, constructor: function () {
+		PlaneCollideGroup.__super__.constructor.apply( this, arguments );
 	}
 	, init: function () {
-		ProjctOverlapTest.__super__.init.apply( this, arguments );
+		PlaneCollideGroup.__super__.init.apply( this, arguments );
 		
 		this._drawer = new Drawer2D( 300, 150 );
-		this._planeList = [];
-		this.createCircle( 100, 100, 20 );
-		this.createCircle( 200, 100, 20 );
-		this.createRect( 100, 200, 40, 40 );
-		this.createRect( 200, 200, 40, 40 );
+		this._itemList = [];
 	}
 	, dispose: function () {
 		if ( this._drawer ) {
 			this._drawer.dispose();
 			this._drawer = null;
 		}
-		this._planeList = null;
+		if ( this._itemList ) {
+			for(var i = 0; i < this._itemList.length; i++) {
+				var item = this._itemList[i];
+				var plane = item.plane;
+				plane.dispose();
+			}
+			this._itemList = null;
+		}
 		
-		ProjctOverlapTest.__super__.dispose.apply( this, arguments );
+		PlaneCollideGroup.__super__.dispose.apply( this, arguments );
 	}
-	, addItem: function ( item, plane, x, y ) {
-		var self = this;
+	, addItem: function ( inst, plane, x, y ) {
 		var sp = new Holder();
-		sp.setSensor( item.getInst() );
-		sp.getInst().appendChild( item.getInst() );
+		sp.setSensor( inst.getInst() );
+		sp.addChild( inst );
+		sp.getData().index = this._itemList.length;
+		sp.setPosX( x );
+		sp.setPosY( y );
+		this.addChild( sp );
 		
-		sp.getData().index = this._planeList.length;
+		plane.setPos( { x: x, y: y } );
+		this._itemList.push( { inst: sp, plane: plane } );
+		
+		return sp;
+	}
+	, addItemCircle: function ( x, y, radius ) {
+		this._drawer.clear();
+		this._drawer.resize( radius * 2, radius * 2 );
+		this._drawer.drawCircle( radius, radius, radius );
+		var img = this._drawer.getImage();
+		img.setPosX( -radius );
+		img.setPosY( -radius );
+		
+		var plane = new Plane2D_Cirle( radius );
+		return this.addItem( img, plane, x, y );
+	}
+	, addItemRect: function ( x, y, width, height ) {
+		var cornerX = -width * 0.5;
+		var cornerY = -height * 0.5;
+		
+		this._drawer.clear();
+		this._drawer.resize( width, height );
+		this._drawer.drawRect( 0, 0, width, height );
+		var img = this._drawer.getImage();
+		img.setPosX( cornerX );
+		img.setPosY( cornerY );
+		
+		var plane = new Plane2D_Rect( width, height, cornerX, cornerY );
+		return this.addItem( img, plane, x, y );
+	}
+	, updateItemPos: function ( index, x, y ) {
+		var item = this._itemList[index];
+		var plane = item.plane;
+		var planeTest = plane.clone();
+		planeTest.setPos( { x: x, y: y } );
+		
+		var isUpdate = true;
+		for(var i = 0; i < this._itemList.length; i++) {
+			if ( i === index ) {
+				continue;
+			}
+			
+			var plane2 = this._itemList[i].plane;
+			if ( planeTest.isOverlap( plane2 ) ) {
+				isUpdate = false;
+				break;
+			}
+		}
+		
+		if ( isUpdate ) {
+			plane.setPos( { x: x, y: y } );
+		}
+		
+		var pos = plane.getPos();
+		var inst = item.inst;
+		inst.setPosX( pos.x );
+		inst.setPosY( pos.y );
+	}
+	/*
 		sp.getDragable().enable( true );
 		sp.getDragable().getSignal().add( function ( rslt ) {
 			var action = rslt.action;
@@ -2244,39 +2354,7 @@ var ProjctOverlapTest = buildClass({
 				;
 			}
 		});
-		
-		sp.setPosX( x );
-		sp.setPosY( y );
-		this._inst.getInst().appendChild( sp.getInst() );
-		
-		plane.setPos( { x: x, y: y } );
-		this._planeList.push( plane );
-	}
-	, createCircle: function ( x, y, radius ) {
-		this._drawer.clear();
-		this._drawer.resize( radius * 2, radius * 2 );
-		this._drawer.drawCircle( radius, radius, radius );
-		var img = this._drawer.getImage();
-		img.setPosX( -radius );
-		img.setPosY( -radius );
-		
-		var plane = new Plane2D_Cirle( radius );
-		this.addItem( img, plane, x, y );
-	}
-	, createRect: function ( x, y, width, height ) {
-		var cornerX = -width * 0.5;
-		var cornerY = -height * 0.5;
-		
-		this._drawer.clear();
-		this._drawer.resize( width, height );
-		this._drawer.drawRect( 0, 0, width, height );
-		var img = this._drawer.getImage();
-		img.setPosX( cornerX );
-		img.setPosY( cornerY );
-		
-		var plane = new Plane2D_Rect( width, height, cornerX, cornerY );
-		this.addItem( img, plane, x, y );
-	}
+	*/
 	, checkItemOverlap: function ( index, pos ) {
 		var plane = this._planeList[index];
 		var planeTest = plane.clone();
@@ -2292,6 +2370,101 @@ var ProjctOverlapTest = buildClass({
 			}
 		}
 		plane.setPos( pos );
+	}
+});
+
+var ProjctOverlapTest = buildClass({
+	  TAG: 'ProjctOverlapTest'
+	, superClass: ProjectCore
+	, _group: null
+	, constructor: function ( parent ) {
+		ProjctOverlapTest.__super__.constructor.apply( this, arguments );
+	}
+	, init: function () {
+		ProjctOverlapTest.__super__.init.apply( this, arguments );
+		
+		this._group = new PlaneCollideGroup();
+		this.addItem( this._group.addItemCircle( 100, 100, 20 ) );
+		this.addItem( this._group.addItemCircle( 200, 100, 20 ) );
+		this.addItem( this._group.addItemRect( 100, 200, 40, 40 ) );
+		this.addItem( this._group.addItemRect( 200, 200, 40, 40 ) );
+		
+		this.addChild( this._group );
+	}
+	, dispose: function () {
+		if ( this._group ) {
+			this._group.dispose();
+			this._group = null;
+		}
+		
+		ProjctOverlapTest.__super__.dispose.apply( this, arguments );
+	}
+	, addItem: function ( item ) {
+		var self = this;
+		item.getDragable().enable( true );
+		item.getDragable().getSignal().add( function ( rslt ) {
+			var action = rslt.action;
+			var target = rslt.target;
+			var pos = rslt.position;
+			var item = target.getInst();
+			var index = item.getData().index;
+			switch ( action ) {
+			case Dragable.ACTION_BEFORE_MOVE:
+				break;
+			case Dragable.ACTION_AFTER_MOVE:
+				self._group.updateItemPos( index, pos.x, pos.y );
+				break;
+			default:
+				;
+			}
+		});
+	}
+});
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////
+////////////////////////////////////////
+////////////////////
+//	ProjctCollideTest
+////////////////////
+////////////////////////////////////////
+////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+var ProjctCollideTest = buildClass({
+	  TAG: 'ProjctCollideTest'
+	, superClass: ProjectCore
+	, constructor: function ( parent ) {
+		ProjctCollideTest.__super__.constructor.apply( this, arguments );
+	}
+	, init: function () {
+		ProjctCollideTest.__super__.init.apply( this, arguments );
+		/*
+		var world = new GravityWorld();
+		world.setRect( 0, 0, 960, 580 );
+		world.setMaxSpeed( 5 );
+		world.getSignal().add( function ( rslt ) {
+			self.updateCircle( rslt );
+		});
+		
+		world.addForce( new GravityForce_Point( { x: 480, y: 290 }, 0.05, true ) );
+	//	world.addForce( new GravityForce_Point( { x: 200, y: 200 }, 0.05, true ) );
+	//	world.addForce( new GravityForce_Point( { x: 600, y: 600 }, 0.05, true ) );
+	//	world.addForce( new GravityForce_Earth( { x: 0, y: 0.05 }, true ) );
+		
+		for(var i = 0; i < 1; i++) {
+			var item = new GravityItem( { x: 50 + Math.random() * 860, y: 50 + Math.random() * 480 },  { x: Math.random() * 3, y: Math.random() * 3 }, 1, 5 );
+			var id = world.addItem( item );
+			var circle = new Quad( 10, 10, '#888888' );
+			this._inst.getInst().appendChild( circle.getInst() );
+			this._circleMap[id] = circle;
+		}
+		*/
+	}
+	, dispose: function () {
+		ProjctCollideTest.__super__.dispose.apply( this, arguments );
 	}
 });
 
