@@ -302,6 +302,7 @@ var tools = (function () {
 	
 	setter.isValidInt = isValidInt;
 	setter.isValidNum = isValidNum;
+	setter.isValidStr = isValidStr;
 	setter.isValidObj = isValidObj;
 	setter.isValidFunc = isValidFunc;
 	setter.hasValidFunc = hasValidFunc;
@@ -1066,6 +1067,7 @@ var Plane2D = buildClass({
 	  TAG: 'Plane2D'
 	, _pos: null
 	, _dir: null
+	, _shape: ''
 	, constructor: function () {
 		this.init();
 	}
@@ -1095,6 +1097,9 @@ var Plane2D = buildClass({
 	, setPos: function ( value ) {
 		this._pos = Vec2.createFromObj( value );
 	}
+	, getShape: function () {
+		return this._shape;
+	}
 	, isOverlap: function ( target ) {
 		return Plane2DOverlapChecker.calc( this, target );
 	}
@@ -1103,11 +1108,15 @@ var Plane2D = buildClass({
 var Plane2D_Wall = buildClass({
 	  TAG: 'Plane2D_Wall'
 	, superClass: Plane2D
+	, __static__: {
+		  SHAPE: 'Plane2D_Wall'
+	}
 	, constructor: function () {
 		Plane2D_Wall.__super__.constructor.apply( this, arguments );
 	}
 	, init: function () {
 		Plane2D_Wall.__super__.init.apply( this, arguments );
+		this._shape = Plane2D_Wall.SHAPE;
 	}
 	, dispose: function () {
 		Plane2D_Wall.__super__.dispose.apply( this, arguments );
@@ -1123,6 +1132,9 @@ var Plane2D_Wall = buildClass({
 var Plane2D_Cirle = buildClass({
 	  TAG: 'Plane2D_Cirle'
 	, superClass: Plane2D
+	, __static__: {
+		  SHAPE: 'Plane2D_Cirle'
+	}
 	, _radius: 0
 	, constructor: function ( radius ) {
 		this._radius = setter.setNum( radius, 0, { min: 0 } );
@@ -1131,6 +1143,7 @@ var Plane2D_Cirle = buildClass({
 	}
 	, init: function () {
 		Plane2D_Cirle.__super__.init.apply( this, arguments );
+		this._shape = Plane2D_Cirle.SHAPE;
 	}
 	, dispose: function () {
 		Plane2D_Cirle.__super__.dispose.apply( this, arguments );
@@ -1150,6 +1163,9 @@ var Plane2D_Cirle = buildClass({
 var Plane2D_Rect = buildClass({
 	  TAG: 'Plane2D_Rect'
 	, superClass: Plane2D
+	, __static__: {
+		  SHAPE: 'Plane2D_Rect'
+	}
 	, _cornerX: 0
 	, _cornerY: 0
 	, _width: 0
@@ -1164,6 +1180,7 @@ var Plane2D_Rect = buildClass({
 	}
 	, init: function () {
 		Plane2D_Rect.__super__.init.apply( this, arguments );
+		this._shape = Plane2D_Rect.SHAPE;
 	}
 	, dispose: function () {
 		Plane2D_Rect.__super__.dispose.apply( this, arguments );
@@ -1469,12 +1486,6 @@ var DisplayObject = buildClass({
 		return this._inst;
 	}
 	, setSensor: function ( obj ) {
-		if ( obj !== null ) {
-			if ( !DisplayObject.isCreatorOf( obj ) ) {
-				this.err( 'setSensor fail' );
-				return;
-			}
-		}
 		this._sensor = obj;
 		this._signal.dispatch( { action: DisplayObject.ACTION_SENSOR_UPDATE } );
 	}
@@ -1967,6 +1978,115 @@ var ProjectCore = buildClass({
 ////////////////////////////////////////////////////////////
 ////////////////////////////////////////
 ////////////////////
+//	Components
+////////////////////
+////////////////////////////////////////
+////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+var DragView = buildClass({
+	  TAG: 'DragView'
+	, superClass: ViewCore
+	, __static__: {
+		  ACTION_DRAG_ITEM: 'DragView.ACTION_DRAG_ITEM'
+	}
+	, _drawer: null
+	, _itemMap: null
+	, constructor: function ( commander ) {
+		DragView.__super__.constructor.apply( this, arguments );
+	}
+	, init: function () {
+		DragView.__super__.init.apply( this, arguments );
+		
+		this._drawer = new Drawer2D( 300, 150 );
+		this._itemMap = {};
+	}
+	, dispose: function () {
+		if ( this._drawer ) {
+			this._drawer.dispose();
+			this._drawer = null;
+		}
+		this._itemMap = null;
+		
+		DragView.__super__.dispose.apply( this, arguments );
+	}
+	, addItem: function ( id, inst, x, y ) {
+		var sp = new Holder();
+		sp.setSensor( inst.getInst() );
+		sp.addChild( inst );
+		sp.getData().id = id;
+		sp.setPosX( x );
+		sp.setPosY( y );
+		this.addChild( sp );
+		this._itemMap[id] = sp;
+		
+		var self = this;
+		sp.getDragable().enable( true );
+		sp.getDragable().getSignal().add( function ( rslt ) {
+			self.onDrag( rslt );
+		});
+	}
+	, addItemCircle: function ( id, x, y, radius ) {
+		if ( !this._drawer ) {
+			return;
+		}
+		this._drawer.clear();
+		this._drawer.resize( radius * 2, radius * 2 );
+		this._drawer.drawCircle( radius, radius, radius );
+		var img = this._drawer.getImage();
+		img.setPosX( -radius );
+		img.setPosY( -radius );
+		this.addItem( id, img, x, y );
+	}
+	, addItemRect: function ( id, x, y, width, height ) {
+		if ( !this._drawer ) {
+			return;
+		}
+		var cornerX = -width * 0.5;
+		var cornerY = -height * 0.5;
+		this._drawer.clear();
+		this._drawer.resize( width, height );
+		this._drawer.drawRect( 0, 0, width, height );
+		var img = this._drawer.getImage();
+		img.setPosX( cornerX );
+		img.setPosY( cornerY );
+		this.addItem( id, img, x, y );
+	}
+	, onDrag: function ( rslt ) {
+		var action = rslt.action;
+		var target = rslt.target;
+		var pos = rslt.position;
+		var sp = target.getInst();
+		var id = sp.getData().id;
+		switch ( action ) {
+		case Dragable.ACTION_BEFORE_MOVE:
+			break;
+		case Dragable.ACTION_AFTER_MOVE:
+			this.instruct( DragView.ACTION_DRAG_ITEM, { id: id, x: pos.x, y: pos.y } );
+			break;
+		default:
+			;
+		}
+	}
+	, update: function ( id, x, y ) {
+		if ( !this._itemMap ) {
+			return;
+		}
+		var sp = this._itemMap[id];
+		if ( !sp ) {
+			return;
+		}
+		sp.setPosX( x );
+		sp.setPosY( y );
+	} 
+});
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////
+////////////////////////////////////////
+////////////////////
 //	ProjctModelViewTest
 ////////////////////
 ////////////////////////////////////////
@@ -1990,8 +2110,6 @@ var ProjctModelViewTest = (function () {
 		, __static__: {
 			  ACTION_ADD_ITEM: 'CollideModel.ACTION_ADD_ITEM'
 			, ACTION_UPDATE_POS: 'CollideModel.ACTION_UPDATE_POS'
-			, ITEM_CIRCLE: 'CollideModel.ITEM_CIRCLE'
-			, ITEM_RECT: 'CollideModel.ITEM_RECT'
 		}
 		, _itemList: null
 		, constructor: function ( commander ) {
@@ -2014,7 +2132,7 @@ var ProjctModelViewTest = (function () {
 			var plane = new Plane2D_Cirle( radius );
 			plane.setPos( { x: x, y: y } );
 			this._itemList.push( plane );
-			this.instruct( CollideModel.ACTION_ADD_ITEM, { id: id, type: CollideModel.ITEM_CIRCLE, x: x, y: y, radius: radius } );
+			this.instruct( CollideModel.ACTION_ADD_ITEM, { id: id, shape: plane.getShape(), x: x, y: y, radius: radius } );
 		}
 		, addItemRect: function ( x, y, width, height ) {
 			if ( !this._itemList ) {
@@ -2027,7 +2145,7 @@ var ProjctModelViewTest = (function () {
 			var plane = new Plane2D_Rect( width, height, cornerX, cornerY );
 			plane.setPos( { x: x, y: y } );
 			this._itemList.push( plane );
-			this.instruct( CollideModel.ACTION_ADD_ITEM, { id: id, type: CollideModel.ITEM_RECT, x: x, y: y, width: width, height: height } );
+			this.instruct( CollideModel.ACTION_ADD_ITEM, { id: id, shape: plane.getShape(), x: x, y: y, width: width, height: height } );
 		}
 		, updatePos: function ( id, x, y ) {
 			if ( !this._itemList ) {
@@ -2068,103 +2186,6 @@ var ProjctModelViewTest = (function () {
 ////////////////////
 ////////////////////////////////////////
 ////////////////////////////////////////////////////////////
-	
-	var DragView = buildClass({
-		  TAG: 'DragView'
-		, superClass: ViewCore
-		, __static__: {
-			  ACTION_DRAG_ITEM: 'DragView.ACTION_DRAG_ITEM'
-		}
-		, _drawer: null
-		, _itemMap: null
-		, constructor: function ( commander ) {
-			DragView.__super__.constructor.apply( this, arguments );
-		}
-		, init: function () {
-			DragView.__super__.init.apply( this, arguments );
-			
-			this._drawer = new Drawer2D( 300, 150 );
-			this._itemMap = {};
-		}
-		, dispose: function () {
-			if ( this._drawer ) {
-				this._drawer.dispose();
-				this._drawer = null;
-			}
-			this._itemMap = null;
-			
-			DragView.__super__.dispose.apply( this, arguments );
-		}
-		, addItem: function ( id, inst, x, y ) {
-			var sp = new Holder();
-			sp.setSensor( inst.getInst() );
-			sp.addChild( inst );
-			sp.getData().id = id;
-			sp.setPosX( x );
-			sp.setPosY( y );
-			this.addChild( sp );
-			this._itemMap[id] = sp;
-			
-			var self = this;
-			sp.getDragable().enable( true );
-			sp.getDragable().getSignal().add( function ( rslt ) {
-				self.onDrag( rslt );
-			});
-		}
-		, addItemCircle: function ( id, x, y, radius ) {
-			if ( !this._drawer ) {
-				return;
-			}
-			this._drawer.clear();
-			this._drawer.resize( radius * 2, radius * 2 );
-			this._drawer.drawCircle( radius, radius, radius );
-			var img = this._drawer.getImage();
-			img.setPosX( -radius );
-			img.setPosY( -radius );
-			this.addItem( id, img, x, y );
-		}
-		, addItemRect: function ( id, x, y, width, height ) {
-			if ( !this._drawer ) {
-				return;
-			}
-			var cornerX = -width * 0.5;
-			var cornerY = -height * 0.5;
-			this._drawer.clear();
-			this._drawer.resize( width, height );
-			this._drawer.drawRect( 0, 0, width, height );
-			var img = this._drawer.getImage();
-			img.setPosX( cornerX );
-			img.setPosY( cornerY );
-			this.addItem( id, img, x, y );
-		}
-		, onDrag: function ( rslt ) {
-			var action = rslt.action;
-			var target = rslt.target;
-			var pos = rslt.position;
-			var sp = target.getInst();
-			var id = sp.getData().id;
-			switch ( action ) {
-			case Dragable.ACTION_BEFORE_MOVE:
-				break;
-			case Dragable.ACTION_AFTER_MOVE:
-				this.instruct( DragView.ACTION_DRAG_ITEM, { id: id, x: pos.x, y: pos.y } );
-				break;
-			default:
-				;
-			}
-		}
-		, update: function ( id, x, y ) {
-			if ( !this._itemMap ) {
-				return;
-			}
-			var sp = this._itemMap[id];
-			if ( !sp ) {
-				return;
-			}
-			sp.setPosX( x );
-			sp.setPosY( y );
-		} 
-	});
 	
 ////////////////////////////////////////////////////////////
 ////////////////////////////////////////
@@ -2212,18 +2233,18 @@ var ProjctModelViewTest = (function () {
 			switch ( action ) {
 			case CollideModel.ACTION_ADD_ITEM:
 				var id = data.id;
-				var type = data.type;
+				var shape = data.shape;
 				var x = data.x;
 				var y = data.y;
-				switch ( type ) {
-				case CollideModel.ITEM_CIRCLE:
+				switch ( shape ) {
+				case Plane2D_Cirle.SHAPE:
 					this._dragView.addItemCircle( id, x, y, data.radius );
 					break;
-				case CollideModel.ITEM_RECT:
+				case Plane2D_Rect.SHAPE:
 					this._dragView.addItemRect( id, x, y, data.width, data.height );
 					break;
 				default:
-					this.log( 'Unknown add item >> ' + type );
+					this.log( 'Unknown add item >> ' + shape );
 				}
 				break;
 			case CollideModel.ACTION_UPDATE_POS:
@@ -2491,6 +2512,12 @@ var ProjctCollideTest = (function () {
 	var GravityModel = buildClass({
 		  TAG: 'GravityModel'
 		, superClass: ModelCore
+		, __static__: {
+			  ACTION_ADD_ITEM: 'GravityModel.ACTION_ADD_ITEM'
+			, ACTION_UPDATE_POS: 'GravityModel.ACTION_UPDATE_POS'
+			, ITEM_CIRCLE: 'GravityModel.ITEM_CIRCLE'
+			, ITEM_RECT: 'GravityModel.ITEM_RECT'
+		}
 		, _maxSpeed: 0
 		, _nextForceId: 0
 		, _nextItemId: 0
@@ -2511,10 +2538,10 @@ var ProjctCollideTest = (function () {
 			this._child = [];
 			this._force = [];
 			this._wall = [];
-			this._wall.push( new GravityItem( this.createItemId(), ( new Plane2D_Wall() ).setDir( {  1,  0 } ), { x: 0, y: 0 }, 0 ) );
-			this._wall.push( new GravityItem( this.createItemId(), ( new Plane2D_Wall() ).setDir( {  0,  1 } ), { x: 0, y: 0 }, 0 ) );
-			this._wall.push( new GravityItem( this.createItemId(), ( new Plane2D_Wall() ).setDir( { -1,  0 } ), { x: 0, y: 0 }, 0 ) );
-			this._wall.push( new GravityItem( this.createItemId(), ( new Plane2D_Wall() ).setDir( {  0, -1 } ), { x: 0, y: 0 }, 0 ) );
+			this._wall.push( new GravityItem( this.createItemId(), ( new Plane2D_Wall() ).setDir( { x:  1, y:  0 } ), { x: 0, y: 0 }, 0 ) );
+			this._wall.push( new GravityItem( this.createItemId(), ( new Plane2D_Wall() ).setDir( { x:  0, y:  1 } ), { x: 0, y: 0 }, 0 ) );
+			this._wall.push( new GravityItem( this.createItemId(), ( new Plane2D_Wall() ).setDir( { x: -1, y:  0 } ), { x: 0, y: 0 }, 0 ) );
+			this._wall.push( new GravityItem( this.createItemId(), ( new Plane2D_Wall() ).setDir( { x:  0, y: -1 } ), { x: 0, y: 0 }, 0 ) );
 			for(var i = 0; i < this._wall.length; i++) {
 				this._child.push( this._wall[i] );
 			}
@@ -2584,16 +2611,16 @@ var ProjctCollideTest = (function () {
 		}
 		, addItem: function ( plane, x, y, mass ) {
 			if ( this._child === null ) {
-				return -1;
+				return;
 			}
 			if ( !setter.isValidObj( plane ) ) {
-				return -1;
+				return;
 			}
 			
 			var id = this.createItemId();
 			var item = new GravityItem( id, plane, { x: setter.setNum( x ), y: setter.setNum( y ) }, setter.setNum( mass, 0, { min: 0 } ) );
 			this._child.push( item );
-			return id;
+			this.instruct( GravityModel.ACTION_ADD_ITEM, { id: id, shape: plane.getShape(), x: x, y: y, radius: radius } );
 		}
 		, collision: function ( child0, child1 ) {
 			child0.collide( child1 );
@@ -2639,10 +2666,10 @@ var ProjctCollideTest = (function () {
 		, procUpdate: function () {
 			for(var i = 0; i < this._child.length; i++) {
 				var item = this._child[i];
-				var 
+			//	var 
 				var pos = item.getPos();
-				this.instruct();
-				this.instruct( GravityModel.ACTION_ADD_ITEM, { id: id, type: CollideModel.ITEM_CIRCLE, x: x, y: y, radius: radius } );
+			//	this.instruct();
+			//	this.instruct( GravityModel.ACTION_ADD_ITEM, { id: id, type: CollideModel.ITEM_CIRCLE, x: x, y: y, radius: radius } );
 			//	this._signal.dispatch( { id: i, x: pos.x, y: pos.y, vec: item.getVec().clone() } );
 			}
 		}
@@ -2678,11 +2705,25 @@ var ProjctCollideTest = (function () {
 	return buildClass({
 		  TAG: 'ProjctCollideTest'
 		, superClass: ProjectCore
+		, _dragView: null
+		, _gravityModel: null
 		, constructor: function ( parent ) {
 			ProjctCollideTest.__super__.constructor.apply( this, arguments );
 		}
 		, init: function () {
 			ProjctCollideTest.__super__.init.apply( this, arguments );
+			
+			this._gravityModel = new GravityModel( this );
+			this._dragView = new DragView( this );
+			
+			this.addChild( this._dragView );
+			/*
+			this._gravityModel.addItemCircle( 100, 100, 20 );
+			this._gravityModel.addItemCircle( 200, 100, 20 );
+			this._gravityModel.addItemRect( 100, 200, 40, 40 );
+			this._gravityModel.addItemRect( 200, 200, 40, 40 );
+			*/
+			
 			/*
 			var world = new GravityWorld();
 			world.setRect( 0, 0, 960, 580 );
@@ -2706,12 +2747,57 @@ var ProjctCollideTest = (function () {
 			*/
 		}
 		, dispose: function () {
+			if ( this._gravityModel ) {
+				this._gravityModel.dispose();
+				this._gravityModel = null;
+			}
+			if ( this._dragView ) {
+				this._dragView.dispose();
+				this._dragView = null;
+			}
+			
 			ProjctCollideTest.__super__.dispose.apply( this, arguments );
+		}
+		, instruct: function ( action, data ) {
+			this.log( 'instruct >> ' + action + ', ' + JSON.stringify( data ) );
+			switch ( action ) {
+			case GravityModel.ACTION_ADD_ITEM:
+				var id = data.id;
+				var shape = data.shape;
+				var x = data.x;
+				var y = data.y;
+				switch ( shape ) {
+				case Plane2D_Cirle.SHAPE:
+					this._dragView.addItemCircle( id, x, y, data.radius );
+					break;
+				case Plane2D_Rect.SHAPE:
+					this._dragView.addItemRect( id, x, y, data.width, data.height );
+					break;
+				default:
+					this.log( 'Unknown add item >> ' + shape );
+				}
+				break;
+			case GravityModel.ACTION_UPDATE_POS:
+				var id = data.id;
+				var x = data.x;
+				var y = data.y;
+				this._dragView.update( id, x, y );
+				break;
+			case DragView.ACTION_DRAG_ITEM:
+				var id = data.id;
+				var x = data.x;
+				var y = data.y;
+				this._gravityModel.updatePos( id, x, y );
+				break;
+			default:
+				this.log( 'Unknown action >> ' + action );
+			}
 		}
 	});
 } ());
 
-new ProjctModelViewTest( document.body );
+// new ProjctModelViewTest( document.body );
+new ProjctCollideTest( document.body );
 
 // new ProjctA( document.body );
 
