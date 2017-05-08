@@ -2147,6 +2147,18 @@ var ProjctModelViewTest = (function () {
 			this._itemList.push( plane );
 			this.instruct( CollideModel.ACTION_ADD_ITEM, { id: id, shape: plane.getShape(), x: x, y: y, width: width, height: height } );
 		}
+		, addItemWall: function ( x, y, dir ) {
+			if ( !this._itemList ) {
+				return;
+			}
+			
+			var id = this._itemList.length;
+			var plane = new Plane2D_Wall();
+			plane.setDir( dir );
+			plane.setPos( { x: x, y: y } );
+			this._itemList.push( plane );
+			this.instruct( CollideModel.ACTION_ADD_ITEM, { id: id, shape: plane.getShape(), x: x, y: y, dir: dir } );
+		}
 		, updatePos: function ( id, x, y ) {
 			if ( !this._itemList ) {
 				return;
@@ -2215,6 +2227,10 @@ var ProjctModelViewTest = (function () {
 			this._collideModel.addItemCircle( 200, 100, 20 );
 			this._collideModel.addItemRect( 100, 200, 40, 40 );
 			this._collideModel.addItemRect( 200, 200, 40, 40 );
+			this._collideModel.addItemWall( 0, 300, { x: 1, y: 0 } );
+			this._collideModel.addItemWall( 500, 0, { x: 0, y: 1 } );
+			this._collideModel.addItemWall( 1000, 300, { x: -1, y: 0 } );
+			this._collideModel.addItemWall( 500, 600, { x: 0, y: -1 } );
 		}
 		, dispose: function () {
 			if ( this._collideModel ) {
@@ -2360,10 +2376,26 @@ var ProjctCollideTest = (function () {
 			var minusVec = value.mul( testDot );
 			this._vecAfter = this._vec.minus( minusVec );
 		}
+		/*
 		, isCloseTo: function ( pos0, pos1, vec0, vec1 ) {
 			var dir0 = pos1.minus( pos0 );
 			var dir1 = vec0.minus( vec1 );
 			return ( dir0.dot( dir1 ) > 0 );
+		}
+		*/
+		, isCloseTo: function ( target ) {
+			var vecDir = this._vec.minus( target._vec );
+			var posDir = new Vec2();
+			if ( Plane2D_Wall.isCreatorOf( this._plane ) ) {
+				if ( Plane2D_Wall.isCreatorOf( target._plane ) ) {
+					// to do
+				} else {
+					posDir = this._plane.getDir();
+					var dir0 = pos1.minus( pos0 );
+					var dir1 = vec0.minus( vec1 );
+				}
+			}
+			return ( posDir.dot( vecDir ) > 0 );
 		}
 		, collide: function ( target ) {
 			if ( this._mass + target._mass <= 0 ) {
@@ -2374,10 +2406,18 @@ var ProjctCollideTest = (function () {
 			}
 			var pos0 = this.getPos();
 			var pos1 = target.getPos();
-			if ( !this.isCloseTo( pos0, pos1, this._vec, target._vec ) ) {
+			// to do
+		//	if ( !this.isCloseTo( pos0, pos1, this._vec, target._vec ) ) {
+			if ( !this.isCloseTo( target ) ) {
 				return;
 			}
 			var dir = pos1.minus( pos0 ).normalize();
+			if ( Plane2D_Wall.isCreatorOf( target._plane ) ) {
+				dir = target._plane.getDir();
+			} else if ( Plane2D_Wall.isCreatorOf( this._plane ) ) {
+				dir = this._plane.getDir();
+			}
+			
 			var speed0 = this._vec.dot( dir );
 			var speed1 = target._vec.dot( dir );
 			
@@ -2521,7 +2561,7 @@ var ProjctCollideTest = (function () {
 			return rslt;
 		}
 	});
-
+	
 	var GravityModel = buildClass({
 		  TAG: 'GravityModel'
 		, superClass: ModelCore
@@ -2553,6 +2593,7 @@ var ProjctCollideTest = (function () {
 			this._wall = [];
 			
 			var plane = null;
+			/*
 			plane = new Plane2D_Wall();
 			plane.setDir( { x:  1, y:  0 } );
 			this._wall.push( new GravityItem( this.createItemId(), plane, { x: 0, y: 0 }, 0 ) );
@@ -2562,6 +2603,7 @@ var ProjctCollideTest = (function () {
 			plane = new Plane2D_Wall();
 			plane.setDir( { x: -1, y:  0 } );
 			this._wall.push( new GravityItem( this.createItemId(), plane, { x: 0, y: 0 }, 0 ) );
+			*/
 			plane = new Plane2D_Wall();
 			plane.setDir( { x:  0, y: -1 } );
 			this._wall.push( new GravityItem( this.createItemId(), plane, { x: 0, y: 0 }, 0 ) );
@@ -2571,7 +2613,7 @@ var ProjctCollideTest = (function () {
 			}
 			this._timer = TimeCore.timer( function ( diff ) {
 				self.run( diff );
-			}, 1000 );
+			}, 1 );
 			this._timer.run();
 		}
 		, dispose: function () {
@@ -2616,10 +2658,13 @@ var ProjctCollideTest = (function () {
 			var y = setter.setInt( p_y, 0, { min: 0 } );
 			var w = setter.setInt( p_w, 0, { min: 0 } );
 			var h = setter.setInt( p_h, 0, { min: 0 } );
+			/*
 			this._wall[0].getPlane().setPos( { x: x + w * 0.0, y: y + h * 0.5 } );
 			this._wall[1].getPlane().setPos( { x: x + w * 0.5, y: y + h * 0.0 } );
 			this._wall[2].getPlane().setPos( { x: x + w * 1.0, y: y + h * 0.5 } );
 			this._wall[3].getPlane().setPos( { x: x + w * 0.5, y: y + h * 1.0 } );
+			*/
+			this._wall[0].getPlane().setPos( { x: x + w * 0.5, y: y + h * 1.0 } );
 		}
 		, addForce: function ( obj ) {
 			if ( this._force === null ) {
@@ -2633,7 +2678,7 @@ var ProjctCollideTest = (function () {
 			this._force.push( obj );
 			return id;
 		}
-		, addItem: function ( plane, x, y, mass ) {
+		, addItem: function ( plane, x, y, vec, mass ) {
 			if ( this._child === null ) {
 				return;
 			}
@@ -2643,7 +2688,7 @@ var ProjctCollideTest = (function () {
 			
 			var id = this.createItemId();
 			plane.setPos( { x: setter.setNum( x ), y: setter.setNum( y ) } );
-			var item = new GravityItem( id, plane, { x: 0, y: 0 }, setter.setNum( mass, 0, { min: 0 } ) );
+			var item = new GravityItem( id, plane, Vec2.createFromObj( vec ), setter.setNum( mass, 0, { min: 0 } ) );
 			this._child.push( item );
 			this.instruct( GravityModel.ACTION_ADD_ITEM, { id: id, plane: plane } );
 		}
@@ -2666,7 +2711,8 @@ var ProjctCollideTest = (function () {
 				for(var i = 0; i < this._child.length; i++) {
 					var item = this._child[i];
 					var accVtr = force.calcAcc( item.getPos(), item.getMass() );
-					if ( i < 4 ) {
+				//	if ( i < 4 ) {
+					if ( i < 1 ) {
 						continue;
 					}
 					item.accelerate( accVtr );
@@ -2688,6 +2734,10 @@ var ProjctCollideTest = (function () {
 		, procEndCalc: function () {
 			for(var i = 0; i < this._child.length; i++) {
 				var item = this._child[i];
+				if ( item.getPos().y > 600 ) {
+					a = false;
+					continue;
+				}
 				item.impCalc();
 			}
 		}
@@ -2779,10 +2829,10 @@ var ProjctCollideTest = (function () {
 			this._gravityModel.setMaxSpeed( 5 );
 			this._gravityModel.setRect( 0, 0, 1000, 500 );
 			
-			this._gravityModel.addItem( new Plane2D_Circle( 20 ), 100, 100, 1 );
+		//	this._gravityModel.addItem( new Plane2D_Circle( 20 ), 30, 100, 1 );
 		//	this._gravityModel.addItem( new Plane2D_Circle( 20 ), 200, 100, 1 );
-		//	this._gravityModel.addItem( new Plane2D_Rect( 40, 40 ), 100, 200, 1 );
-		//	this._gravityModel.addItem( new Plane2D_Rect( 40, 40 ), 200, 200, 1 );
+		//	this._gravityModel.addItem( new Plane2D_Rect( 40, 40, -20, -20 ), 25, 50, 1 );
+			this._gravityModel.addItem( new Plane2D_Rect( 40, 40, -20, -20 ), 200, 450, { x: 2, y: 2 }, 1 );
 			this._gravityModel.addForce( new GravityForce_Earth( { x: 0, y: 0.05 }, true ) );
 			/*
 
@@ -2830,7 +2880,6 @@ var ProjctCollideTest = (function () {
 			ProjctCollideTest.__super__.dispose.apply( this, arguments );
 		}
 		, instruct: function ( action, data ) {
-			this.log( 'instruct >> ' + action + ', ' + JSON.stringify( data ) );
 			switch ( action ) {
 			case GravityModel.ACTION_ADD_ITEM:
 				var id = data.id;
