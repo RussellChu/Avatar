@@ -1527,6 +1527,10 @@ var DragManager = (function () {
 	});
 	
 	GlobalSignal.mouseUp.add( function ( e ) {
+		if ( dragTarget === null ) {
+			return;
+		}
+		dragTarget.endDrag();
 		dragTarget = null;
 	});
 	
@@ -1555,6 +1559,8 @@ var Dragable = buildClass({
 	  TAG: 'Dragable'
 	, __static__: {
 		  ACTION_NULL: 'Dragable.ACTION_NULL'
+		, ACTION_SELECT: 'Dragable.ACTION_SELECT'
+		, ACTION_RELEASE: 'Dragable.ACTION_RELEASE'
 		, ACTION_BEFORE_MOVE: 'Dragable.ACTION_BEFORE_MOVE'
 		, ACTION_AFTER_MOVE: 'Dragable.ACTION_AFTER_MOVE'
 	}
@@ -1565,6 +1571,7 @@ var Dragable = buildClass({
 		this.init();
 	}
 	, init: function () {
+		var self = this;
 		this._signal = new Signal();
 		this._inst.getSignal().add( function ( rslt ) {
 			if ( rslt.action !== DisplayObject.ACTION_SENSOR_UPDATE ) {
@@ -1594,7 +1601,7 @@ var Dragable = buildClass({
 		if ( value ) {
 			this.updateSensor();
 		} else {
-			var sensor = self._inst.getSensor();
+			var sensor = this._inst.getSensor();
 			sensor.style.userSelect = '';
 			sensor.style.userDrag = '';
 			sensor.onselectstart = null;
@@ -1602,6 +1609,9 @@ var Dragable = buildClass({
 			sensor.onmousedown = null;
 			DragManager.unsetTarget( this );
 		}
+	}
+	, endDrag: function () {
+		this._signal.dispatch( { action: Dragable.ACTION_RELEASE, target: this } );
 	}
 	, update: function ( data ) {
 		if ( !setter.isValidObj( data ) ) {
@@ -1634,6 +1644,7 @@ var Dragable = buildClass({
 		sensor.ondragstart = function () { return false; };
 		sensor.onmousedown = function ( e ) {
 			DragManager.setTarget( self, e );
+			self._signal.dispatch( { action: Dragable.ACTION_SELECT, target: self } );
 		};
 	}
 });
@@ -1807,95 +1818,6 @@ var Drawer2D = buildClass({
 ////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/*
-var ProjctA = buildClass({
-	  TAG: 'ProjctA'
-	, _inst: null
-	, _parent: null
-	, _circleMap: null
-	, constructor: function ( parent ) {
-		if ( !setter.isValidObj( parent ) ) {
-			this.err( 'No parent' );
-			return;
-		}
-		this._parent = parent;
-		this.init();
-	}
-	, init: function () {
-		var self = this;
-		
-		this._inst = new Quad( 0, 0, '#000000' );
-		this._parent.appendChild( this._inst.getInst() );
-		
-		var quad = new Quad( 100, 100, '#ff0000' );
-		quad.setPosX( 50 );
-		quad.setPosY( 50 );
-		quad.getDragable().enable( true );
-		this._inst.getInst().appendChild( quad.getInst() );
-		
-		quad.getDragable().getSignal().add( function ( rslt ) {
-			var target = rslt.target;
-			var x = rslt.x;
-			var y = rslt.y;
-			if ( x > 1000 && x > target.getInst().getPosX() ) {
-				target.stop();
-			}
-		});
-		
-		var angle = 0;
-		var speed = 0.0005;
-
-		var t = TimeCore.timer( function ( diff ) {
-		//	log( diff );
-			angle += ( speed ) % 1;
-			var s = Math.sin( angle * Math.PI * 2 );
-			var c = Math.cos( angle * Math.PI * 2 );
-			sp.getInst().style.transform = "matrix(" + c + "," + s + "," + (-s) + "," + c + ",0,0)";
-		}, 1 );
-		// t.run();
-		
-		this._circleMap = {};
-		
-		var world = new GravityWorld();
-		world.setRect( 0, 0, 960, 580 );
-		world.setMaxSpeed( 5 );
-		world.getSignal().add( function ( rslt ) {
-			self.updateCircle( rslt );
-		});
-		
-		world.addForce( new GravityForce_Point( { x: 480, y: 290 }, 0.05, true ) );
-	//	world.addForce( new GravityForce_Point( { x: 200, y: 200 }, 0.05, true ) );
-	//	world.addForce( new GravityForce_Point( { x: 600, y: 600 }, 0.05, true ) );
-	//	world.addForce( new GravityForce_Earth( { x: 0, y: 0.05 }, true ) );
-		
-		for(var i = 0; i < 1; i++) {
-			var item = new GravityItem( { x: 50 + Math.random() * 860, y: 50 + Math.random() * 480 },  { x: Math.random() * 3, y: Math.random() * 3 }, 1, 5 );
-			var id = world.addItem( item );
-			var circle = new Quad( 10, 10, '#888888' );
-			this._inst.getInst().appendChild( circle.getInst() );
-			this._circleMap[id] = circle;
-		}
-	}
-	, dispose: function () {
-		this._inst = null;
-		this._parent = null;
-	}
-	, updateCircle: function ( data ) {
-		var id = data.id;
-		var x = data.x;
-		var y = data.y;
-		var vec = data.vec;
-		var circle = this._circleMap[id];
-		circle.setPosX( x - 5 );
-		circle.setPosY( y - 5 );
-		
-		var c = Math.floor( (1 - vec.mag() / 5) * 100 );
-		var cStr = "rgb(" + c + "%," + c + "%," + c + "%)";
-	//	this.log( cStr );
-		circle.setColor( cStr );
-	}
-});
-*/
 
 var ModelCore = buildClass({
 	  TAG: 'ModelCore'
@@ -1989,7 +1911,9 @@ var DragView = buildClass({
 	  TAG: 'DragView'
 	, superClass: ViewCore
 	, __static__: {
-		  ACTION_DRAG_ITEM: 'DragView.ACTION_DRAG_ITEM'
+		  ACTION_DRAG_ITEM_END: 'DragView.ACTION_DRAG_ITEM_END'
+		, ACTION_DRAG_ITEM_MOVE: 'DragView.ACTION_DRAG_ITEM_MOVE'
+		, ACTION_DRAG_ITEM_START: 'DragView.ACTION_DRAG_ITEM_START'
 	}
 	, _drawer: null
 	, _itemMap: null
@@ -2060,10 +1984,16 @@ var DragView = buildClass({
 		var sp = target.getInst();
 		var id = sp.getData().id;
 		switch ( action ) {
+		case Dragable.ACTION_SELECT:
+			this.instruct( DragView.ACTION_DRAG_ITEM_START, { id: id } );
+			break;
+		case Dragable.ACTION_RELEASE:
+			this.instruct( DragView.ACTION_DRAG_ITEM_END, { id: id } );
+			break;
 		case Dragable.ACTION_BEFORE_MOVE:
 			break;
 		case Dragable.ACTION_AFTER_MOVE:
-			this.instruct( DragView.ACTION_DRAG_ITEM, { id: id, x: pos.x, y: pos.y } );
+			this.instruct( DragView.ACTION_DRAG_ITEM_MOVE, { id: id, x: pos.x, y: pos.y } );
 			break;
 		default:
 			;
@@ -2087,14 +2017,14 @@ var DragView = buildClass({
 ////////////////////////////////////////////////////////////
 ////////////////////////////////////////
 ////////////////////
-//	ProjctModelViewTest
+//	ProjectModelViewTest
 ////////////////////
 ////////////////////////////////////////
 ////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-var ProjctModelViewTest = (function () {
+var ProjectModelViewTest = (function () {
 	
 ////////////////////////////////////////////////////////////
 ////////////////////////////////////////
@@ -2208,15 +2138,15 @@ var ProjctModelViewTest = (function () {
 ////////////////////////////////////////////////////////////
 	
 	return buildClass({
-		  TAG: 'ProjctModelViewTest'
+		  TAG: 'ProjectModelViewTest'
 		, superClass: ProjectCore
 		, _dragView: null
 		, _collideModel: null
 		, constructor: function ( parent ) {
-			ProjctModelViewTest.__super__.constructor.apply( this, arguments );
+			ProjectModelViewTest.__super__.constructor.apply( this, arguments );
 		}
 		, init: function () {
-			ProjctModelViewTest.__super__.init.apply( this, arguments );
+			ProjectModelViewTest.__super__.init.apply( this, arguments );
 			
 			this._collideModel = new CollideModel( this );
 			this._dragView = new DragView( this );
@@ -2242,7 +2172,7 @@ var ProjctModelViewTest = (function () {
 				this._dragView = null;
 			}
 			
-			ProjctModelViewTest.__super__.dispose.apply( this, arguments );
+			ProjectModelViewTest.__super__.dispose.apply( this, arguments );
 		}
 		, instruct: function ( action, data ) {
 			this.log( 'instruct >> ' + action + ', ' + JSON.stringify( data ) );
@@ -2269,7 +2199,7 @@ var ProjctModelViewTest = (function () {
 				var y = data.y;
 				this._dragView.update( id, x, y );
 				break;
-			case DragView.ACTION_DRAG_ITEM:
+			case DragView.ACTION_DRAG_ITEM_MOVE:
 				var id = data.id;
 				var x = data.x;
 				var y = data.y;
@@ -2311,6 +2241,7 @@ var ProjctCollideTest = (function () {
 		, _plane: null
 		, _vec: null
 		, _vecAfter: null
+		, _bind: false
 		, constructor: function ( id, plane, vec, mass ) {
 			if ( !Plane2D.isCreatorOf( plane ) ) {
 				this.err( 'constructor fail >> plane: ' + plane );
@@ -2334,6 +2265,12 @@ var ProjctCollideTest = (function () {
 			this._vec = null;
 			this._vecAfter = null;
 		}
+		, bind: function ( value ) {
+			this._bind = setter.setBool( value );
+			if ( this._bind ) {
+				this._vec = new Vec2();
+			}
+		}
 		, getId: function () {
 			return this._id;
 		}
@@ -2349,7 +2286,13 @@ var ProjctCollideTest = (function () {
 		, getVec: function () {
 			return this._vec.clone();
 		}
+		, setVec: function ( value ) {
+			this._vec = Vec2.createFromObj( value );
+		}
 		, accelerate: function ( value ) {
+			if ( this._bind ) {
+				return;
+			}
 			this._vec.addEql( value );
 		}
 		, preCalc: function () {
@@ -2376,23 +2319,21 @@ var ProjctCollideTest = (function () {
 			var minusVec = value.mul( testDot );
 			this._vecAfter = this._vec.minus( minusVec );
 		}
-		/*
-		, isCloseTo: function ( pos0, pos1, vec0, vec1 ) {
-			var dir0 = pos1.minus( pos0 );
-			var dir1 = vec0.minus( vec1 );
-			return ( dir0.dot( dir1 ) > 0 );
-		}
-		*/
 		, isCloseTo: function ( target ) {
 			var vecDir = this._vec.minus( target._vec );
 			var posDir = new Vec2();
 			if ( Plane2D_Wall.isCreatorOf( this._plane ) ) {
 				if ( Plane2D_Wall.isCreatorOf( target._plane ) ) {
-					// to do
+					return false;
 				} else {
 					posDir = this._plane.getDir();
-					var dir0 = pos1.minus( pos0 );
-					var dir1 = vec0.minus( vec1 );
+				}
+			} else {
+				if ( Plane2D_Wall.isCreatorOf( target._plane ) ) {
+					vecDir = target._vec.minus( this._vec );
+					posDir = target._plane.getDir();
+				} else {
+					posDir = target.getPos().minus( this.getPos() );
 				}
 			}
 			return ( posDir.dot( vecDir ) > 0 );
@@ -2404,13 +2345,12 @@ var ProjctCollideTest = (function () {
 			if ( !this._plane.isOverlap( target._plane ) ) {
 				return;
 			}
-			var pos0 = this.getPos();
-			var pos1 = target.getPos();
-			// to do
-		//	if ( !this.isCloseTo( pos0, pos1, this._vec, target._vec ) ) {
 			if ( !this.isCloseTo( target ) ) {
 				return;
 			}
+			
+			var pos0 = this.getPos();
+			var pos1 = target.getPos();
 			var dir = pos1.minus( pos0 ).normalize();
 			if ( Plane2D_Wall.isCreatorOf( target._plane ) ) {
 				dir = target._plane.getDir();
@@ -2423,13 +2363,23 @@ var ProjctCollideTest = (function () {
 			
 			var speedAfter0 = 0;
 			var speedAfter1 = 0;
-			if ( this._mass > 0 && target._mass > 0 ) {
-				speedAfter0 = ( speed0 * ( 0 + this._mass - target._mass ) + 2 * target._mass * speed1 ) / ( this._mass + target._mass );
-				speedAfter1 = ( speed1 * ( 0 - this._mass + target._mass ) + 2 *   this._mass * speed0 ) / ( this._mass + target._mass );
-			} else if ( this._mass > 0 ) {
+			var mass0 = this._mass;
+			var mass1 = target._mass;
+			if ( this._bind ) {
+				mass0 = 0;
+				speed0 = 0;
+			}
+			if ( target._bind ) {
+				mass1 = 0;
+				speed1 = 0;
+			}
+			if ( mass0 > 0 && mass1 > 0 ) {
+				speedAfter0 = ( speed0 * ( 0 + mass0 - mass1 ) + 2 * mass1 * speed1 ) / ( mass0 + mass1 );
+				speedAfter1 = ( speed1 * ( 0 - mass0 + mass1 ) + 2 * mass0 * speed0 ) / ( mass0 + mass1 );
+			} else if ( mass0 > 0 ) {
 				speedAfter0 = ( speed0 * ( -1 ) + 2 * speed1 );
 				speedAfter1 = speed1;
-			} else if ( target._mass > 0 ) {
+			} else if ( mass1 > 0 ) {
 				speedAfter0 = speed0;
 				speedAfter1 = ( speed1 * ( -1 ) + 2 * speed0 );
 			} else {
@@ -2437,10 +2387,17 @@ var ProjctCollideTest = (function () {
 				speedAfter1 = speed1;
 			}
 			
-			this._vec.addEql( dir.mul( speedAfter0 - speed0 ) );
-			target._vec.addEql( dir.mul( speedAfter1 - speed1 ) );
+			if ( !this._bind ) {
+				this._vec.addEql( dir.mul( speedAfter0 - speed0 ) );
+			}
+			if ( !target._bind ) {
+				target._vec.addEql( dir.mul( speedAfter1 - speed1 ) );
+			}
 		}
 		, limitSpeed: function ( p_value ) {
+			if ( this._bind ) {
+				return;
+			}
 			var value = setter.setNum( p_value, 0, { min: 0 } );
 			if ( value <= 0 ) {
 				this._vec = new Vec2();
@@ -2462,9 +2419,18 @@ var ProjctCollideTest = (function () {
 			}
 			var pos0 = this.getPos();
 			var pos1 = target.getPos();
-			this.blockDir( pos0.minus( pos1 ).normalize() );
+			var dir = pos0.minus( pos1 ).normalize();
+			if ( Plane2D_Wall.isCreatorOf( target._plane ) ) {
+				dir = target._plane.getDir();
+			} else if ( Plane2D_Wall.isCreatorOf( this._plane ) ) {
+				dir = this._plane.getDir();
+			}
+			this.blockDir( dir );
 		}
 		, impCalc: function () {
+			if ( this._bind ) {
+				return;
+			}
 			var pos = this._plane.getPos();
 			if ( this._vecAfter === null ) {
 				pos.addEql( this._vec );
@@ -2571,6 +2537,7 @@ var ProjctCollideTest = (function () {
 			, ITEM_CIRCLE: 'GravityModel.ITEM_CIRCLE'
 			, ITEM_RECT: 'GravityModel.ITEM_RECT'
 		}
+		, _bindId: 0
 		, _maxSpeed: 0
 		, _nextForceId: 0
 		, _nextItemId: 0
@@ -2593,7 +2560,6 @@ var ProjctCollideTest = (function () {
 			this._wall = [];
 			
 			var plane = null;
-			/*
 			plane = new Plane2D_Wall();
 			plane.setDir( { x:  1, y:  0 } );
 			this._wall.push( new GravityItem( this.createItemId(), plane, { x: 0, y: 0 }, 0 ) );
@@ -2603,12 +2569,12 @@ var ProjctCollideTest = (function () {
 			plane = new Plane2D_Wall();
 			plane.setDir( { x: -1, y:  0 } );
 			this._wall.push( new GravityItem( this.createItemId(), plane, { x: 0, y: 0 }, 0 ) );
-			*/
 			plane = new Plane2D_Wall();
 			plane.setDir( { x:  0, y: -1 } );
 			this._wall.push( new GravityItem( this.createItemId(), plane, { x: 0, y: 0 }, 0 ) );
 			
 			for(var i = 0; i < this._wall.length; i++) {
+				this._wall[i].bind( true );
 				this._child.push( this._wall[i] );
 			}
 			this._timer = TimeCore.timer( function ( diff ) {
@@ -2658,13 +2624,10 @@ var ProjctCollideTest = (function () {
 			var y = setter.setInt( p_y, 0, { min: 0 } );
 			var w = setter.setInt( p_w, 0, { min: 0 } );
 			var h = setter.setInt( p_h, 0, { min: 0 } );
-			/*
 			this._wall[0].getPlane().setPos( { x: x + w * 0.0, y: y + h * 0.5 } );
 			this._wall[1].getPlane().setPos( { x: x + w * 0.5, y: y + h * 0.0 } );
 			this._wall[2].getPlane().setPos( { x: x + w * 1.0, y: y + h * 0.5 } );
 			this._wall[3].getPlane().setPos( { x: x + w * 0.5, y: y + h * 1.0 } );
-			*/
-			this._wall[0].getPlane().setPos( { x: x + w * 0.5, y: y + h * 1.0 } );
 		}
 		, addForce: function ( obj ) {
 			if ( this._force === null ) {
@@ -2711,10 +2674,6 @@ var ProjctCollideTest = (function () {
 				for(var i = 0; i < this._child.length; i++) {
 					var item = this._child[i];
 					var accVtr = force.calcAcc( item.getPos(), item.getMass() );
-				//	if ( i < 4 ) {
-					if ( i < 1 ) {
-						continue;
-					}
 					item.accelerate( accVtr );
 				}
 			}
@@ -2734,10 +2693,6 @@ var ProjctCollideTest = (function () {
 		, procEndCalc: function () {
 			for(var i = 0; i < this._child.length; i++) {
 				var item = this._child[i];
-				if ( item.getPos().y > 600 ) {
-					a = false;
-					continue;
-				}
 				item.impCalc();
 			}
 		}
@@ -2758,38 +2713,60 @@ var ProjctCollideTest = (function () {
 			this.procEndCalc();
 			this.procUpdate();
 		}
+		, getItemById( id ) {
+			if ( !this._child ) {
+				return null;
+			}
+			for(var i = 0; i < this._child.length; i++) {
+				var item = this._child[i];
+				if ( item.getId() === id ) {
+					return item;
+				}
+			}
+			return null;
+		}
+		, bindItem: function ( id ) {
+			var item = null;
+			if ( this._bindId > 0 ) {
+				item = this.getItemById( this._bindId );
+				if ( item !== null ) {
+					item.bind( false );
+				}
+			}
+			this._bindId = id;
+			if ( this._bindId > 0 ) {
+				item = this.getItemById( this._bindId );
+				if ( item !== null ) {
+					item.bind( true );
+				}
+			}
+		}
 		, updatePos: function ( id, x, y ) {
-			// to do
-		/*
-			if ( !this._itemList ) {
-				return;
-			}
-			if ( !setter.isValidInt( id ) ) {
-				return;
-			}
-			if ( id < 0 || id >= this._itemList.length ) {
+			var item = this.getItemById( id );
+			if ( item === null ) {
 				return;
 			}
 			
 			var pos = { x: x, y: y };
-			var item = this._itemList[id];
-			var itemTest = item.clone();
-			itemTest.setPos( pos );
-			for(var i = 0; i < this._itemList.length; i++) {
-				if ( i === id ) {
+			var plane = item.getPlane();
+			
+			var planeTest = plane.clone();
+			planeTest.setPos( pos );
+			for(var i = 0; i < this._child.length; i++) {
+				var item2 = this._child[i];
+				if ( item2.getId() === id ) {
 					continue;
 				}
 				
-				var item2 = this._itemList[i];
-				if ( itemTest.isOverlap( item2 ) ) {
-					pos = item.getPos();
+				var plane2 = item2.getPlane();
+				if ( planeTest.isOverlap( plane2 ) ) {
+					pos = plane.getPos();
 					break;
 				}
 			}
-			item.setPos( pos );
+			plane.setPos( pos );
 			
-			this.instruct( CollideModel.ACTION_UPDATE_POS, { id: id, x: pos.x, y: pos.y } );
-			*/
+			this.instruct( GravityModel.ACTION_UPDATE_POS, { id: id, x: pos.x, y: pos.y } );
 		}
 	});
 	
@@ -2826,46 +2803,19 @@ var ProjctCollideTest = (function () {
 			this._dragView = new DragView( this );
 			this.addChild( this._dragView );
 			
-			this._gravityModel.setMaxSpeed( 5 );
-			this._gravityModel.setRect( 0, 0, 1000, 500 );
+			const MAX_SPEED = 5;
+			const MAX_W = 1000;
+			const MAX_H = 500;
+			const RADIUS = 20;
 			
-		//	this._gravityModel.addItem( new Plane2D_Circle( 20 ), 30, 100, 1 );
-		//	this._gravityModel.addItem( new Plane2D_Circle( 20 ), 200, 100, 1 );
-		//	this._gravityModel.addItem( new Plane2D_Rect( 40, 40, -20, -20 ), 25, 50, 1 );
-			this._gravityModel.addItem( new Plane2D_Rect( 40, 40, -20, -20 ), 200, 450, { x: 2, y: 2 }, 1 );
-			this._gravityModel.addForce( new GravityForce_Earth( { x: 0, y: 0.05 }, true ) );
-			/*
-
-			var plane = new Plane2D_Circle( radius );
-			plane.setPos( { x: x, y: y } );
-			addItem: function ( plane, x, y, mass ) {
-			this._gravityModel.addItemCircle( 100, 100, 20 );
-			this._gravityModel.addItemCircle( 200, 100, 20 );
-			this._gravityModel.addItemRect( 100, 200, 40, 40 );
-			this._gravityModel.addItemRect( 200, 200, 40, 40 );
-			*/
+			this._gravityModel.setMaxSpeed( MAX_SPEED );
+			this._gravityModel.setRect( 0, 0, MAX_W, MAX_H );
 			
-			/*
-			var world = new GravityWorld();
-			world.setRect( 0, 0, 960, 580 );
-			world.setMaxSpeed( 5 );
-			world.getSignal().add( function ( rslt ) {
-				self.updateCircle( rslt );
-			});
-			
-			world.addForce( new GravityForce_Point( { x: 480, y: 290 }, 0.05, true ) );
-		//	world.addForce( new GravityForce_Point( { x: 200, y: 200 }, 0.05, true ) );
-		//	world.addForce( new GravityForce_Point( { x: 600, y: 600 }, 0.05, true ) );
-		//	world.addForce( new GravityForce_Earth( { x: 0, y: 0.05 }, true ) );
-			
-			for(var i = 0; i < 1; i++) {
-				var item = new GravityItem( { x: 50 + Math.random() * 860, y: 50 + Math.random() * 480 },  { x: Math.random() * 3, y: Math.random() * 3 }, 1, 5 );
-				var id = world.addItem( item );
-				var circle = new Quad( 10, 10, '#888888' );
-				this._inst.getInst().appendChild( circle.getInst() );
-				this._circleMap[id] = circle;
+			for(var i = 0; i < 40; i++) {
+				this._gravityModel.addItem( new Plane2D_Circle( RADIUS ), Math.floor( Math.random() * ( MAX_W - RADIUS * 2 ) + RADIUS ), Math.floor( Math.random() * ( MAX_H - RADIUS * 2 ) + RADIUS ), { x: 0, y: 0 }, 1 );
+				this._gravityModel.addItem( new Plane2D_Rect( RADIUS * 2, RADIUS * 2, -RADIUS, -RADIUS ), Math.floor( Math.random() * ( MAX_W - RADIUS * 2 ) + RADIUS ), Math.floor( Math.random() * ( MAX_H - RADIUS * 2 ) + RADIUS ), { x: 0, y: 0 }, 1 );
 			}
-			*/
+			this._gravityModel.addForce( new GravityForce_Earth( { x: 0, y: 0.05 }, true ) );
 		}
 		, dispose: function () {
 			if ( this._gravityModel ) {
@@ -2906,7 +2856,14 @@ var ProjctCollideTest = (function () {
 				var y = data.y;
 				this._dragView.update( id, x, y );
 				break;
-			case DragView.ACTION_DRAG_ITEM:
+			case DragView.ACTION_DRAG_ITEM_START:
+				var id = data.id;
+				this._gravityModel.bindItem( id );
+				break;
+			case DragView.ACTION_DRAG_ITEM_END:
+				this._gravityModel.bindItem( 0 );
+				break;
+			case DragView.ACTION_DRAG_ITEM_MOVE:
 				var id = data.id;
 				var x = data.x;
 				var y = data.y;
@@ -2919,7 +2876,7 @@ var ProjctCollideTest = (function () {
 	});
 } ());
 
-// new ProjctModelViewTest( document.body );
+// new ProjectModelViewTest( document.body );
 new ProjctCollideTest( document.body );
 
 // new ProjctA( document.body );
