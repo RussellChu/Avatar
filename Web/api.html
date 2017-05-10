@@ -912,6 +912,9 @@ var CMath = (function () {
 		, dot: function ( value ) {
 			return this.x * value.x + this.y * value.y;
 		}
+		, cross: function ( value ) {
+			return this.x * value.y - this.y * value.x;
+		}
 	});
 
 	var Vec3 = buildClass({
@@ -1102,6 +1105,9 @@ var Plane2D = buildClass({
 	}
 	, isOverlap: function ( target ) {
 		return Plane2DOverlapChecker.calc( this, target );
+	}
+	, touchDir: function ( target ) {
+		return Plane2DTouchChecker.calc( this, target );
 	}
 });
 
@@ -1359,6 +1365,151 @@ Plane2DOverlapChecker = (function () {
 		}
 		
 		return false;
+	};
+	
+	inst.calc = calc;
+	return inst;
+} ());
+
+Plane2DTouchChecker = (function () {
+	var inst = {};
+	
+	var calcPointVsWall = function ( objPt, objWall ) {
+		return objWall.getDir().mul( -1 );
+	};
+	var calcPointVsCircle = function ( objPt, objCir ) {
+		return objCir._pos.minus( objPt._pos ).normalize();
+	};
+	var calcPointVsRect = function ( objPt, objRec ) {
+		var c0 = new Vec2( objRec._pos.x + objRec._cornerX + objRec._width, objRec._pos.y + objRec._cornerY + objRec._height );
+		var c1 = new Vec2( objRec._pos.x + objRec._cornerX, objRec._pos.y + objRec._cornerY + objRec._height );
+		var c2 = new Vec2( objRec._pos.x + objRec._cornerX, objRec._pos.y + objRec._cornerY );
+		var c3 = new Vec2( objRec._pos.x + objRec._cornerX + objRec._width, objRec._pos.y + objRec._cornerY );
+		var d0 =  objPt._pos.x - c0.x;
+		var d1 =  objPt._pos.y - c1.y;
+		var d2 = -objPt._pos.x + c2.x;
+		var d3 = -objPt._pos.y + c3.y;
+		
+		var num = 0;
+		if ( c1 > 0 ) {
+		} else if ( c1 === 0 ) {
+			num = 1;
+		} else if ( c3 < 0 ) {
+			num = 2;
+		} else if ( c3 === 0 ) {
+			num = 3;
+		} else {
+			num = 4;
+		}
+		if ( c0 > 0 ) {
+		} else if ( c0 === 0 ) {
+			num += 5;
+		} else if ( c2 < 0 ) {
+			num += 10;
+		} else if ( c2 === 0 ) {
+			num += 15;
+		} else {
+			num += 20;
+		}
+		
+		switch ( num ) {
+		case 0:
+			return c0.minus( objPt._pos ).normalize();
+		case 1:
+		case 2:
+		case 3:
+		case 7:
+			return new Vec2( -1, 0 );
+		case 4:
+			return c3.minus( objPt._pos ).normalize();
+		case 5:
+		case 10:
+		case 11:
+		case 15:
+			return new Vec2( 0, -1 );
+		case 6:
+			return ( new Vec2( -1, -1 ) ).normalize();
+		case 8:
+			return ( new Vec2( -1, 1 ) ).normalize();
+		case 9:
+		case 13:
+		case 14:
+		case 19:
+			return new Vec2( 0, 1 );
+		case 16:
+			return ( new Vec2( 1, -1 ) ).normalize();
+		case 17:
+		case 21:
+		case 22:
+		case 23:
+			return new Vec2( 1, 0 );
+		case 18:
+			return ( new Vec2( 1, 1 ) ).normalize();
+		case 20:
+			return c1.minus( objPt._pos ).normalize();
+		case 24:
+			return c2.minus( objPt._pos ).normalize();
+		case 12:
+		default:
+			return objRec._pos.minus( objPt._pos ).normalize();
+		}
+	};
+	var calcWallVsCircle = function ( objWall, objCir ) {
+		return objWall.getDir().mul();
+	};
+	var calcWallVsRect = function ( objWall, objRec ) {
+		return objWall.getDir().mul();
+	};
+	var calcCircleVsCircle = function ( objCir0, objCir1 ) {
+		return objCir1._pos.minus( objCir0._pos ).normalize();
+	};
+	var calcCircleVsRect = function ( objCir, objRec ) {
+		return calcPointVsRect( objCir, objRec );
+	};
+	var calcRectVsRect = function ( objRec0, objRec1 ) {
+		// to do
+		return calcPointVsRect( objRec0, objRec1 );
+	};
+	
+	var map = {};
+	
+	map['Plane2D'] = {};
+	map['Plane2D_Wall'] = {};
+	map['Plane2D_Circle'] = {};
+	map['Plane2D_Rect'] = {};
+	
+	map['Plane2D']['Plane2D_Wall'] = calcPointVsWall;
+	map['Plane2D']['Plane2D_Circle'] = calcPointVsCircle;
+	map['Plane2D']['Plane2D_Rect'] = calcPointVsCircle;
+	map['Plane2D_Wall']['Plane2D_Circle'] = calcWallVsCircle;
+	map['Plane2D_Wall']['Plane2D_Rect'] = calcWallVsRect;
+	map['Plane2D_Circle']['Plane2D_Circle'] = calcCircleVsCircle;
+	map['Plane2D_Circle']['Plane2D_Rect'] = calcCircleVsRect;
+	map['Plane2D_Rect']['Plane2D_Rect'] = calcRectVsRect;
+	
+	var calc = function ( obj0, obj1 ) {
+		var tag0 = obj0.getTag();
+		var tag1 = obj1.getTag();
+		var pre = null;
+		var func;
+		
+		pre = map[tag0];
+		if ( pre ) {
+			func = pre[tag1];
+			if ( func ) {
+				return func( obj0, obj1 );
+			}
+		}
+		
+		pre = map[tag1];
+		if ( pre ) {
+			func = pre[tag0];
+			if ( func ) {
+				return func( obj1, obj0 ).mul( -1 );
+			}
+		}
+		
+		return new Vec2();
 	};
 	
 	inst.calc = calc;
@@ -2233,6 +2384,112 @@ var ProjctCollideTest = (function () {
 ////////////////////
 ////////////////////////////////////////
 ////////////////////////////////////////////////////////////
+	var aTest = 0;
+	var createAngleAdder = function () {
+		var inst = {};
+		
+		// dir remain
+		var v0 = null;
+		var v1 = null;
+		var full = false;
+		// vtr: dir to be remove, unit vtr
+		var add = function ( vtr ) {
+			if ( vtr.x === 0 && vtr.y === 0 ) {
+				if ( aTest === 1 ) {
+					log( 'rslt X' );
+				}
+				return;
+			}
+			var vf = new Vec2( vtr.y, -vtr.x );
+			var vt = new Vec2( -vtr.y, vtr.x );
+			if ( aTest === 1 ) {
+				log( 'add >> ' + JSON.stringify( vtr ));
+			}
+			if ( v0 === null ) {
+				v0 = vt;
+				v1 = vf;
+				if ( aTest === 1 ) {
+					log( 'rslt A >> ' + JSON.stringify( v0 ) + ' - ' + JSON.stringify( v1 ) );
+				}
+				return;
+			}
+			if ( full ) {
+				if ( aTest === 1 ) {
+					log( 'rslt D' );
+				}
+				return;
+			}
+			if ( ( vf.cross( v0 ) > 0 || ( vf.cross( v0 ) === 0 && vf.dot( v0 ) > 0 ) ) && ( v1.cross( vt ) > 0 || ( v1.cross( vt ) === 0 && v1.dot( vt ) > 0 ) ) ) {
+				full = true;
+				if ( aTest === 1 ) {
+					log( 'rslt C' );
+				}
+				return;
+			}
+			if ( v0.cross( vf ) > 0 && vf.cross( v1 ) > 0 ) {
+				v1 = vf;
+				if ( aTest === 1 ) {
+					log( 'rslt B1 >> ' + JSON.stringify( v0 ) + ' - ' + JSON.stringify( v1 ) );
+				}
+			}
+			if ( v0.cross( vt ) > 0 && vt.cross( v1 ) > 0 ) {
+				v0 = vt;
+				if ( aTest === 1 ) {
+					log( 'rslt B2 >> ' + JSON.stringify( v0 ) + ' - ' + JSON.stringify( v1 ) );
+				}
+			}
+		};
+		
+		var calc = function ( vtr ) {
+			if ( aTest === 1 ) {
+				log( 'calc start >> ' + JSON.stringify( vtr ) );
+			}
+			if ( v0 === null ) {
+				if ( aTest === 1 ) {
+					log( 'calc rslt A' );
+				}
+				return vtr;
+			}
+			if ( full ) {
+				if ( aTest === 1 ) {
+					log( 'calc rslt B' );
+				}
+				return new Vec2();
+			}
+			if ( ( v0.cross( vtr ) > 0 || ( v0.cross( vtr ) === 0 && v0.dot( vtr ) > 0 ) ) && ( vtr.cross( v1 ) > 0 || ( vtr.cross( v1 ) === 0 && vtr.dot( v1 ) > 0 ) ) ) {
+				if ( aTest === 1 ) {
+					log( 'calc rslt D' );
+				}
+				return vtr;
+			}
+			var rslt = vtr;
+			var dotValue = vtr.dot( v0 );
+			if ( vtr.cross( v0 ) >= 0 && dotValue > 0 ) {
+				rslt = v0.mul( dotValue );
+				if ( aTest === 1 ) {
+					log( 'calc rslt C1 >> ' + JSON.stringify( rslt ) );
+				}
+				return rslt;
+			}
+			var dotValue = vtr.dot( v1 );
+			if ( vtr.cross( v1 ) <= 0 && dotValue > 0 ) {
+				rslt = v1.mul( dotValue );
+				if ( aTest === 1 ) {
+					log( 'calc rslt C2 >> ' + JSON.stringify( rslt ) );
+				}
+				return rslt;
+			}
+			if ( aTest === 1 ) {
+				log( 'calc rslt E' );
+			}
+			return new Vec2();
+		};
+		
+		inst.add = add;
+		inst.calc = calc;
+		
+		return inst;
+	};
 	
 	var GravityItem = buildClass({
 		  TAG: 'GravityItem'
@@ -2241,7 +2498,9 @@ var ProjctCollideTest = (function () {
 		, _plane: null
 		, _vec: null
 		, _vecAfter: null
+		, _blockList: null
 		, _bind: false
+		, _watch: false
 		, constructor: function ( id, plane, vec, mass ) {
 			if ( !Plane2D.isCreatorOf( plane ) ) {
 				this.err( 'constructor fail >> plane: ' + plane );
@@ -2271,6 +2530,9 @@ var ProjctCollideTest = (function () {
 				this._vec = new Vec2();
 			}
 		}
+		, watch: function ( value ) {
+			this._watch = setter.setBool( value );
+		}
 		, getId: function () {
 			return this._id;
 		}
@@ -2297,27 +2559,38 @@ var ProjctCollideTest = (function () {
 		}
 		, preCalc: function () {
 			this._vecAfter = null;
+			this._blockList = [];
 		}
 		// value: unit vector
 		, blockDir: function ( value ) {
-			var testDir = this._vecAfter;
-			if ( testDir === null ) {
-				testDir = this._vec;
-			}
+			this._blockList.push( value );
 			
-			// same dir, no block
-			var testDot = testDir.dot( value );
-			if ( testDot >= 0 ) {
+			var angleAdder = createAngleAdder();
+		//	aTest = 1;
+			if ( aTest === 0 ) {
+				if ( this._blockList.length > 3 ) {
+					aTest = 1;
+					for(var i = 0; i < this._blockList.length; i++) {
+						angleAdder.add( this._blockList[i] );
+					}
+					this._vecAfter = angleAdder.calc( this._vec );	
+					aTest = 2;
+					return;
+				}
+			}
+			if ( this._watch ) {
+				aTest = 1;
+				for(var i = 0; i < this._blockList.length; i++) {
+					angleAdder.add( this._blockList[i] );
+				}
+				this._vecAfter = angleAdder.calc( this._vec );
+				aTest = 2;
 				return;
 			}
-			
-			if ( this._vecAfter !== null ) {
-				this._vecAfter = new Vec2();
-				return;
+			for(var i = 0; i < this._blockList.length; i++) {
+				angleAdder.add( this._blockList[i] );
 			}
-			
-			var minusVec = value.mul( testDot );
-			this._vecAfter = this._vec.minus( minusVec );
+			this._vecAfter = angleAdder.calc( this._vec );
 		}
 		, isCloseTo: function ( target ) {
 			var vecDir = this._vec.minus( target._vec );
@@ -2417,6 +2690,8 @@ var ProjctCollideTest = (function () {
 			if ( !this._plane.isOverlap( target._plane ) ) {
 				return;
 			}
+			
+			/*
 			var pos0 = this.getPos();
 			var pos1 = target.getPos();
 			var dir = pos0.minus( pos1 ).normalize();
@@ -2425,6 +2700,9 @@ var ProjctCollideTest = (function () {
 			} else if ( Plane2D_Wall.isCreatorOf( this._plane ) ) {
 				dir = this._plane.getDir();
 			}
+			this.blockDir( dir.mul( -1 ) );
+			*/
+			var dir = this._plane.touchDir( target._plane );
 			this.blockDir( dir );
 		}
 		, impCalc: function () {
@@ -2538,6 +2816,7 @@ var ProjctCollideTest = (function () {
 			, ITEM_RECT: 'GravityModel.ITEM_RECT'
 		}
 		, _bindId: 0
+		, _watchId: 0
 		, _maxSpeed: 0
 		, _nextForceId: 0
 		, _nextItemId: 0
@@ -2679,7 +2958,7 @@ var ProjctCollideTest = (function () {
 			}
 		}
 		, procRunCollide: function () {
-			looper.pairs( this._child, this.collision );
+		//	looper.pairs( this._child, this.collision );
 		}
 		, procFixSpeed: function () {
 			for(var i = 0; i < this._child.length; i++) {
@@ -2725,6 +3004,22 @@ var ProjctCollideTest = (function () {
 			}
 			return null;
 		}
+		, watch: function ( id ) {
+			var item = null;
+			if ( this._watchId > 0 ) {
+				item = this.getItemById( this._watchId );
+				if ( item !== null ) {
+					item.watch( false );
+				}
+			}
+			this._watchId = id;
+			if ( this._watchId > 0 ) {
+				item = this.getItemById( this._watchId );
+				if ( item !== null ) {
+					item.watch( true );
+				}
+			}
+		}
 		, bindItem: function ( id ) {
 			var item = null;
 			if ( this._bindId > 0 ) {
@@ -2760,7 +3055,7 @@ var ProjctCollideTest = (function () {
 				
 				var plane2 = item2.getPlane();
 				if ( planeTest.isOverlap( plane2 ) ) {
-					pos = plane.getPos();
+				//	pos = plane.getPos();
 					break;
 				}
 			}
@@ -2803,18 +3098,20 @@ var ProjctCollideTest = (function () {
 			this._dragView = new DragView( this );
 			this.addChild( this._dragView );
 			
-			const MAX_SPEED = 5;
-			const MAX_W = 1000;
-			const MAX_H = 500;
-			const RADIUS = 20;
+			const CORNER_X = 50;
+			const MAX_SPEED = 2;
+			const MAX_W = 600;
+			const MAX_H = 800;
+			const RADIUS = 5;
 			
 			this._gravityModel.setMaxSpeed( MAX_SPEED );
-			this._gravityModel.setRect( 0, 0, MAX_W, MAX_H );
+			this._gravityModel.setRect( CORNER_X, 0, MAX_W, MAX_H );
 			
-			for(var i = 0; i < 40; i++) {
-				this._gravityModel.addItem( new Plane2D_Circle( RADIUS ), Math.floor( Math.random() * ( MAX_W - RADIUS * 2 ) + RADIUS ), Math.floor( Math.random() * ( MAX_H - RADIUS * 2 ) + RADIUS ), { x: 0, y: 0 }, 1 );
-				this._gravityModel.addItem( new Plane2D_Rect( RADIUS * 2, RADIUS * 2, -RADIUS, -RADIUS ), Math.floor( Math.random() * ( MAX_W - RADIUS * 2 ) + RADIUS ), Math.floor( Math.random() * ( MAX_H - RADIUS * 2 ) + RADIUS ), { x: 0, y: 0 }, 1 );
+			for(var i = 0; i < 400; i++) {
+				this._gravityModel.addItem( new Plane2D_Circle( RADIUS ), CORNER_X + Math.floor( Math.random() * ( MAX_W - RADIUS * 2 * 55 ) + RADIUS * 55 ), Math.floor( Math.random() * ( MAX_H - RADIUS * 2 ) + RADIUS ), { x: 1, y: 0 }, 1 );
+			//	this._gravityModel.addItem( new Plane2D_Rect( RADIUS * 2, RADIUS * 2, -RADIUS, -RADIUS ), CORNER_X + Math.floor( Math.random() * ( MAX_W - RADIUS * 2 * 20 ) + RADIUS * 20 ), Math.floor( Math.random() * ( MAX_H - RADIUS * 2 ) + RADIUS ), { x: 1, y: 1 }, 1 );
 			}
+		//	this._gravityModel.addItem( new Plane2D_Rect( 100, 100, -50, -50 ), CORNER_X + 150, 550, { x: 0, y: -5 }, 200 );
 			this._gravityModel.addForce( new GravityForce_Earth( { x: 0, y: 0.05 }, true ) );
 		}
 		, dispose: function () {
@@ -2858,6 +3155,7 @@ var ProjctCollideTest = (function () {
 				break;
 			case DragView.ACTION_DRAG_ITEM_START:
 				var id = data.id;
+				this._gravityModel.watch( id );
 				this._gravityModel.bindItem( id );
 				break;
 			case DragView.ACTION_DRAG_ITEM_END:
