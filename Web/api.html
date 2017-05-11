@@ -2,100 +2,15 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <title></title>
-<style>
-.abc:hover {
-	background-color: #086912;
-}
-.abc {
-	background-attachment: scroll;
-	background-clip: border-box;
-	background-color: rgb(51, 172, 63);
-	background-image: none;
-	background-origin: padding-box;
-	background-position-x: 0%;
-	background-position-y: 0%;
-	background-repeat-x: initial;
-	background-repeat-y: initial;
-	background-size: auto;
-	border-bottom-color: rgb(255, 255, 255);
-	border-bottom-left-radius: 3px;
-	border-bottom-right-radius: 3px;
-	border-bottom-style: none;
-	border-bottom-width: 0px;
-	border-image-outset: 0px;
-	border-image-repeat: stretch;
-	border-image-slice: 100%;
-	border-image-source: none;
-	border-image-width: 1;
-	border-left-color: rgb(255, 255, 255);
-	border-left-style: none;
-	border-left-width: 0px;
-	border-right-color: rgb(255, 255, 255);
-	border-right-style: none;
-	border-right-width: 0px;
-	border-top-color: rgb(255, 255, 255);
-	border-top-left-radius: 3px;
-	border-top-right-radius: 3px;
-	border-top-style: none;
-	border-top-width: 0px;
-	box-sizing: border-box;
-	color: rgb(255, 255, 255);
-	cursor: default;
-	display: inline-block;
-	font-family: Arial;
-	font-size: 15px;
-	font-stretch: normal;
-	font-style: normal;
-	font-variant-caps: normal;
-	font-variant-ligatures: normal;
-	font-variant-numeric: normal;
-	font-weight: normal;
-	height: 33px;
-	letter-spacing: normal;
-	line-height: normal;
-	margin-bottom: 0px;
-	margin-left: 0px;
-	margin-right: 0px;
-	margin-top: 0px;
-	outline-color: rgb(255, 255, 255);
-	outline-style: none;
-	outline-width: 0px;
-	padding-bottom: 8px;
-	padding-left: 20px;
-	padding-right: 20px;
-	padding-top: 8px;
-	text-align: center;
-	text-indent: 0px;
-	text-rendering: auto;
-	text-shadow: none;
-	text-transform: none;
-	user-select: none;
-	white-space: pre;
-	width: 87px;
-	word-spacing: 0px;
-	writing-mode: horizontal-tb;
-	-webkit-appearance: none;
-	-webkit-rtl-ordering: logical;
-	-webkit-border-image: none;
-}
-</style>
+<style></style>
 </head>
 <body style="margin:0;">
-<div id="assets">
-<div id="btn">
-<!--
-<input type="button" value="Search A" class="abc"><input type="button" value="Search" id="btnSearch" class="abc">
--->
-</div>
-</div>
 </body>
 <!--
 
 -->
 <script src="./lib/core.js"></script>
 <script>
-
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////
@@ -1391,22 +1306,22 @@ Plane2DTouchChecker = (function () {
 		var d3 = -objPt._pos.y + c3.y;
 		
 		var num = 0;
-		if ( c1 > 0 ) {
-		} else if ( c1 === 0 ) {
+		if ( d1 > 0 ) {
+		} else if ( d1 === 0 ) {
 			num = 1;
-		} else if ( c3 < 0 ) {
+		} else if ( d3 < 0 ) {
 			num = 2;
-		} else if ( c3 === 0 ) {
+		} else if ( d3 === 0 ) {
 			num = 3;
 		} else {
 			num = 4;
 		}
-		if ( c0 > 0 ) {
-		} else if ( c0 === 0 ) {
+		if ( d0 > 0 ) {
+		} else if ( d0 === 0 ) {
 			num += 5;
-		} else if ( c2 < 0 ) {
+		} else if ( d2 < 0 ) {
 			num += 10;
-		} else if ( c2 === 0 ) {
+		} else if ( d2 === 0 ) {
 			num += 15;
 		} else {
 			num += 20;
@@ -1455,10 +1370,10 @@ Plane2DTouchChecker = (function () {
 		}
 	};
 	var calcWallVsCircle = function ( objWall, objCir ) {
-		return objWall.getDir().mul();
+		return objWall.getDir();
 	};
 	var calcWallVsRect = function ( objWall, objRec ) {
-		return objWall.getDir().mul();
+		return objWall.getDir();
 	};
 	var calcCircleVsCircle = function ( objCir0, objCir1 ) {
 		return objCir1._pos.minus( objCir0._pos ).normalize();
@@ -1753,8 +1668,8 @@ var Dragable = buildClass({
 			this.updateSensor();
 		} else {
 			var sensor = this._inst.getSensor();
-			sensor.style.userSelect = '';
-			sensor.style.userDrag = '';
+		//	sensor.style.userSelect = '';
+		//	sensor.style.userDrag = '';
 			sensor.onselectstart = null;
 			sensor.ondragstart = null;
 			sensor.onmousedown = null;
@@ -1789,6 +1704,7 @@ var Dragable = buildClass({
 		var self = this;
 		var sensor = self._inst.getSensor();
 	//	sensor.style.pointerEvents = "none";
+		sensor.dragable = false;
 		sensor.style.userSelect = 'none';
 		sensor.style.userDrag = 'none';
 		sensor.onselectstart = function () { return false; };
@@ -1889,6 +1805,26 @@ var Image = buildClass({
 	}
 	, dispose: function () {
 		Image.__super__.dispose.apply( this, arguments );
+	}
+});
+
+// to do
+var Button = buildClass({
+	  TAG: 'Button'
+	, superClass: DisplayObject
+	, _url: ''
+	, constructor: function ( url ) {
+		this._url = setter.setStr( url, '' );
+		
+		Button.__super__.constructor.apply( this, ['img'] );
+	}
+	, init: function () {
+		Button.__super__.init.apply( this, arguments );
+		
+		this._inst.src = this._url;
+	}
+	, dispose: function () {
+		Button.__super__.dispose.apply( this, arguments );
 	}
 });
 
@@ -2368,14 +2304,14 @@ var ProjectModelViewTest = (function () {
 ////////////////////////////////////////////////////////////
 ////////////////////////////////////////
 ////////////////////
-//	ProjctCollideTest
+//	ProjectCollideTest
 ////////////////////
 ////////////////////////////////////////
 ////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-var ProjctCollideTest = (function () {
+var ProjectCollideTest = (function () {
 	
 ////////////////////////////////////////////////////////////
 ////////////////////////////////////////
@@ -2384,7 +2320,6 @@ var ProjctCollideTest = (function () {
 ////////////////////
 ////////////////////////////////////////
 ////////////////////////////////////////////////////////////
-	var aTest = 0;
 	var createAngleAdder = function () {
 		var inst = {};
 		
@@ -2395,92 +2330,51 @@ var ProjctCollideTest = (function () {
 		// vtr: dir to be remove, unit vtr
 		var add = function ( vtr ) {
 			if ( vtr.x === 0 && vtr.y === 0 ) {
-				if ( aTest === 1 ) {
-					log( 'rslt X' );
-				}
 				return;
 			}
 			var vf = new Vec2( vtr.y, -vtr.x );
 			var vt = new Vec2( -vtr.y, vtr.x );
-			if ( aTest === 1 ) {
-				log( 'add >> ' + JSON.stringify( vtr ));
-			}
 			if ( v0 === null ) {
 				v0 = vt;
 				v1 = vf;
-				if ( aTest === 1 ) {
-					log( 'rslt A >> ' + JSON.stringify( v0 ) + ' - ' + JSON.stringify( v1 ) );
-				}
 				return;
 			}
 			if ( full ) {
-				if ( aTest === 1 ) {
-					log( 'rslt D' );
-				}
 				return;
 			}
+			// to do: full
 			if ( ( vf.cross( v0 ) > 0 || ( vf.cross( v0 ) === 0 && vf.dot( v0 ) > 0 ) ) && ( v1.cross( vt ) > 0 || ( v1.cross( vt ) === 0 && v1.dot( vt ) > 0 ) ) ) {
 				full = true;
-				if ( aTest === 1 ) {
-					log( 'rslt C' );
-				}
 				return;
 			}
 			if ( v0.cross( vf ) > 0 && vf.cross( v1 ) > 0 ) {
 				v1 = vf;
-				if ( aTest === 1 ) {
-					log( 'rslt B1 >> ' + JSON.stringify( v0 ) + ' - ' + JSON.stringify( v1 ) );
-				}
 			}
 			if ( v0.cross( vt ) > 0 && vt.cross( v1 ) > 0 ) {
 				v0 = vt;
-				if ( aTest === 1 ) {
-					log( 'rslt B2 >> ' + JSON.stringify( v0 ) + ' - ' + JSON.stringify( v1 ) );
-				}
 			}
 		};
 		
 		var calc = function ( vtr ) {
-			if ( aTest === 1 ) {
-				log( 'calc start >> ' + JSON.stringify( vtr ) );
-			}
 			if ( v0 === null ) {
-				if ( aTest === 1 ) {
-					log( 'calc rslt A' );
-				}
 				return vtr;
 			}
 			if ( full ) {
-				if ( aTest === 1 ) {
-					log( 'calc rslt B' );
-				}
 				return new Vec2();
 			}
 			if ( ( v0.cross( vtr ) > 0 || ( v0.cross( vtr ) === 0 && v0.dot( vtr ) > 0 ) ) && ( vtr.cross( v1 ) > 0 || ( vtr.cross( v1 ) === 0 && vtr.dot( v1 ) > 0 ) ) ) {
-				if ( aTest === 1 ) {
-					log( 'calc rslt D' );
-				}
 				return vtr;
 			}
 			var rslt = vtr;
 			var dotValue = vtr.dot( v0 );
 			if ( vtr.cross( v0 ) >= 0 && dotValue > 0 ) {
 				rslt = v0.mul( dotValue );
-				if ( aTest === 1 ) {
-					log( 'calc rslt C1 >> ' + JSON.stringify( rslt ) );
-				}
 				return rslt;
 			}
 			var dotValue = vtr.dot( v1 );
 			if ( vtr.cross( v1 ) <= 0 && dotValue > 0 ) {
 				rslt = v1.mul( dotValue );
-				if ( aTest === 1 ) {
-					log( 'calc rslt C2 >> ' + JSON.stringify( rslt ) );
-				}
 				return rslt;
-			}
-			if ( aTest === 1 ) {
-				log( 'calc rslt E' );
 			}
 			return new Vec2();
 		};
@@ -2564,29 +2458,7 @@ var ProjctCollideTest = (function () {
 		// value: unit vector
 		, blockDir: function ( value ) {
 			this._blockList.push( value );
-			
 			var angleAdder = createAngleAdder();
-		//	aTest = 1;
-			if ( aTest === 0 ) {
-				if ( this._blockList.length > 3 ) {
-					aTest = 1;
-					for(var i = 0; i < this._blockList.length; i++) {
-						angleAdder.add( this._blockList[i] );
-					}
-					this._vecAfter = angleAdder.calc( this._vec );	
-					aTest = 2;
-					return;
-				}
-			}
-			if ( this._watch ) {
-				aTest = 1;
-				for(var i = 0; i < this._blockList.length; i++) {
-					angleAdder.add( this._blockList[i] );
-				}
-				this._vecAfter = angleAdder.calc( this._vec );
-				aTest = 2;
-				return;
-			}
 			for(var i = 0; i < this._blockList.length; i++) {
 				angleAdder.add( this._blockList[i] );
 			}
@@ -2691,17 +2563,6 @@ var ProjctCollideTest = (function () {
 				return;
 			}
 			
-			/*
-			var pos0 = this.getPos();
-			var pos1 = target.getPos();
-			var dir = pos0.minus( pos1 ).normalize();
-			if ( Plane2D_Wall.isCreatorOf( target._plane ) ) {
-				dir = target._plane.getDir();
-			} else if ( Plane2D_Wall.isCreatorOf( this._plane ) ) {
-				dir = this._plane.getDir();
-			}
-			this.blockDir( dir.mul( -1 ) );
-			*/
 			var dir = this._plane.touchDir( target._plane );
 			this.blockDir( dir );
 		}
@@ -2709,12 +2570,12 @@ var ProjctCollideTest = (function () {
 			if ( this._bind ) {
 				return;
 			}
-			var pos = this._plane.getPos();
-			if ( this._vecAfter === null ) {
-				pos.addEql( this._vec );
-			} else {
-				pos.addEql( this._vecAfter );
+			
+			if ( this._vecAfter !== null ) {
+				this._vec = this._vecAfter;
 			}
+			var pos = this._plane.getPos();
+			pos.addEql( this._vec );
 			this._plane.setPos( pos );
 		}
 	});
@@ -2958,7 +2819,7 @@ var ProjctCollideTest = (function () {
 			}
 		}
 		, procRunCollide: function () {
-		//	looper.pairs( this._child, this.collision );
+			looper.pairs( this._child, this.collision );
 		}
 		, procFixSpeed: function () {
 			for(var i = 0; i < this._child.length; i++) {
@@ -3084,15 +2945,15 @@ var ProjctCollideTest = (function () {
 ////////////////////////////////////////////////////////////
 	
 	return buildClass({
-		  TAG: 'ProjctCollideTest'
+		  TAG: 'ProjectCollideTest'
 		, superClass: ProjectCore
 		, _dragView: null
 		, _gravityModel: null
 		, constructor: function ( parent ) {
-			ProjctCollideTest.__super__.constructor.apply( this, arguments );
+			ProjectCollideTest.__super__.constructor.apply( this, arguments );
 		}
 		, init: function () {
-			ProjctCollideTest.__super__.init.apply( this, arguments );
+			ProjectCollideTest.__super__.init.apply( this, arguments );
 			
 			this._gravityModel = new GravityModel( this );
 			this._dragView = new DragView( this );
@@ -3100,18 +2961,18 @@ var ProjctCollideTest = (function () {
 			
 			const CORNER_X = 50;
 			const MAX_SPEED = 2;
-			const MAX_W = 600;
-			const MAX_H = 800;
+			const MAX_W = 150;
+			const MAX_H = 300;
 			const RADIUS = 5;
 			
 			this._gravityModel.setMaxSpeed( MAX_SPEED );
 			this._gravityModel.setRect( CORNER_X, 0, MAX_W, MAX_H );
 			
-			for(var i = 0; i < 400; i++) {
-				this._gravityModel.addItem( new Plane2D_Circle( RADIUS ), CORNER_X + Math.floor( Math.random() * ( MAX_W - RADIUS * 2 * 55 ) + RADIUS * 55 ), Math.floor( Math.random() * ( MAX_H - RADIUS * 2 ) + RADIUS ), { x: 1, y: 0 }, 1 );
+			for(var i = 0; i < 100; i++) {
+			//	this._gravityModel.addItem( new Plane2D_Circle( RADIUS ), CORNER_X + Math.floor( Math.random() * ( MAX_W - RADIUS * 2 * 55 ) + RADIUS * 55 ), Math.floor( Math.random() * ( MAX_H - RADIUS * 2 ) + RADIUS ), { x: 1, y: 0 }, 1 );
 			//	this._gravityModel.addItem( new Plane2D_Rect( RADIUS * 2, RADIUS * 2, -RADIUS, -RADIUS ), CORNER_X + Math.floor( Math.random() * ( MAX_W - RADIUS * 2 * 20 ) + RADIUS * 20 ), Math.floor( Math.random() * ( MAX_H - RADIUS * 2 ) + RADIUS ), { x: 1, y: 1 }, 1 );
 			}
-		//	this._gravityModel.addItem( new Plane2D_Rect( 100, 100, -50, -50 ), CORNER_X + 150, 550, { x: 0, y: -5 }, 200 );
+			this._gravityModel.addItem( new Plane2D_Circle( 50 ), CORNER_X + 20, 150, { x: 0, y: -5 }, 200 );
 			this._gravityModel.addForce( new GravityForce_Earth( { x: 0, y: 0.05 }, true ) );
 		}
 		, dispose: function () {
@@ -3124,7 +2985,7 @@ var ProjctCollideTest = (function () {
 				this._dragView = null;
 			}
 			
-			ProjctCollideTest.__super__.dispose.apply( this, arguments );
+			ProjectCollideTest.__super__.dispose.apply( this, arguments );
 		}
 		, instruct: function ( action, data ) {
 			switch ( action ) {
@@ -3174,41 +3035,134 @@ var ProjctCollideTest = (function () {
 	});
 } ());
 
-// new ProjectModelViewTest( document.body );
-new ProjctCollideTest( document.body );
+////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////
+////////////////////////////////////////
+////////////////////
+//	ProjectText
+////////////////////
+////////////////////////////////////////
+////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// new ProjctA( document.body );
+var ProjectText = (function () {
+	
+////////////////////////////////////////////////////////////
+////////////////////////////////////////
+////////////////////
+//	Model
+////////////////////
+////////////////////////////////////////
+////////////////////////////////////////////////////////////
+	
+////////////////////////////////////////////////////////////
+////////////////////////////////////////
+////////////////////
+//	View
+////////////////////
+////////////////////////////////////////
+////////////////////////////////////////////////////////////
+
+
+
+var TextField = buildClass({
+	  TAG: 'TextField'
+	, superClass: DisplayObject
+	, _txt: ''
+	, constructor: function ( value ) {
+		this._txt = setter.setStr( value, '' );
+		
+		TextField.__super__.constructor.apply( this, ['div'] );
+	}
+	, init: function () {
+		TextField.__super__.init.apply( this, arguments );
+		this._inst.style.whiteSpace = "nowrap";
+		this.setText( this._txt );
+	}
+	, dispose: function () {
+		TextField.__super__.dispose.apply( this, arguments );
+	}
+	, clear: function () {
+		while (this._inst.hasChildNodes()) {
+			this._inst.removeChild(this._inst.lastChild);
+		}
+	}
+	, setText: function ( value ) {
+		this._txt = value;
+		this.clear();
+		
+		var t = document.createTextNode( this._txt );
+		this._inst.appendChild( t );
+	}
+});
+	
+////////////////////////////////////////////////////////////
+////////////////////////////////////////
+////////////////////
+//	Main
+////////////////////
+////////////////////////////////////////
+////////////////////////////////////////////////////////////
+	
+	return buildClass({
+		  TAG: 'ProjectText'
+		, superClass: ProjectCore
+		, constructor: function ( parent ) {
+			ProjectText.__super__.constructor.apply( this, arguments );
+		}
+		, init: function () {
+			ProjectText.__super__.init.apply( this, arguments );
+			
+			var tf = new TextField( 'This div element has position: absolute;' );
+			tf.getDragable().enable( true );
+			this.addChild( tf );
+			
+			var q = new Quad( 200, 200, '#ff0000' );
+			q.setPosX( 300 );
+			this.addChild( q );
+		}
+		, dispose: function () {
+			ProjectText.__super__.dispose.apply( this, arguments );
+		}
+		, instruct: function ( action, data ) {
+			switch ( action ) {
+			default:
+				this.log( 'Unknown action >> ' + action );
+			}
+		}
+	});
+} ());
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////
+////////////////////////////////////////
+////////////////////
+//	Start
+////////////////////
+////////////////////////////////////////
+////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// new ProjectModelViewTest( document.body );
+// new ProjectCollideTest( document.body );
+new ProjectText( document.body );
 
 <!-- Notices -->
 /*
+//
 
+//
 */
 
 <!-- Testing Area -->
 /*
-var r0 = 150;
-var r1 = 50;
-var cx = 200;
-var cy = 200;
-var drawer = new Drawer2D( cx * 2, cy * 4 );
-drawer.clear();
-document.body.appendChild( drawer.getInst() );
+//
 
-var cut = 1000;
-var x0 = 0;
-var y0 = 0;
-for(var i = 0; i <= cut; i++) {
-	var x = r0 * i / cut;
-	var y = Math.sqrt( r0 * r0 - x * x ) * r1 / r0;
-	drawer.drawLine( x, 0, x, y );
-	if ( i > 0 ) {
-		var len = Math.sqrt( (x0 - x) * (x0 - x) + (y0 - y) * (y0 - y) );
-		
-		drawer.drawLine( x + cx, 0, x + cx, 10 / len );
-	}
-	x0 = x;
-	y0 = y;
-}
+//
 */
 </script>
 </html>
