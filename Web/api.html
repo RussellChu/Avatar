@@ -1058,7 +1058,9 @@ var Plane2D_Circle = buildClass({
 	}
 	, _radius: 0
 	, constructor: function ( radius ) {
-		this._radius = setter.setNum( radius, 0, { min: 0 } );
+		// radius > 0 : circle
+		// radius < 0 : ring
+		this._radius = setter.setNum( radius, 0 );
 		
 		Plane2D_Circle.__super__.constructor.apply( this, arguments );
 	}
@@ -1134,6 +1136,9 @@ Plane2DOverlapChecker = (function () {
 		return false;
 	};
 	var calcPointVsCircle = function ( objPt, objCir ) {
+		if ( objCir._radius <= 0 ) {
+			return false;
+		}
 		if ( objPt._pos.minus( objCir._pos ).mag() < objCir._radius ) {
 			return true;
 		}
@@ -1155,7 +1160,11 @@ Plane2DOverlapChecker = (function () {
 		return true;
 	};
 	var calcWallVsCircle = function ( objWall, objCir ) {
-		if ( objWall._pos.minus( objCir._pos ).dot( objWall._dir ) > -objCir._radius ) {
+		var radius = objCir._radius;
+		if ( radius <= 0 ) {
+			radius = -radius;
+		}
+		if ( objWall._pos.minus( objCir._pos ).dot( objWall._dir ) > -radius ) {
 			return true;
 		}
 		return false;
@@ -1176,16 +1185,72 @@ Plane2DOverlapChecker = (function () {
 		return false;
 	};
 	var calcCircleVsCircle = function ( objCir0, objCir1 ) {
-		if ( objCir0._pos.minus( objCir1._pos ).mag() < objCir0._radius + objCir1._radius ) {
-			return true;
+		var r0 = objCir0._radius;
+		var r1 = objCir1._radius;
+		if ( r0 < 0 ) {
+			r0 = -r0;
 		}
-		return false;
+		if ( r1 < 0 ) {
+			r1 = -r1;
+		}
+		var dist = objCir0._pos.minus( objCir1._pos ).mag();
+		if ( dist >= r0 + r1 ) {
+			return false;
+		}
+		if ( objCir0._radius >= 0 && objCir1._radius >= 0 ) {
+			return true;
+		} else if ( objCir0._radius >= 0 && objCir1._radius < 0 ) {
+			if ( dist <= r1 - r0 ) {
+				return false;
+			}
+			return true;
+		} else if ( objCir0._radius < 0 && objCir1._radius >= 0 ) {
+			if ( dist <= r0 - r1 ) {
+				return false;
+			}
+			return true;
+		} else {
+			if ( r1 - r0 >= 0 ) {
+				if ( dist <= r1 - r0 ) {
+					return false;
+				}
+				return true;
+			} else {
+				if ( dist <= r0 - r1 ) {
+					return false;
+				}
+				return true;
+			}
+		}
 	};
 	var calcCircleVsRect = function ( objCir, objRec ) {
+		var radius = objCir._radius;
+		if ( radius < 0 ) {
+			radius = -radius;
+		}
+		var dist = objCir._pos.minus( objRec._pos ).mag();
+		
+		if ( objCir._radius < 0 && dist <= radius ) {
+			if ( objCir._pos.minus( new Vec2( objRec._pos.x + objRec._cornerX, objRec._pos.y + objRec._cornerY ) ).mag() > radius ) {
+				return true;
+			}
+			if ( objCir._pos.minus( new Vec2( objRec._pos.x + objRec._cornerX, objRec._pos.y + objRec._cornerY + objRec._height ) ).mag() > radius ) {
+				return true;
+			}
+			if ( objCir._pos.minus( new Vec2( objRec._pos.x + objRec._cornerX + objRec._width, objRec._pos.y + objRec._cornerY ) ).mag() > radius ) {
+				return true;
+			}
+			if ( objCir._pos.minus( new Vec2( objRec._pos.x + objRec._cornerX + objRec._width, objRec._pos.y + objRec._cornerY + objRec._height ) ).mag() > radius ) {
+				return true;
+			}
+			
+			return false;
+		}
+		
 		var rslt = true;
-		if ( objCir._pos.x + objCir._radius < objRec._pos.x + objRec._cornerX ) {
+		if ( objCir._pos.x + radius < objRec._pos.x + objRec._cornerX ) {
 			rslt = false;
-		} else if ( objCir._pos.x - objCir._radius > objRec._pos.x + objRec._cornerX + objRec._width ) {
+		} else if ( objCir._pos.x - radius > objRec._pos.x + objRec._cornerX + objRec._width ) {
 			rslt = false;
 		} else if ( objCir._pos.y < objRec._pos.y + objRec._cornerY ) {
 			rslt = false;
@@ -1201,25 +1266,25 @@ Plane2DOverlapChecker = (function () {
 			rslt = false;
 		} else if ( objCir._pos.x > objRec._pos.x + objRec._cornerX + objRec._width ) {
 			rslt = false;
-		} else if ( objCir._pos.y + objCir._radius < objRec._pos.y + objRec._cornerY ) {
+		} else if ( objCir._pos.y + radius < objRec._pos.y + objRec._cornerY ) {
 			rslt = false;
-		} else if ( objCir._pos.y - objCir._radius > objRec._pos.y + objRec._cornerY + objRec._height ) {
+		} else if ( objCir._pos.y - radius > objRec._pos.y + objRec._cornerY + objRec._height ) {
 			rslt = false;
 		}
 		if ( rslt ) {
 			return true;
 		}
 		
-		if ( objCir._pos.minus( new Vec2( objRec._pos.x + objRec._cornerX, objRec._pos.y + objRec._cornerY ) ).mag() < objCir._radius ) {
+		if ( objCir._pos.minus( new Vec2( objRec._pos.x + objRec._cornerX, objRec._pos.y + objRec._cornerY ) ).mag() < radius ) {
 			return true;
 		}
-		if ( objCir._pos.minus( new Vec2( objRec._pos.x + objRec._cornerX, objRec._pos.y + objRec._cornerY + objRec._height ) ).mag() < objCir._radius ) {
+		if ( objCir._pos.minus( new Vec2( objRec._pos.x + objRec._cornerX, objRec._pos.y + objRec._cornerY + objRec._height ) ).mag() < radius ) {
 			return true;
 		}
-		if ( objCir._pos.minus( new Vec2( objRec._pos.x + objRec._cornerX + objRec._width, objRec._pos.y + objRec._cornerY ) ).mag() < objCir._radius ) {
+		if ( objCir._pos.minus( new Vec2( objRec._pos.x + objRec._cornerX + objRec._width, objRec._pos.y + objRec._cornerY ) ).mag() < radius ) {
 			return true;
 		}
-		if ( objCir._pos.minus( new Vec2( objRec._pos.x + objRec._cornerX + objRec._width, objRec._pos.y + objRec._cornerY + objRec._height ) ).mag() < objCir._radius ) {
+		if ( objCir._pos.minus( new Vec2( objRec._pos.x + objRec._cornerX + objRec._width, objRec._pos.y + objRec._cornerY + objRec._height ) ).mag() < radius ) {
 			return true;
 		}
 		
@@ -1293,7 +1358,15 @@ Plane2DTouchChecker = (function () {
 		return objWall.getDir().mul( -1 );
 	};
 	var calcPointVsCircle = function ( objPt, objCir ) {
-		return objCir._pos.minus( objPt._pos ).normalize();
+		var dir = objCir._pos.minus( objPt._pos ).normalize();
+		if ( objCir._radius >= 0 ) {
+			return dir;
+		}
+		var dist = objPt._pos.minus( objCir._pos ).mag();
+		if ( dist >= -objCir._radius ) {
+			return dir;
+		}
+		return dir.mul( -1 );
 	};
 	var calcPointVsRect = function ( objPt, objRec ) {
 		var c0 = new Vec2( objRec._pos.x + objRec._cornerX + objRec._width, objRec._pos.y + objRec._cornerY + objRec._height );
@@ -1376,10 +1449,63 @@ Plane2DTouchChecker = (function () {
 		return objWall.getDir();
 	};
 	var calcCircleVsCircle = function ( objCir0, objCir1 ) {
-		return objCir1._pos.minus( objCir0._pos ).normalize();
+		var r0 = objCir0._radius;
+		var r1 = objCir1._radius;
+		if ( r0 < 0 ) {
+			r0 = -r0;
+		}
+		if ( r1 < 0 ) {
+			r1 = -r1;
+		}
+		
+		var dir = objCir1._pos.minus( objCir0._pos ).normalize();
+		var dist = objCir0._pos.minus( objCir1._pos ).mag();
+		if ( dist >= r0 + r1 ) {
+			return dir;
+		}
+		if ( objCir0._radius >= 0 && objCir1._radius >= 0 ) {
+			return dir;
+		} else if ( objCir0._radius >= 0 && objCir1._radius < 0 ) {
+			if ( r0 > r1 ) {
+				return dir;
+			}
+			if ( dist >= r1 ) {
+				return dir;
+			}
+			return dir.mul( -1 );
+		} else if ( objCir0._radius < 0 && objCir1._radius >= 0 ) {
+			if ( r0 < r1 ) {
+				return dir;
+			}
+			if ( dist <= r0 ) {
+				return dir.mul( -1 );
+			}
+			return dir;
+		} else {
+			if ( r1 - r0 >= 0 ) {
+				if ( dist <= r1 - r0 ) {
+					return dir.mul( -1 );
+				}
+				return dir;
+			} else {
+				if ( dist <= r0 - r1 ) {
+					return dir.mul( -1 );
+				}
+				return dir;
+			}
+		}
 	};
 	var calcCircleVsRect = function ( objCir, objRec ) {
-		return calcPointVsRect( objCir, objRec );
+		var radius = objCir._radius;
+		if ( radius < 0 ) {
+			radius = -radius;
+		}
+		var dist = objCir._pos.minus( objRec._pos ).mag();
+		if ( objCir._radius >= 0 || dist > radius ) {
+			return calcPointVsRect( objCir, objRec );
+		}
+		
+		return calcPointVsRect( objCir, objRec ).mul( -1 );
 	};
 	var calcRectVsRect = function ( objRec0, objRec1 ) {
 		// to do
@@ -2493,7 +2619,7 @@ var ProjectCollideTest = (function () {
 			if ( !this.isCloseTo( target ) ) {
 				return;
 			}
-			
+			/*
 			var pos0 = this.getPos();
 			var pos1 = target.getPos();
 			var dir = pos1.minus( pos0 ).normalize();
@@ -2502,6 +2628,8 @@ var ProjectCollideTest = (function () {
 			} else if ( Plane2D_Wall.isCreatorOf( this._plane ) ) {
 				dir = this._plane.getDir();
 			}
+			*/
+			var dir = this._plane.touchDir( target._plane );
 			
 			var speed0 = this._vec.dot( dir );
 			var speed1 = target._vec.dot( dir );
@@ -2959,21 +3087,27 @@ var ProjectCollideTest = (function () {
 			this._dragView = new DragView( this );
 			this.addChild( this._dragView );
 			
-			const CORNER_X = 50;
-			const MAX_SPEED = 2;
-			const MAX_W = 150;
-			const MAX_H = 300;
+			const CORNER_X = 0;
+			const MAX_SPEED = 40;
+			const MAX_W = 800;
+			const MAX_H = 800;
 			const RADIUS = 5;
 			
 			this._gravityModel.setMaxSpeed( MAX_SPEED );
 			this._gravityModel.setRect( CORNER_X, 0, MAX_W, MAX_H );
 			
-			for(var i = 0; i < 100; i++) {
-			//	this._gravityModel.addItem( new Plane2D_Circle( RADIUS ), CORNER_X + Math.floor( Math.random() * ( MAX_W - RADIUS * 2 * 55 ) + RADIUS * 55 ), Math.floor( Math.random() * ( MAX_H - RADIUS * 2 ) + RADIUS ), { x: 1, y: 0 }, 1 );
+			for(var i = 0; i < 200; i++) {
+				this._gravityModel.addItem( new Plane2D_Circle( RADIUS ), CORNER_X + Math.floor( Math.random() * ( MAX_W - RADIUS * 2 ) + RADIUS ), Math.floor( Math.random() * ( MAX_H - RADIUS * 2 ) + RADIUS ), { x: 1, y: 0 }, 1 );
 			//	this._gravityModel.addItem( new Plane2D_Rect( RADIUS * 2, RADIUS * 2, -RADIUS, -RADIUS ), CORNER_X + Math.floor( Math.random() * ( MAX_W - RADIUS * 2 * 20 ) + RADIUS * 20 ), Math.floor( Math.random() * ( MAX_H - RADIUS * 2 ) + RADIUS ), { x: 1, y: 1 }, 1 );
 			}
-			this._gravityModel.addItem( new Plane2D_Circle( 50 ), CORNER_X + 20, 150, { x: 0, y: -5 }, 200 );
-			this._gravityModel.addForce( new GravityForce_Earth( { x: 0, y: 0.05 }, true ) );
+			this._gravityModel.addItem( new Plane2D_Circle( RADIUS * 2 ), CORNER_X + Math.floor( Math.random() * ( MAX_W - RADIUS * 2 ) + RADIUS ), Math.floor( Math.random() * ( MAX_H - RADIUS * 2 ) + RADIUS ), { x: 1, y: 0 }, 1000 );
+			//	this._gravityModel.addItem( new Plane2D_Circle( 50 ), CORNER_X + 20, 150, { x: 0, y: -5 }, 200 );
+			//this._gravityModel.addItem( new Plane2D_Circle( -RADIUS ), CORNER_X + Math.floor( Math.random() * ( MAX_W - RADIUS * 2 ) + RADIUS ), Math.floor( Math.random() * ( MAX_H - RADIUS * 2 ) + RADIUS ), { x: 1, y: 0 }, 0 );
+			//this._gravityModel.addItem( new Plane2D_Rect( 10, 10, -5, -5 ), CORNER_X + 150, 550, { x: 0, y: -5 }, 1 );
+
+		//	this._gravityModel.addItem( new Plane2D_Circle( RADIUS * 0.3 ), CORNER_X + Math.floor( Math.random() * ( MAX_W - RADIUS * 2 ) + RADIUS ), Math.floor( Math.random() * ( MAX_H - RADIUS * 2 ) + RADIUS ), { x: 1, y: 0 }, 1 );
+		//	this._gravityModel.addForce( new GravityForce_Earth( { x: 0, y: 0.05 }, true ) );
+			this._gravityModel.addForce( new GravityForce_Point( { x: 400, y: 400 }, 0.1, true ) );
 		}
 		, dispose: function () {
 			if ( this._gravityModel ) {
@@ -2998,7 +3132,11 @@ var ProjectCollideTest = (function () {
 				var y = pos.y;
 				switch ( shape ) {
 				case Plane2D_Circle.SHAPE:
-					this._dragView.addItemCircle( id, x, y, plane.getRadius() );
+					var radius = plane.getRadius();
+					if ( radius < 0 ) {
+						radius = -radius;
+					}
+					this._dragView.addItemCircle( id, x, y, radius );
 					break;
 				case Plane2D_Rect.SHAPE:
 					var size = plane.getSize();
@@ -3115,13 +3253,9 @@ var TextField = buildClass({
 		, init: function () {
 			ProjectText.__super__.init.apply( this, arguments );
 			
-			var tf = new TextField( 'This div element has position: absolute;' );
+			var tf = new TextField( 'This is a text field.' );
 			tf.getDragable().enable( true );
 			this.addChild( tf );
-			
-			var q = new Quad( 200, 200, '#ff0000' );
-			q.setPosX( 300 );
-			this.addChild( q );
 		}
 		, dispose: function () {
 			ProjectText.__super__.dispose.apply( this, arguments );
@@ -3148,8 +3282,8 @@ var TextField = buildClass({
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // new ProjectModelViewTest( document.body );
-// new ProjectCollideTest( document.body );
-new ProjectText( document.body );
+new ProjectCollideTest( document.body );
+// new ProjectText( document.body );
 
 <!-- Notices -->
 /*
