@@ -2699,14 +2699,25 @@ var ProjectCollideTest = (function () {
 
 	var GravityForce = buildClass({
 		  TAG: 'GravityForce'
+		, _id: 0
+		, _pos: null
 		, constructor: function () {
 			this.init();
 		}
 		, init: function () {
-			;
+			this._pos = new Vec2();
 		}
 		, dispose: function () {
-			;
+			this._pos = null;
+		}
+		, getId: function () {
+			return this._id;
+		}
+		, setId: function ( value ) {
+			return this._id = setter.setInt( value, 0, { min: 0 } );
+		}
+		, setPos: function ( value ) {
+			this._pos = Vec2.createFromObj( value );
 		}
 		, calcAcc: function ( pos, mass ) {
 			return new Vec2();
@@ -2716,20 +2727,24 @@ var ProjectCollideTest = (function () {
 	var GravityForce_Point = buildClass({
 		  TAG: 'GravityForce_Point'
 		, superClass: GravityForce
-		, _pos: null
+		, _posInit: null
 		, _mag: 0
 		, _isConst: false
 		, constructor: function ( pos, mag, isConst ) {
-			this._pos = Vec2.createFromObj( pos );
+			this._posInit = Vec2.createFromObj( pos );
 			this._mag = setter.setNum( mag, 0 );
 			this._isConst = setter.setBool( isConst, false );
-			this.init();
+			GravityForce_Point.__super__.constructor.apply( this, arguments );
 		}
 		, init: function () {
-			;
+			GravityForce_Earth.__super__.init.apply( this, arguments );
+			this._pos = this._posInit;
+			this._posInit = null;
 		}
 		, dispose: function () {
-			this._pos = null;
+			this._posInit = null;
+			
+			GravityForce_Earth.__super__.dispose.apply( this, arguments );
 		}
 		, calcAcc: function ( pos, p_mass ) {
 			var mass = setter.setNum( p_mass, 0 );
@@ -2756,13 +2771,15 @@ var ProjectCollideTest = (function () {
 		, constructor: function ( force, isConst ) {
 			this._force = Vec2.createFromObj( force );
 			this._isConst = setter.setBool( isConst, false );
-			this.init();
+			GravityForce_Earth.__super__.constructor.apply( this, arguments );
 		}
 		, init: function () {
-			;
+			GravityForce_Earth.__super__.init.apply( this, arguments );
 		}
 		, dispose: function () {
 			this._force = null;
+			
+			GravityForce_Earth.__super__.dispose.apply( this, arguments );
 		}
 		, calcAcc: function ( pos, p_mass ) {
 			var rslt = new Vec2();
@@ -2781,6 +2798,43 @@ var ProjectCollideTest = (function () {
 			}
 			
 			return rslt;
+		}
+	});
+	
+	var FunModel = buildClass({
+		  TAG: 'FunModel'
+		, superClass: ModelCore
+		, __static__: {
+			  ACTION_UPDATE_FORCE: 'FunModel.ACTION_UPDATE_FORCE'
+		}
+		, _map: null
+		, constructor: function () {
+			FunModel.__super__.constructor.apply( this, arguments );
+		}
+		, init: function () {
+			FunModel.__super__.init.apply( this, arguments );
+			
+			this._map = {};
+		}
+		, dispose: function () {
+			this._map = null;
+			
+			FunModel.__super__.dispose.apply( this, arguments );
+		}
+		, regForce: function ( id, forceId ) {
+			if ( this._map === null ) {
+				return;
+			}
+			
+			this._map[id] = forceId;
+		}
+		, update: function ( id, x, y ) {
+			if ( !setter.hasValidNum( this._map, id ) ) {
+				return;
+			}
+			
+			var forceId = this._map[id];
+			this.instruct( FunModel.ACTION_UPDATE_FORCE, { id: forceId, x: x, y: y } );
 		}
 	});
 	
@@ -2877,8 +2931,8 @@ var ProjectCollideTest = (function () {
 			if ( !this._wall ) {
 				return;
 			}
-			var x = setter.setInt( p_x, 0, { min: 0 } );
-			var y = setter.setInt( p_y, 0, { min: 0 } );
+			var x = setter.setInt( p_x, 0 );
+			var y = setter.setInt( p_y, 0 );
 			var w = setter.setInt( p_w, 0, { min: 0 } );
 			var h = setter.setInt( p_h, 0, { min: 0 } );
 			this._wall[0].getPlane().setPos( { x: x + w * 0.0, y: y + h * 0.5 } );
@@ -2894,7 +2948,8 @@ var ProjectCollideTest = (function () {
 				return -1;
 			}
 			
-			var id = this._force.length;
+			var id = this.createForceId();
+			obj.setId( id );
 			this._force.push( obj );
 			return id;
 		}
@@ -2971,6 +3026,18 @@ var ProjectCollideTest = (function () {
 			this.actCalcFinal();
 			this.actUpdate();
 		}
+		, getForceById( id ) {
+			if ( !this._force ) {
+				return null;
+			}
+			for(var i = 0; i < this._force.length; i++) {
+				var item = this._force[i];
+				if ( item.getId() === id ) {
+					return item;
+				}
+			}
+			return null;
+		}
 		, getItemById( id ) {
 			if ( !this._child ) {
 				return null;
@@ -3042,6 +3109,13 @@ var ProjectCollideTest = (function () {
 			
 			this.instruct( GravityModel.ACTION_UPDATE_POS, { id: id, x: pos.x, y: pos.y } );
 		}
+		, updateForce: function ( id, x, y ) {
+			var item = this.getForceById( id );
+			if ( item === null ) {
+				return;
+			}
+			item.setPos( { x: x, y: y } );
+		}
 	});
 	
 ////////////////////////////////////////////////////////////
@@ -3067,37 +3141,40 @@ var ProjectCollideTest = (function () {
 		, superClass: ProjectCore
 		, _dragView: null
 		, _gravityModel: null
+		, _funModel: null
 		, constructor: function ( parent ) {
 			ProjectCollideTest.__super__.constructor.apply( this, arguments );
 		}
 		, init: function () {
 			ProjectCollideTest.__super__.init.apply( this, arguments );
 			
+			this._funModel = new FunModel( this );
 			this._gravityModel = new GravityModel( this );
 			this._dragView = new DragView( this );
 			this.addChild( this._dragView );
 			
-			const CORNER_X = 0;
-			const MAX_SPEED = 5;
-			const MAX_W = 200;
-			const MAX_H = 600;
-			const RADIUS = 5;
+			const CORNER_X = -200;
+			const CORNER_Y = -400;
+			const MAX_SPEED = 10;
+			const MAX_W = 1000;
+			const MAX_H = 1000;
+			const RADIUS = 3;
 			
 			this._gravityModel.setMaxSpeed( MAX_SPEED );
-			this._gravityModel.setRect( CORNER_X, 0, MAX_W, MAX_H );
+			this._gravityModel.setRect( CORNER_X, CORNER_Y, MAX_W, MAX_H );
 			
-			for(var i = 0; i < 4; i++) {
-				this._gravityModel.addItem( new Plane2D_Circle( RADIUS ), CORNER_X + Math.floor( Math.random() * ( MAX_W - RADIUS * 2 ) + RADIUS ), Math.floor( Math.random() * ( MAX_H - RADIUS * 2 ) + RADIUS ), { x: 1, y: 0 }, 1 );
-				this._gravityModel.addItem( new Plane2D_Rect( RADIUS * 2, RADIUS * 2, -RADIUS, -RADIUS ), CORNER_X + Math.floor( Math.random() * ( MAX_W - RADIUS * 2 * 20 ) + RADIUS * 20 ), Math.floor( Math.random() * ( MAX_H - RADIUS * 2 ) + RADIUS ), { x: 1, y: 1 }, 1 );
+			for(var i = 0; i < 200; i++) {
+				this._gravityModel.addItem( new Plane2D_Circle( RADIUS ), CORNER_X + Math.floor( 0.5 * ( MAX_W - RADIUS * 2 ) + RADIUS ), Math.floor( Math.random() * ( MAX_H - RADIUS * 2 ) + RADIUS ), { x: 0, y: 0 }, 1 );
+			//	this._gravityModel.addItem( new Plane2D_Rect( RADIUS * 2, RADIUS * 2, -RADIUS, -RADIUS ), CORNER_X + Math.floor( Math.random() * ( MAX_W - RADIUS * 2 * 20 ) + RADIUS * 20 ), Math.floor( Math.random() * ( MAX_H - RADIUS * 2 ) + RADIUS ), { x: 1, y: 1 }, 1 );
 			}
-		//	this._gravityModel.addItem( new Plane2D_Circle( RADIUS * 2 ), CORNER_X + Math.floor( Math.random() * ( MAX_W - RADIUS * 2 ) + RADIUS ), Math.floor( Math.random() * ( MAX_H - RADIUS * 2 ) + RADIUS ), { x: 1, y: 0 }, 100 );
+			this._gravityModel.addItem( new Plane2D_Circle( RADIUS * 2 ), CORNER_X + Math.floor( Math.random() * ( MAX_W - RADIUS * 2 ) + RADIUS ), Math.floor( Math.random() * ( MAX_H - RADIUS * 2 ) + RADIUS ), { x: 10, y: 0 }, 1000 );
 			//	this._gravityModel.addItem( new Plane2D_Circle( 50 ), CORNER_X + 20, 150, { x: 0, y: -5 }, 200 );
 			//this._gravityModel.addItem( new Plane2D_Circle( -RADIUS ), CORNER_X + Math.floor( Math.random() * ( MAX_W - RADIUS * 2 ) + RADIUS ), Math.floor( Math.random() * ( MAX_H - RADIUS * 2 ) + RADIUS ), { x: 1, y: 0 }, 0 );
 			//this._gravityModel.addItem( new Plane2D_Rect( 10, 10, -5, -5 ), CORNER_X + 150, 550, { x: 0, y: -5 }, 1 );
 
 		//	this._gravityModel.addItem( new Plane2D_Circle( RADIUS * 0.3 ), CORNER_X + Math.floor( Math.random() * ( MAX_W - RADIUS * 2 ) + RADIUS ), Math.floor( Math.random() * ( MAX_H - RADIUS * 2 ) + RADIUS ), { x: 1, y: 0 }, 1 );
-			this._gravityModel.addForce( new GravityForce_Earth( { x: 0, y: 0.2 }, true ) );
-		//	this._gravityModel.addForce( new GravityForce_Point( { x: 400, y: 400 }, 0.2, true ) );
+		//	this._gravityModel.addForce( new GravityForce_Earth( { x: 0, y: 0.1 }, true ) );
+			this._gravityModel.addForce( new GravityForce_Point( { x: 300, y: 300 }, 0.1, true ) );
 		}
 		, dispose: function () {
 			if ( this._gravityModel ) {
@@ -3113,6 +3190,12 @@ var ProjectCollideTest = (function () {
 		}
 		, instruct: function ( action, data ) {
 			switch ( action ) {
+			case FunModel.ACTION_UPDATE_FORCE:
+				var id = data.id;
+				var x = data.x;
+				var y = data.y;
+				this._gravityModel.updateForce( id, x, y );
+				break;
 			case GravityModel.ACTION_ADD_ITEM:
 				var id = data.id;
 				var plane = data.plane;
@@ -3135,12 +3218,15 @@ var ProjectCollideTest = (function () {
 				default:
 					this.log( 'Unknown add item >> ' + shape );
 				}
+			//	var forceId = this._gravityModel.addForce( new GravityForce_Point( { x: x, y: y }, 0.1, true ) );
+			//	this._funModel.regForce( id, forceId );
 				break;
 			case GravityModel.ACTION_UPDATE_POS:
 				var id = data.id;
 				var x = data.x;
 				var y = data.y;
 				this._dragView.update( id, x, y );
+				this._funModel.update( id, x, y );
 				break;
 			case DragView.ACTION_DRAG_ITEM_START:
 				var id = data.id;
