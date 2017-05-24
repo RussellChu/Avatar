@@ -2,7 +2,8 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <title></title>
-<style></style>
+<style>
+</style>
 </head>
 <body style="margin:0;">
 </body>
@@ -711,14 +712,73 @@ var CMath = (function () {
 	var Vec2 = buildClass({
 		  TAG: 'Vec2'
 		, __static__: {
-			  createFromObj: function ( value ) {
-				var rslt = new Vec2();
-				if ( !setter.isValidObj( value ) ) {
-					return rslt;
+			  clone: function ( v ) {
+				return new Vec2( v.x, v.y );
+			}
+			, convertToObj: function ( v ) {
+				var x = setter.setNum( v.x, 0 );
+				var y = setter.setNum( v.y, 0 );
+				return { x: x, y: y };
+			}
+			, equals: function ( v0, v1 ) {
+				return ( v0.x === v1.x && v0.y === v1.y );
+			}
+			, addEql: function ( v0, v1 ) {
+				v0.x += v1.x;
+				v0.y += v1.y;
+				return v0;
+			}
+			, minusEql: function ( v0, v1 ) {
+				v0.x -= v1.x;
+				v0.y -= v1.y;
+				return v0;
+			}
+			, mulEql: function ( v, n ) {
+				v.x *= n;
+				v.y *= n;
+				return v;
+			}
+			, divEql: function ( v, n ) {
+				if ( n === 0 ) {
+					Vec2.err( 'divEql fail' );
+				} else {
+					Vec2.mulEql( v, 1 / n );
 				}
-				rslt.x = setter.setNum( value.x, 0 );
-				rslt.y = setter.setNum( value.y, 0 );
-				return rslt;
+				return v;
+			}
+			, add: function ( v0, v1 ) {
+				return Vec2.addEql( Vec2.clone( v0 ), v1 );
+			}
+			, minus: function ( v0, v1 ) {
+				return Vec2.minusEql( Vec2.clone( v0 ), v1 );
+			}
+			, mul: function ( v, n ) {
+				return Vec2.mulEql( Vec2.clone( v ), n );
+			}
+			, div: function ( v, n ) {
+				return Vec2.divEql( Vec2.clone( v ), n );
+			}
+			, magSqr: function ( v ) {
+				return v.x * v.x + v.y * v.y;
+			}
+			, mag: function ( v ) {
+				return Math.sqrt( Vec2.magSqr( v ) );
+			}
+			, normalize: function ( v ) {
+				if ( v.x !== 0 || v.y !== 0 ) {
+					var magInv = 1 / Vec2.mag( v );
+					return Vec2.mulEql( v, magInv );
+				}
+				return v;
+			}
+			, dot: function ( v0, v1 ) {
+				return v0.x * v1.x + v0.y * v1.y;
+			}
+			, cross: function ( v0, v1 ) {
+				return v0.x * v1.y - v0.y * v1.x;
+			}
+			, rotRight: function ( v ) {
+				return new Vec2( -v.y, v.x );
 			}
 		}
 		, x: 0
@@ -733,241 +793,58 @@ var CMath = (function () {
 		, convertToObj: function () {
 			return { x: this.x, y: this.y };
 		}
+		, equals: function ( value ) {
+			return Vec2.equals( this, value );
+		}
 		, addEql: function ( value ) {
-			if ( value.hasTagOfClass( Vec2 ) ) {
-				this.x += value.x;
-				this.y += value.y;
-			} else {
-				this.err( 'addEql fail' );
-			}
-			return this;
+			return Vec2.addEql( this, value );
 		}
 		, minusEql: function ( value ) {
-			if ( value.hasTagOfClass( Vec2 ) ) {
-				this.x -= value.x;
-				this.y -= value.y;
-			} else {
-				this.err( 'minus fail' );
-			}
-			return this;
+			return Vec2.minusEql( this, value );
 		}
 		, mulEql: function ( value ) {
-			if ( setter.isValidNum( value ) ) {
-				this.x *= value;
-				this.y *= value;
-			} else {
-				this.err( 'mulEql fail' );
-			}
-			return this;
+			return Vec2.mulEql( this, value );
 		}
 		, divEql: function ( value ) {
-			if ( setter.isValidNum( value ) && value !== 0 ) {
-				var inv = 1 / value;
-				this.x *= inv;
-				this.y *= inv;
-			} else {
-				this.err( 'divEql fail' );
-			}
-			return this;
+			return Vec2.divEql( this, value );
 		}
 		, add: function ( value ) {
-			var rslt = this.clone();
-			if ( value.hasTagOfClass( Vec2 ) ) {
-				rslt.x += value.x;
-				rslt.y += value.y;
-			} else {
-				this.err( 'add fail' );
-			}
-			return rslt;
+			return Vec2.add( this, value );
 		}
 		, minus: function ( value ) {
-			var rslt = this.clone();
-			if ( value.hasTagOfClass( Vec2 ) ) {
-				rslt.x -= value.x;
-				rslt.y -= value.y;
-			} else {
-				this.err( 'minus fail' );
-			}
-			return rslt;
+			return Vec2.minus( this, value );
 		}
 		, mul: function ( value ) {
-			var rslt = this.clone();
-			if ( setter.isValidNum( value ) ) {
-				rslt.x *= value;
-				rslt.y *= value;
-			} else {
-				this.err( 'mul fail' );
-			}
-			return rslt;
+			return Vec2.mul( this, value );
 		}
 		, div: function ( value ) {
-			var rslt = this.clone();
-			if ( setter.isValidNum( value ) && value !== 0 ) {
-				var inv = 1 / value;
-				rslt.x *= inv;
-				rslt.y *= inv;
-			} else {
-				this.err( 'div fail' );
-			}
-			return rslt;
+			return Vec2.div( this, value );
 		}
 		, magSqr: function () {
-			return this.x * this.x + this.y * this.y;
+			return Vec2.magSqr( this );
 		}
 		, mag: function () {
-			return Math.sqrt( this.magSqr() );
+			return Vec2.mag( this );
 		}
 		, normalize: function () {
-			if ( this.x !== 0 || this.y !== 0 ) {
-				var magInv = 1 / this.mag();
-				return this.mulEql( magInv );
-			}
-			return this;
+			return Vec2.normalize( this );
 		}
 		, dot: function ( value ) {
-			return this.x * value.x + this.y * value.y;
+			return Vec2.dot( this, value );
 		}
 		, cross: function ( value ) {
-			return this.x * value.y - this.y * value.x;
+			return Vec2.cross( this, value );
 		}
-	});
-
-	var Vec3 = buildClass({
-		  TAG: 'Vec3'
-		, x: 0
-		, y: 0
-		, z: 0
-		, __static__: {
-			  createFromObj: function ( value ) {
-				var rslt = new Vec3();
-				if ( !setter.isValidObj( value ) ) {
-					return rslt;
-				}
-				rslt.x = setter.setNum( value.x, 0 );
-				rslt.y = setter.setNum( value.y, 0 );
-				rslt.z = setter.setNum( value.z, 0 );
-				return rslt;
-			}
-		}
-		, constructor: function ( x, y, z ) {
-			this.x = setter.setNum( x, 0 );
-			this.y = setter.setNum( y, 0 );
-			this.z = setter.setNum( z, 0 );
-		}
-		, clone: function () {
-			return new Vec3( this.x, this.y, this.z );
-		}
-		, convertToObj: function () {
-			return { x: this.x, y: this.y, z: this.z };
-		}
-		, addEql: function ( value ) {
-			if ( value.hasTagOfClass( Vec3 ) ) {
-				this.x += value.x;
-				this.y += value.y;
-				this.z += value.z;
-			} else {
-				this.err( 'addEql fail' );
-			}
-			return this;
-		}
-		, minusEql: function ( value ) {
-			if ( value.hasTagOfClass( Vec3 ) ) {
-				this.x -= value.x;
-				this.y -= value.y;
-				this.z -= value.z;
-			} else {
-				this.err( 'minus fail' );
-			}
-			return this;
-		}
-		, mulEql: function ( value ) {
-			if ( setter.isValidNum( value ) ) {
-				this.x *= value;
-				this.y *= value;
-				this.z *= value;
-			} else {
-				this.err( 'mulEql fail' );
-			}
-			return this;
-		}
-		, divEql: function ( value ) {
-			if ( setter.isValidNum( value ) && value !== 0 ) {
-				var inv = 1 / value;
-				this.x *= inv;
-				this.y *= inv;
-				this.z *= inv;
-			} else {
-				this.err( 'divEql fail' );
-			}
-			return this;
-		}
-		, add: function ( value ) {
-			var rslt = this.clone();
-			if ( value.hasTagOfClass( Vec3 ) ) {
-				rslt.x += value.x;
-				rslt.y += value.y;
-				rslt.z += value.z;
-			} else {
-				this.err( 'add fail' );
-			}
-			return rslt;
-		}
-		, minus: function ( value ) {
-			var rslt = this.clone();
-			if ( value.hasTagOfClass( Vec3 ) ) {
-				rslt.x -= value.x;
-				rslt.y -= value.y;
-				rslt.z -= value.z;
-			} else {
-				this.err( 'minus fail' );
-			}
-			return rslt;
-		}
-		, mul: function ( value ) {
-			var rslt = this.clone();
-			if ( setter.isValidNum( value ) ) {
-				rslt.x *= value;
-				rslt.y *= value;
-				rslt.z *= value;
-			} else {
-				this.err( 'mul fail' );
-			}
-			return rslt;
-		}
-		, div: function ( value ) {
-			var rslt = this.clone();
-			if ( setter.isValidNum( value ) && value !== 0 ) {
-				var inv = 1 / value;
-				rslt.x *= inv;
-				rslt.y *= inv;
-				rslt.z *= inv;
-			} else {
-				this.err( 'div fail' );
-			}
-			return rslt;
-		}
-		, magSqr: function () {
-			return this.x * this.x + this.y * this.y + this.z * this.z;
-		}
-		, mag: function () {
-			return Math.sqrt( this.magSqr() );
-		}
-		, normalize: function () {
-			if ( this.x !== 0 || this.y !== 0 || this.z !== 0 ) {
-				var magInv = 1 / this.mag();
-				return this.mulEql( magInv );
-			}
-			return this;
+		, rotRight: function () {
+			return Vec2.rotRight( this );
 		}
 	});
 	
 	inst.Vec2 = Vec2;
-	inst.Vec3 = Vec3;
 	
 	return inst;
 } ());
 var Vec2 = CMath.Vec2;
-var Vec3 = CMath.Vec3;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
@@ -1007,13 +884,13 @@ var Plane2D = buildClass({
 		return this._dir.clone();
 	}
 	, setDir: function ( value ) {
-		this._dir = Vec2.createFromObj( value );
+		this._dir = Vec2.clone( value );
 	}
 	, getPos: function () {
 		return this._pos.clone();
 	}
 	, setPos: function ( value ) {
-		this._pos = Vec2.createFromObj( value );
+		this._pos = Vec2.clone( value );
 	}
 	, getShape: function () {
 		return this._shape;
@@ -1126,6 +1003,52 @@ var Plane2D_Rect = buildClass({
 	}
 });
 
+var Plane2D_Poly = buildClass({
+	  TAG: 'Plane2D_Poly'
+	, superClass: Plane2D
+	, __static__: {
+		  SHAPE: 'Plane2D_Poly'
+	}
+	, _points: 0
+	, constructor: function ( points ) {
+		this._points = [];
+		
+
+		if ( points instanceof Array ) {
+			if ( points !== null ) {
+				this._points = points;
+			}
+		}
+		
+		Plane2D_Poly.__super__.constructor.apply( this, arguments );
+	}
+	, init: function () {
+		Plane2D_Poly.__super__.init.apply( this, arguments );
+		this._shape = Plane2D_Poly.SHAPE;
+	}
+	, dispose: function () {
+		Plane2D_Poly.__super__.dispose.apply( this, arguments );
+	}
+	, clone: function () {
+		var obj = new Plane2D_Poly();
+		obj._pos = this._pos.clone();
+		obj._dir = this._dir.clone();
+		obj._points = [];
+		for(var i = 0; i < this._points.length; i++) {
+			obj._points.push( { x: this._points[i].x, y: this._points[i].y } );
+		}
+		return obj;
+	}
+	/*
+	, getPointAt: function ( index ) {
+		if ( this._points === null ) {
+			return null;
+		}
+		return this._points[index);
+	}
+	*/
+});
+
 Plane2DOverlapChecker = (function () {
 	var inst = {};
 	
@@ -1158,6 +1081,118 @@ Plane2DOverlapChecker = (function () {
 			return false;
 		}
 		return true;
+	};
+	
+	var isPointInPoly = function ( point, poly, rulerMap ) {
+		if ( poly.length < 3 ) {
+			return false;
+		}
+		for(var i = 0; i < poly.length; i++) {
+			var p0 = poly[i];
+			var p1 = poly[0];
+			if ( i < poly.length - 1 ) {
+				p1 = poly[i + 1];
+			}
+			if ( Vec2.equals( p0, p1 ) ) {
+				continue;
+			}
+			var ruler = null;
+			if ( rulerMap ) {
+				ruler = rulerMap[i];
+			}
+			if ( !ruler ) {
+				ruler = Vec2.minus( p1, p0 ).normalize().rotRight();
+				if ( rulerMap ) {
+					rulerMap[i] = ruler;
+				}
+			}
+			var side = Vec2.minus( point, p0 ).dot( ruler );
+			if ( side === 0 ) {
+				continue;
+			}
+			var overlap = false;
+			for(var j = 0; j < poly.length; j++) {
+				var side2 = Vec2.minus( poly[j], p0 ).dot( ruler );
+				if ( side * side2 < 0 ) {
+					return false;
+				}
+				if ( side > 0 ) {
+					if ( side2 >= side ) {
+						overlap = true;
+					}
+				}
+				else if ( side < 0 ) {
+					if ( side2 <= side ) {
+						overlap = true;
+					}
+				}
+			}
+			if ( !overlap ) {
+				return false;
+			}
+		}
+		return true;
+	};
+	
+	var calcPointVsPoly = function ( objPt, objPoly ) {
+		return isPointInPoly( objPt._pos.minus( objPoly._pos ), objPoly._points );
+	};
+	var calcWallVsPoly = function ( objWall, objPoly ) {
+		for(var i = 0; i < objPoly._points.length; i++) {
+			var point = objPoly._points[i];
+			if ( objWall._dir.dot( objPoly._pos.add( point ).minus( objWall._pos )  <= 0) ) {
+				return true;
+			}
+		}
+		return false;
+	};
+	// to do
+	var calcCircleVsPoly = function ( objCir, objPoly ) {
+		var point = objCir._pos.minus( objPoly._pos );
+		var poly = objPoly._points;
+		if ( poly.length < 3 ) {
+			return false;
+		}
+		for(var i = 0; i < poly.length; i++) {
+			var p0 = poly[i];
+			var p1 = poly[0];
+			if ( i < poly.length - 1 ) {
+				p1 = poly[i + 1];
+			}
+			if ( Vec2.equals( p0, p1 ) ) {
+				continue;
+			}
+			var ruler = Vec2.minus( p1, p0 ).normalize().rotRight();
+			var side = Vec2.minus( point, p0 ).dot( ruler );
+			if ( side === 0 ) {
+				continue;
+			}
+			var overlap = false;
+			for(var j = 0; j < poly.length; j++) {
+				var side2 = Vec2.minus( poly[j], p0 ).dot( ruler );
+				if ( side * side2 < 0 ) {
+					return false;
+				}
+				if ( side > 0 ) {
+					if ( side2 >= side ) {
+						overlap = true;
+					}
+				}
+				else if ( side < 0 ) {
+					if ( side2 <= side ) {
+						overlap = true;
+					}
+				}
+			}
+			if ( !overlap ) {
+				return false;
+			}
+		}
+		return true;
+	};
+	// to do
+	var calcPolyVsPoly = function ( objPoly0, objPoly1 ) {
+		return false;
 	};
 	var calcWallVsCircle = function ( objWall, objCir ) {
 		var radius = objCir._radius;
@@ -1575,6 +1610,10 @@ var GlobalSignal = (function () {
 	var mouseMove = new Signal();
 	var mouseUp = new Signal();
 	
+	document.body.onmousedown = function ( e ) {
+	//	log("A");
+	};
+	
 	document.body.onmousemove = function ( e ) {
 		mouseMove.dispatch( e );
 	};
@@ -1836,8 +1875,13 @@ var Dragable = buildClass({
 		sensor.onselectstart = function () { return false; };
 		sensor.ondragstart = function () { return false; };
 		sensor.onmousedown = function ( e ) {
+			if ( Math.random() < 0.5 ) {
+			//	return false;
+			}
 			DragManager.setTarget( self, e );
 			self._signal.dispatch( { action: Dragable.ACTION_SELECT, target: self } );
+			log("B");
+			return false;
 		};
 	}
 });
@@ -2172,6 +2216,7 @@ var DragView = buildClass({
 		this._drawer.resize( radius * 2, radius * 2 );
 		this._drawer.drawCircle( radius, radius, radius );
 		var img = this._drawer.getImage();
+		img.getInst().style.borderRadius = '50%';
 		img.setPosX( -radius );
 		img.setPosY( -radius );
 		this.addItem( id, img, x, y );
@@ -2530,7 +2575,7 @@ var ProjectCollideTest = (function () {
 			this._id = setter.setInt( id, 0, { min: 0 } );
 			this._plane = plane;
 			this._acc = null;
-			this._vec = Vec2.createFromObj( vec );
+			this._vec = Vec2.clone( vec );
 			this._mass = setter.setNum( mass, 0, { min: 0 } );
 			
 			this.init();
@@ -2571,7 +2616,7 @@ var ProjectCollideTest = (function () {
 			return this._vec.clone();
 		}
 		, setVec: function ( value ) {
-			this._vec = Vec2.createFromObj( value );
+			this._vec = Vec2.clone( value );
 		}
 		, actBlock: function ( target ) {
 			if ( !GravityItem.isCreatorOf( target ) ) {
@@ -2717,7 +2762,7 @@ var ProjectCollideTest = (function () {
 			return this._id = setter.setInt( value, 0, { min: 0 } );
 		}
 		, setPos: function ( value ) {
-			this._pos = Vec2.createFromObj( value );
+			this._pos = Vec2.clone( value );
 		}
 		, calcAcc: function ( pos, mass ) {
 			return new Vec2();
@@ -2731,7 +2776,7 @@ var ProjectCollideTest = (function () {
 		, _mag: 0
 		, _isConst: false
 		, constructor: function ( pos, mag, isConst ) {
-			this._posInit = Vec2.createFromObj( pos );
+			this._posInit = Vec2.clone( pos );
 			this._mag = setter.setNum( mag, 0 );
 			this._isConst = setter.setBool( isConst, false );
 			GravityForce_Point.__super__.constructor.apply( this, arguments );
@@ -2769,7 +2814,7 @@ var ProjectCollideTest = (function () {
 		, _force: null
 		, _isConst: false
 		, constructor: function ( force, isConst ) {
-			this._force = Vec2.createFromObj( force );
+			this._force = Vec2.clone( force );
 			this._isConst = setter.setBool( isConst, false );
 			GravityForce_Earth.__super__.constructor.apply( this, arguments );
 		}
@@ -2963,9 +3008,9 @@ var ProjectCollideTest = (function () {
 			
 			var id = this.createItemId();
 			plane.setPos( { x: setter.setNum( x ), y: setter.setNum( y ) } );
-			var item = new GravityItem( id, plane, Vec2.createFromObj( vec ), setter.setNum( mass, 0, { min: 0 } ) );
+			var item = new GravityItem( id, plane, Vec2.clone( vec ), setter.setNum( mass, 0, { min: 0 } ) );
 			this._child.push( item );
-			this.instruct( GravityModel.ACTION_ADD_ITEM, { id: id, plane: plane } );
+			this.instruct( GravityModel.ACTION_ADD_ITEM, { id: id, plane: plane, mass: item.getMass() } );
 		}
 		, actCalcStart: function () {
 			for(var i = 0; i < this._child.length; i++) {
@@ -3153,28 +3198,33 @@ var ProjectCollideTest = (function () {
 			this._dragView = new DragView( this );
 			this.addChild( this._dragView );
 			
-			const CORNER_X = -200;
-			const CORNER_Y = -400;
-			const MAX_SPEED = 10;
+			const CORNER_X = 0;
+			const CORNER_Y = 0;
+			const MAX_SPEED = 6;
 			const MAX_W = 1000;
-			const MAX_H = 1000;
+			const MAX_H = 200;
 			const RADIUS = 3;
 			
 			this._gravityModel.setMaxSpeed( MAX_SPEED );
 			this._gravityModel.setRect( CORNER_X, CORNER_Y, MAX_W, MAX_H );
 			
-			for(var i = 0; i < 200; i++) {
-				this._gravityModel.addItem( new Plane2D_Circle( RADIUS ), CORNER_X + Math.floor( 0.5 * ( MAX_W - RADIUS * 2 ) + RADIUS ), Math.floor( Math.random() * ( MAX_H - RADIUS * 2 ) + RADIUS ), { x: 0, y: 0 }, 1 );
+			for(var i = 0; i < 150; i++) {
+				this._gravityModel.addItem( new Plane2D_Circle( RADIUS ), CORNER_X + MAX_W * 0.5 + (Math.random() - 0.5) * ( MAX_W * 0.3 ), CORNER_Y + MAX_H * 0.5 + (Math.random() - 0.5) * ( MAX_H * 0.9 ), { x: -6, y: 0 }, 1 );
 			//	this._gravityModel.addItem( new Plane2D_Rect( RADIUS * 2, RADIUS * 2, -RADIUS, -RADIUS ), CORNER_X + Math.floor( Math.random() * ( MAX_W - RADIUS * 2 * 20 ) + RADIUS * 20 ), Math.floor( Math.random() * ( MAX_H - RADIUS * 2 ) + RADIUS ), { x: 1, y: 1 }, 1 );
 			}
-			this._gravityModel.addItem( new Plane2D_Circle( RADIUS * 2 ), CORNER_X + Math.floor( Math.random() * ( MAX_W - RADIUS * 2 ) + RADIUS ), Math.floor( Math.random() * ( MAX_H - RADIUS * 2 ) + RADIUS ), { x: 10, y: 0 }, 1000 );
+			var a = 10;
+			for(var i = 0; i < a * 2; i++) {
+				this._gravityModel.addItem( new Plane2D_Circle( RADIUS * 2 ), CORNER_X + MAX_W * 0.3, CORNER_Y + MAX_H * 0.5 + (i - a) * RADIUS * 4.1, { x: 1, y: 0 }, 0 );
+				this._gravityModel.addItem( new Plane2D_Circle( RADIUS * 2 ), CORNER_X + MAX_W * 0.3 - RADIUS * 3.2, CORNER_Y + MAX_H * 0.5 + (i - a) * RADIUS * 4.1 - RADIUS * 2, { x: 2, y: 0 }, 0 );
+				this._gravityModel.addItem( new Plane2D_Circle( RADIUS * 2 ), CORNER_X + MAX_W * 0.3 - RADIUS * 3.2 * 2, CORNER_Y + MAX_H * 0.5 + (i - a) * RADIUS * 4.1 - RADIUS * 2 * 2, { x: 3, y: 0 }, 0 );
+			}
 			//	this._gravityModel.addItem( new Plane2D_Circle( 50 ), CORNER_X + 20, 150, { x: 0, y: -5 }, 200 );
 			//this._gravityModel.addItem( new Plane2D_Circle( -RADIUS ), CORNER_X + Math.floor( Math.random() * ( MAX_W - RADIUS * 2 ) + RADIUS ), Math.floor( Math.random() * ( MAX_H - RADIUS * 2 ) + RADIUS ), { x: 1, y: 0 }, 0 );
 			//this._gravityModel.addItem( new Plane2D_Rect( 10, 10, -5, -5 ), CORNER_X + 150, 550, { x: 0, y: -5 }, 1 );
 
 		//	this._gravityModel.addItem( new Plane2D_Circle( RADIUS * 0.3 ), CORNER_X + Math.floor( Math.random() * ( MAX_W - RADIUS * 2 ) + RADIUS ), Math.floor( Math.random() * ( MAX_H - RADIUS * 2 ) + RADIUS ), { x: 1, y: 0 }, 1 );
-		//	this._gravityModel.addForce( new GravityForce_Earth( { x: 0, y: 0.1 }, true ) );
-			this._gravityModel.addForce( new GravityForce_Point( { x: 300, y: 300 }, 0.1, true ) );
+		//	this._gravityModel.addForce( new GravityForce_Earth( { x: 0, y: 0.01 }, true ) );
+		//	this._gravityModel.addForce( new GravityForce_Point( { x: 300, y: 300 }, 0.1, true ) );
 		}
 		, dispose: function () {
 			if ( this._gravityModel ) {
@@ -3203,6 +3253,7 @@ var ProjectCollideTest = (function () {
 				var pos = plane.getPos();
 				var x = pos.x;
 				var y = pos.y;
+				var mass = data.mass;
 				switch ( shape ) {
 				case Plane2D_Circle.SHAPE:
 					var radius = plane.getRadius();
@@ -3218,7 +3269,7 @@ var ProjectCollideTest = (function () {
 				default:
 					this.log( 'Unknown add item >> ' + shape );
 				}
-			//	var forceId = this._gravityModel.addForce( new GravityForce_Point( { x: x, y: y }, 0.1, true ) );
+			//	var forceId = this._gravityModel.addForce( new GravityForce_Point( { x: x, y: y }, 0.02 * mass, true ) );
 			//	this._funModel.regForce( id, forceId );
 				break;
 			case GravityModel.ACTION_UPDATE_POS:
@@ -3357,8 +3408,8 @@ var TextField = buildClass({
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// new ProjectModelViewTest( document.body );
-new ProjectCollideTest( document.body );
+new ProjectModelViewTest( document.body );
+// new ProjectCollideTest( document.body );
 // new ProjectText( document.body );
 
 <!-- Notices -->
