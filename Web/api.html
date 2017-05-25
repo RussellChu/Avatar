@@ -898,6 +898,9 @@ var Plane2D = buildClass({
 	, isOverlap: function ( target ) {
 		return Plane2DOverlapChecker.calc( this, target );
 	}
+	, distFrom: function ( target ) {
+		return Plane2DDistChecker.calc( this, target );
+	}
 	, touchDir: function ( target ) {
 		return Plane2DTouchChecker.calc( this, target );
 	}
@@ -1009,11 +1012,10 @@ var Plane2D_Poly = buildClass({
 	, __static__: {
 		  SHAPE: 'Plane2D_Poly'
 	}
-	, _points: 0
+	, _points: null
 	, constructor: function ( points ) {
 		this._points = [];
 		
-
 		if ( points instanceof Array ) {
 			if ( points !== null ) {
 				this._points = points;
@@ -1027,6 +1029,7 @@ var Plane2D_Poly = buildClass({
 		this._shape = Plane2D_Poly.SHAPE;
 	}
 	, dispose: function () {
+		this._points = null;
 		Plane2D_Poly.__super__.dispose.apply( this, arguments );
 	}
 	, clone: function () {
@@ -1039,14 +1042,12 @@ var Plane2D_Poly = buildClass({
 		}
 		return obj;
 	}
-	/*
-	, getPointAt: function ( index ) {
+	, getPoints: function () {
 		if ( this._points === null ) {
 			return null;
 		}
-		return this._points[index);
+		return this._points;
 	}
-	*/
 });
 
 Plane2DOverlapChecker = (function () {
@@ -1081,6 +1082,71 @@ Plane2DOverlapChecker = (function () {
 			return false;
 		}
 		return true;
+	};
+	
+	// p: point
+	// a: line end 0
+	// b: line end 1
+	// r: dir
+	var calcPtLineDist = function ( p, a, b, r ) {
+		var rslt = {};
+		rslt.dist = 0;
+		rslt.touch = false;
+		
+		if ( Vec2.equals( a, p ) || Vec2.equals( b, p ) ) {
+			rslt.touch = true;
+			return rslt;
+		}
+		
+		if ( Vec2.equals( r, { x: 0, y: 0 } ) ) {
+			return rslt;
+		}
+		
+		if ( Vec2.equals( a, b ) ) {
+			return rslt;
+		}
+		
+		var va = Vec2.minus( a, p );
+		var vb = Vec2.minus( b, p );
+		var ca = Vec2.cross( r, va );
+		var cb = Vec2.cross( r, vb );
+		
+		if ( ca * cb > 0 ) {
+			return rslt;
+		}
+		
+		rslt.touch = true;
+		var da = Vec2.dot( r, va );
+		var db = Vec2.dot( r, vb );
+		if ( ca === 0 ) {
+			if ( cb === 0 ) {
+				if ( da * db <= 0 ) {
+					return rslt;
+				}
+				if ( da > 0 ) {
+					if ( da <= db ) {
+						rslt.dist = da;
+						return rslt;
+					}
+					rslt.dist = db;
+					return rslt;
+				}
+				if ( da >= db ) {
+					rslt.dist = da;
+					return rslt;
+				}
+				rslt.dist = db;
+				return rslt;
+			}
+			rslt.dist = da;
+			return rslt;
+		} else if ( cb === 0 ) {
+			rslt.dist = db;
+			return rslt;
+		}
+		
+		rslt.dist = Vec2.cross( vb, va ) / ( ca - cb );
+		return rslt;
 	};
 	
 	var isPointInPoly = function ( point, poly, rulerMap ) {
@@ -2347,6 +2413,80 @@ var ProjectModelViewTest = (function () {
 			this._itemList.push( plane );
 			this.instruct( CollideModel.ACTION_ADD_ITEM, { id: id, shape: plane.getShape(), x: x, y: y, dir: dir } );
 		}
+		, calcPtLineDist: function ( p, a, b, r ) {
+			var rslt = {};
+			rslt.dist = 0;
+			rslt.touch = false;
+			
+			if ( Vec2.equals( a, p ) || Vec2.equals( b, p ) ) {
+				rslt.touch = true;
+				return rslt;
+			}
+			
+			if ( Vec2.equals( r, { x: 0, y: 0 } ) ) {
+				return rslt;
+			}
+			
+			if ( Vec2.equals( a, b ) ) {
+				return rslt;
+			}
+			
+			var va = Vec2.minus( a, p );
+			var vb = Vec2.minus( b, p );
+			var ca = Vec2.cross( r, va );
+			var cb = Vec2.cross( r, vb );
+			
+			if ( ca * cb > 0 ) {
+				return rslt;
+			}
+			
+			rslt.touch = true;
+			var da = Vec2.dot( r, va );
+			var db = Vec2.dot( r, vb );
+			if ( ca === 0 ) {
+				if ( cb === 0 ) {
+					if ( da * db <= 0 ) {
+						return rslt;
+					}
+					if ( da > 0 ) {
+						if ( da <= db ) {
+							rslt.dist = da;
+							return rslt;
+						}
+						rslt.dist = db;
+						return rslt;
+					}
+					if ( da >= db ) {
+						rslt.dist = da;
+						return rslt;
+					}
+					rslt.dist = db;
+					return rslt;
+				}
+				rslt.dist = da;
+				return rslt;
+			} else if ( cb === 0 ) {
+				rslt.dist = db;
+				return rslt;
+			}
+			
+			rslt.dist = Vec2.cross( vb, va ) / ( ca - cb );
+			return rslt;
+		}
+		, test: function () {
+			var p = this._itemList[0].getPos();
+			var a = this._itemList[1].getPos();
+			var b = this._itemList[2].getPos();
+			var r = this._itemList[3].getPos().minus( p ).normalize();
+			var rslt = this.calcPtLineDist( p, a, b, r );
+			if ( !rslt.touch ) {
+				this.log( 'not touch' );
+				return;
+			}
+			var r2 = r.mul( rslt.dist ).add( p );
+			this._itemList[4].setPos( r2 );
+			this.instruct( CollideModel.ACTION_UPDATE_POS, { id: 4, x: r2.x, y: r2.y } );
+		}
 		, updatePos: function ( id, x, y ) {
 			if ( !this._itemList ) {
 				return;
@@ -2374,6 +2514,8 @@ var ProjectModelViewTest = (function () {
 				}
 			}
 			item.setPos( pos );
+			
+			this.test();
 			
 			this.instruct( CollideModel.ACTION_UPDATE_POS, { id: id, x: pos.x, y: pos.y } );
 		}
@@ -2413,12 +2555,15 @@ var ProjectModelViewTest = (function () {
 			
 			this._collideModel.addItemCircle( 100, 100, 20 );
 			this._collideModel.addItemCircle( 200, 100, 20 );
-			this._collideModel.addItemRect( 100, 200, 40, 40 );
-			this._collideModel.addItemRect( 200, 200, 40, 40 );
-			this._collideModel.addItemWall( 0, 300, { x: 1, y: 0 } );
-			this._collideModel.addItemWall( 500, 0, { x: 0, y: 1 } );
-			this._collideModel.addItemWall( 1000, 300, { x: -1, y: 0 } );
-			this._collideModel.addItemWall( 500, 600, { x: 0, y: -1 } );
+			this._collideModel.addItemCircle( 300, 100, 20 );
+			this._collideModel.addItemCircle( 400, 100, 20 );
+			this._collideModel.addItemCircle( 500, 100, 20 );
+			<!-- this._collideModel.addItemRect( 100, 200, 40, 40 ); -->
+			<!-- this._collideModel.addItemRect( 200, 200, 40, 40 ); -->
+			<!-- this._collideModel.addItemWall( 0, 300, { x: 1, y: 0 } ); -->
+			<!-- this._collideModel.addItemWall( 500, 0, { x: 0, y: 1 } ); -->
+			<!-- this._collideModel.addItemWall( 1000, 300, { x: -1, y: 0 } ); -->
+			<!-- this._collideModel.addItemWall( 500, 600, { x: 0, y: -1 } ); -->
 		}
 		, dispose: function () {
 			if ( this._collideModel ) {
