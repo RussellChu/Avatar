@@ -1,0 +1,29 @@
+<html>
+<head>
+</head>
+<body style="margin:0; overflow: hidden">
+<img id="testMask" src="http://localhost:4040/assets/bg2.png" style="display:none;" />
+<div id="testDiv" style="position: absolute; top:-66px; opacity: 0.99; pointer-events:none;">
+</div>
+<div style="display:none">
+<img src="http://localhost:4040/assets/bg.png" style="position: absolute; top:-66px; opacity: 0.99; pointer-events:none;">
+</div>
+<script>
+var test = (function () {
+	var mask = document.getElementById( "testMask" );
+	var div = document.getElementById( "testDiv" );
+	const BOX_W = 20;
+	var width = mask.width;
+	var height = mask.height;
+	console.log( width );
+	console.log( height );
+	var iMax = Math.ceil(width / BOX_W);
+	var jMax = Math.ceil(height / BOX_W);
+	for(var i = 0; i < iMax; i++) {
+	}
+//	document.body.on
+	return {};
+} ());
+</script>
+</body>
+</html>

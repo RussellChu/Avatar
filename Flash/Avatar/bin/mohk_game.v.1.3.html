@@ -1,0 +1,99 @@
+<html>
+<head>
+<title>Macross-Only-in-Hong-Kong</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+</head>
+<body style="margin:0;">
+</body>
+<script>
+/*
+Copyright (c) 2016, Kira！聲間飛行- Macross Only in Hong Kong
+All rights reserved.
+*/
+var encodeObjToUrlParam = function ( p_obj ) {
+	var str = "";
+	for (var key in p_obj) {
+		if ( str != "" ) {
+			str += "&";
+		}
+		str += key + "=" + encodeURIComponent( p_obj[key] );
+	}
+	return str;
+};
+var objElement = document.createElement( "object" );
+objElement.setAttribute( "type", "application/x-shockwave-flash" );
+objElement.setAttribute( "data", "mohk_game.v.1.3.swf" );
+objElement.setAttribute( "width", "100%" );
+objElement.setAttribute( "height", "100%" );
+var paramElement = document.createElement( "param" );
+paramElement.setAttribute( "name", "FlashVars" );
+
+var data = {};
+/*
+ * All setting
+ */
+//data.capId = "";
+//data.saveVer = 0;
+//data.cellRadius = 113;
+//data.cellMargin = 5;
+//data.fontSize = 36;
+//data.fontColor = 0;
+//data.fontDisplay = true;
+//data.foldAniSrcLoad = false;
+//data.foldAniSrcWidth = 226;
+//data.mapRadius = 0;
+//data.mapRandom = true;
+//data.mapBaseA = [];
+//data.mapBaseB = [];
+//data.mapBaseC = [];
+//data.mapObstacle = [];
+//data.mapObstacleOut = [];
+//data.mapObstacleClear = [];
+//data.mapHostageCenter = [];
+//data.mapHostageClear = [];
+//data.mapHostageA = [];
+//data.mapHostageB = [];
+//data.mapHostageC = [];
+//data.cmdStore = 100;
+//data.demoSpeed = 0;
+//data.demoCmd = [1, 1, 1, 2, 3, 3];
+//data.scoreMax = 22;
+
+/*
+ * Test setting 1
+ */
+//data.cellRadius = 113;
+//data.cellMargin = 5;
+//data.fontSize = 36;
+//data.fontDisplay = true;
+//data.foldAniSrcLoad = false;
+//data.foldAniSrcWidth = 226;
+//data.mapRandom = true;
+
+/*
+ * Test setting 2
+ */
+/*
+data.cellRadius = 16;
+data.cellMargin = 1;
+data.mapRandom = true;
+data.demoSpeed = 0;
+data.demoCmd = [1, 1, 1, 1, 3, 3];
+*/
+
+/*
+ * production setting
+ */
+data.cellRadius = 32;
+data.cellMargin = 2;
+data.fontSize = 8;
+data.cmdStore = 10;
+data.demoSpeed = 100;
+data.showTips = false;
+
+var valueStr = encodeObjToUrlParam( {data: JSON.stringify( data )} );
+paramElement.setAttribute( "value", valueStr );
+objElement.appendChild( paramElement );
+document.body.appendChild( objElement );
+</script>
+</html>

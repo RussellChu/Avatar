@@ -1,0 +1,3817 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title></title>
+<style>
+</style>
+</head>
+<body style="margin:0;">
+</body>
+<!--
+
+-->
+<script src="./lib/core.js"></script>
+<script>
+////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////
+////////////////////////////////////////
+////////////////////
+//	API
+////////////////////
+////////////////////////////////////////
+////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+var tools = (function () {
+	var instance = {};
+	
+	var log = function () {
+		var str = "";
+		for(var i = 0; i < arguments.length; i++) {
+			if ( i > 0 ) {
+				str += " ";
+			}
+			str += arguments[i];
+		}
+		console.log( str );
+	};
+	
+	var setter = {};
+	
+	var isValidInt = function ( value ) {
+		if ( value !== parseInt( value ) ) {
+			return false;
+		}
+		if ( value === NaN || value === Infinity || value === -Infinity ) {
+			return false;
+		}
+		return true;
+	};
+	
+	var isValidNum = function ( value ) {
+		if ( typeof value !== 'number' ) {
+			return false;
+		}
+		if ( value === NaN || value === Infinity || value === -Infinity ) {
+			return false;
+		}
+		return true;
+	};
+	
+	var isValidStr = function ( value ) {
+		if ( typeof value !== 'string' ) {
+			return false;
+		}
+		return true;
+	};
+	
+	var isValidObj = function ( value ) {
+		if ( typeof value !== 'object' ) {
+			return false;
+		}
+		return ( value !== null );
+	};
+	
+	var isValidFunc = function ( value ) {
+		return ( typeof value === 'function' );
+	};
+	
+	var hasValidFunc = function ( obj, key ) {
+		if ( !isValidObj( obj ) ) {
+			return false;
+		}
+		if ( typeof obj[key] !== 'function' ) {
+			return false;
+		}
+		return true;
+	};
+	
+	var hasValidNum = function ( obj, key ) {
+		if ( !isValidObj( obj ) ) {
+			return false;
+		}
+		if ( typeof obj[key] !== 'number' ) {
+			return false;
+		}
+		var value = obj[key];
+		if ( value === NaN || value === Infinity || value === -Infinity ) {
+			return false;
+		}
+		return true;
+	};
+	
+	var hasValidStr = function ( obj, key ) {
+		if ( !isValidObj( obj ) ) {
+			return false;
+		}
+		if ( typeof obj[key] !== 'string' ) {
+			return false;
+		}
+		return true;
+	};
+	
+	var toInt = function ( p_value ) {
+		var value = parseInt( p_value );
+		if ( value === NaN || value === Infinity || value === -Infinity ) {
+			return 0;
+		}
+		return value;
+	};
+	
+	var toNum = function ( p_value ) {
+		var value = Number( p_value );
+		if ( value === NaN || value === Infinity || value === -Infinity ) {
+			return 0;
+		}
+		return value;
+	};
+	
+	var toStr = function ( value ) {
+		if ( typeof value === 'string' ) {
+			return value;
+		}
+		if ( typeof value === 'number' ) {
+			return String( value );
+		}
+		if ( typeof value === 'boolean' ) {
+			return String( value );
+		}
+		return '';
+	};
+	
+	var setBool = function ( value, defaultValue ) {
+		if ( typeof value === 'boolean' ) {
+			return value;
+		}
+		if ( typeof defaultValue === 'boolean' ) {
+			return defaultValue;
+		}
+		return false;
+	};
+	
+	var setStr = function ( value, defaultValue ) {
+		if ( typeof value === 'string' ) {
+			return value;
+		}
+		if ( typeof value === 'number' ) {
+			return String( value );
+		}
+		if ( typeof value === 'boolean' ) {
+			return String( value );
+		}
+		return toStr( defaultValue );
+	};
+	
+	var setNum = function ( value, defaultValue, option ) {
+		var rslt = 0;
+		if ( isValidNum( value ) ) {
+			rslt = value;
+		} else {
+			rslt = toNum( defaultValue );
+		}
+		if ( isValidObj( option ) ) {
+			if ( hasValidNum( option, 'min' ) ) {
+				var min = option.min;
+				if ( rslt < min )
+				{
+					rslt = min;
+				}
+			}
+			if ( hasValidNum( option, 'max' ) ) {
+				var max = option.max;
+				if ( rslt > max )
+				{
+					rslt = max;
+				}
+			}
+		}
+		return rslt;
+	};
+	
+	var setInt = function ( value, defaultValue, option ) {
+		var rslt = 0;
+		if ( isValidNum( value ) ) {
+			rslt = toInt( value );
+		} else {
+			rslt = toInt( defaultValue );
+		}
+		if ( isValidObj( option ) ) {
+			if ( hasValidNum( option, 'min' ) ) {
+				var min = toInt( option.min );
+				if ( rslt < min )
+				{
+					rslt = min;
+				}
+			}
+			if ( hasValidNum( option, 'max' ) ) {
+				var max = toInt( option.max );
+				if ( rslt > max )
+				{
+					rslt = max;
+				}
+			}
+		}
+		return rslt;
+	};
+	
+	setter.isValidInt = isValidInt;
+	setter.isValidNum = isValidNum;
+	setter.isValidStr = isValidStr;
+	setter.isValidObj = isValidObj;
+	setter.isValidFunc = isValidFunc;
+	setter.hasValidFunc = hasValidFunc;
+	setter.hasValidNum = hasValidNum;
+	setter.hasValidStr = hasValidStr;
+	setter.toInt = toInt;
+	setter.toNum = toNum;
+	setter.toStr = toStr;
+	setter.setBool = setBool;
+	setter.setStr = setStr;
+	setter.setNum = setNum;
+	setter.setInt = setInt;
+	
+	// key of Array always string
+	var isExist = function ( obj ) {
+		if ( typeof obj === 'undefined' ) {
+			return false;
+		}
+		if ( typeof obj === 'number' ) {
+			if ( obj === NaN || obj === Infinity || obj === -Infinity ) {
+				return false;
+			}
+			return true;
+		}
+		if ( typeof obj === 'string' ) {
+			if ( obj === '' ) {
+				return false;
+			}
+			return true;
+		}
+		if ( typeof obj === 'object' ) {
+			if ( obj === null ) {
+				return false;
+			}
+			return true;
+		}
+		return true;
+	};
+	
+	var ifExistDo = function ( obj, key, func, defaultValue ) {
+		var result;
+		if ( isExist( defaultValue ) ) {
+			result = defaultValue;
+		} else {
+			result = false;
+		}
+		if ( !isValidObj( obj ) ) {
+			return result;
+		}
+		if ( typeof key === 'undefined' ) {
+			return result;
+		}
+		if ( typeof func !== 'function' ) {
+			return result;
+		}
+		if ( !isExist( obj[key] ) ) {
+			return result;
+		}
+		return func( obj[key] );
+	};
+	
+	var getChildById = function ( inst, id ) {
+		if ( !isExist( inst ) ) {
+			return null;
+		}
+		if ( !isExist( id ) ) {
+			return null;
+		}
+		for(var i = 0; i < inst.childNodes.length; i++) {
+			var item = inst.childNodes[i];
+			if ( item.id === id ) {
+				return item;
+			}
+		}
+		return null;
+	};
+	
+	var buildClass = function ( setting ) {
+		if ( !isValidObj( setting ) ) {
+			return function () {};
+		}
+		
+		var TAG = setStr( setting['TAG'], 'Unknown' );
+		
+		var superClass;
+		if ( typeof setting.superClass === 'function' ) {
+			superClass = setting.superClass;
+		}
+		
+		var constructor;
+		if ( typeof setting.constructor === 'function' ) {
+			constructor = setting.constructor;
+		} else {
+			constructor = function () {};
+		}
+		
+		var __static__ = setting.__static__;
+		
+		var hasProp = {}.hasOwnProperty;
+		
+		var newClass;
+		
+		eval( "newClass = function " + TAG + "() { constructor.apply( this, arguments ); };" );
+		
+		newClass.__tag__ = TAG;
+		newClass.__tags__ = {};
+		newClass.__tags__[TAG] = true;
+		
+		// inherit super class
+		if ( typeof superClass === 'function' ) {
+			// set static param / method
+			for (var key in superClass) {
+				if ( key === '__tag__' ) {
+					continue;
+				}
+				if ( key === '__tags__' ) {
+					continue;
+				}
+				if ( hasProp.call( superClass, key )) {
+					newClass[key] = superClass[key];
+				}
+			}
+			
+			for (var key in superClass.__tags__) {
+				newClass.__tags__[key] = true;
+			}
+			
+			newClass.__super__ = superClass.prototype;
+			newClass.prototype = {};
+			
+			// set dynamic param / method
+			for (var key in superClass.prototype) {
+			//	if ( hasProp.call( superClass.prototype, key )) {
+					newClass.prototype[key] = superClass.prototype[key];
+			//	}
+			}
+		}
+		
+		delete setting['TAG'];
+		delete setting['__static__'];
+		delete setting['constructor'];
+		delete setting['superClass'];
+		delete setting['err'];
+		delete setting['log'];
+		delete setting['getTag'];
+		delete setting['hasTagOfClass'];
+		
+		for (var key in setting) {
+			newClass.prototype[key] = setting[key];
+		}
+		
+		newClass.prototype.constructor = constructor;
+		
+		newClass.prototype.err = function () {
+			var str = "";
+			for(var i = 0; i < arguments.length; i++) {
+				if ( i > 0 ) {
+					str += " ";
+				}
+				str += arguments[i];
+			}
+			log( '[ERROR]', '[' + TAG + ']', str );
+		};
+		
+		newClass.prototype.log = function () {
+			var str = "";
+			for(var i = 0; i < arguments.length; i++) {
+				if ( i > 0 ) {
+					str += " ";
+				}
+				str += arguments[i];
+			}
+			log( '[LOG]', '[' + TAG + ']', str );
+		};
+		
+		newClass.prototype.getTag = function () {
+			return newClass.__tag__;
+		};
+		
+		newClass.prototype.hasTagOfClass = function ( value ) {
+			if ( !( typeof value === 'function' ) ) {
+				return false;
+			}
+			if ( !( typeof value.__tag__ === 'string' ) ) {
+				return false;
+			}
+			
+			var tag = value.__tag__;
+			for (var key in newClass.__tags__) {
+				if ( key === tag ) {
+					return true;
+				}
+			}
+			
+			return false;
+		};
+		
+		if ( isValidObj( __static__ ) ) {
+			for (var key in __static__) {
+				newClass[key] = __static__[key];
+				/*
+				Object.defineProperty( newClass, key, {
+					value: constant[key],
+					writable: false,
+					enumerable: true,
+					configurable: true
+				});
+				*/
+			}
+		}
+		
+		newClass.isCreatorOf = function ( obj ) {
+			if ( !setter.hasValidFunc( obj, 'hasTagOfClass' ) ) {
+				return false;
+			}
+			return obj.hasTagOfClass( newClass );
+		};
+		
+		return newClass;
+	};
+	
+	var looper = {};
+	
+	looper.pairs = function ( list, func ) {
+		if ( !( list instanceof Array ) ) {
+			return;
+		}
+		if ( list === null ) {
+			return;
+		}
+		if ( !setter.isValidFunc( func ) ) {
+			return;
+		}
+		for(var i = 0; i < list.length - 1; i++) {
+			if ( !setter.isValidObj( list[i] ) ) {
+				continue;
+			}
+			for(var j = i + 1; j < list.length; j++) {
+				if ( !setter.isValidObj( list[j] ) ) {
+					continue;
+				}
+				func( list[i], list[j] );
+			}
+		}
+	};
+	
+	instance.buildClass = buildClass;
+	instance.ifExistDo = ifExistDo;
+	instance.isExist = isExist;
+	instance.looper = looper;
+	instance.setter = setter;
+	instance.getChildById = getChildById;
+	instance.log = log;
+	return instance;
+} ());
+
+var buildClass = tools.buildClass;
+var ifExistDo = tools.ifExistDo;
+var isExist = tools.isExist;
+var looper = tools.looper;
+var setter = tools.setter;
+var getChildById = tools.getChildById;
+var log = tools.log;
+
+var TimeCore = (function () {
+	var inst = {};
+	var currTime = 0;
+	var delayList = [{}];
+	var timeSlot = {};
+	
+	var updateCurrTime = function () {
+		var d = new Date();
+		currTime = d.getTime();
+	};
+	
+	updateCurrTime();
+	
+	var handler;
+	handler = function () {
+		var lastTime = currTime;
+		updateCurrTime();
+		for(var i = lastTime + 1; i <= currTime; i++) {
+			var nextSlot = timeSlot[i];
+			if ( !setter.isValidObj( nextSlot ) ) {
+				continue;
+			}
+			for(var j = 0; j < nextSlot.length; j++) {
+				if ( setter.isValidFunc( nextSlot[j] ) ) {
+					nextSlot[j]();
+					delete nextSlot[j];
+				}
+			}
+			delete timeSlot[i];
+		}
+		setTimeout( handler, 1 );
+	};
+	
+	var delay = function ( callBack, p_interval ) {
+		if ( !setter.isValidFunc( callBack ) ) {
+			return 0;
+		}
+		
+		var interval = setter.setInt( p_interval, 0 );
+		
+		if ( interval < 1 ) {
+			return 0;
+		}
+		
+		var nextTime = Math.floor(currTime + interval);
+		var nextSlot = timeSlot[nextTime];
+		if ( !setter.isValidObj( nextSlot ) ) {
+			nextSlot = [];
+			timeSlot[nextTime] = nextSlot;
+		}
+		
+		var delayId = delayList.length;
+		delayList.push( { slot: nextTime, idx: nextSlot.length } );
+		
+		nextSlot.push( callBack );
+		
+		return delayId;
+	};
+	
+	var killDelay = function ( delayId ) {
+		if ( !setter.isValidInt( delayId ) ) {
+			return;
+		}
+		if ( delayId <= 0 ) {
+			return;
+		}
+		if ( setter.isValidObj( delayList[delayId] ) ) {
+			var slot = delayList[delayId].slot;
+			var idx = delayList[delayId].idx;
+			delete delayList[delayId];
+			
+			var nextSlot = timeSlot[slot];
+			if ( setter.isValidObj( nextSlot ) ) {
+				nextSlot[idx] = null;
+			}
+		}
+	}
+	
+	var Timer = buildClass({
+		  TAG: 'Timer'
+		, _callBack: null
+		, _delayId: 0
+		, _init: false
+		, _minItvl: 0
+		, _run: false
+		, _stdItvl: 0
+		, _t: 0
+		, _t0: 0
+		, constructor: function ( callBack, p_stdItvl, p_minItvl ) {
+			if ( !setter.isValidFunc( callBack ) ) {
+				return 0;
+			}
+			
+			var stdItvl = setter.setInt( p_stdItvl, 0 );
+			if ( stdItvl < 1 ) {
+				return;
+			}
+			
+			this._stdItvl = stdItvl;
+			this._minItvl = setter.setInt( p_minItvl, stdItvl * 0.5, { min: 1 } );
+			
+			this._callBack = callBack;
+			this._t = currTime - this._stdItvl;
+			this._t0 = this._t;
+			this._init = true;
+		}
+		, dispose: function () {
+			this.stop();
+			
+			this._init = false;
+			
+			this._callBack = null;
+		}
+		, process: function () {
+			if ( !this._run ) {
+				return;
+			}
+			
+			var t2 = this._t;
+			this._t = currTime;
+			var diff2 = this._t - this._t0;
+			this._t0 = this._t;
+			var diff = this._stdItvl + t2 - this._t;
+			if ( diff < this._minItvl - this._stdItvl ) {
+				diff = this._minItvl - this._stdItvl;
+			}
+			
+			this._t += diff;
+			
+			if ( this._callBack.length === 1 ) {
+				this._callBack( diff2 );
+			}
+			else {
+				this._callBack();
+			}
+			
+			var self = this;
+			var selfArgs = arguments;
+			this._delayId = delay( function () {
+				self.process.apply( self, selfArgs );
+			}, diff + this._stdItvl );
+		}
+		, run: function () {
+			if ( !this._init ) {
+				return;
+			}
+			
+			if ( this._run ) {
+				return;
+			}
+			
+			this._run = true;
+			
+			var self = this;
+			var selfArgs = arguments;
+			this._delayId = delay( function () {
+				self.process.apply( self, selfArgs );
+			}, 1 );
+		}
+		, stop: function () {
+			this._run = false;
+			
+			killDelay( this._delayId );
+			this._delayId = 0;
+		}
+		, running: function () {
+			return this._run;
+		}
+	});
+	
+	var timer = function ( callBack, stdItvl, minItvl ) {
+		var inst = new Timer( callBack, stdItvl, minItvl );
+		return inst;
+	};
+	
+	inst.delay = delay;
+	inst.timer = timer;
+	inst.time = function () {
+		return currTime;
+	}
+	
+	setTimeout( handler, 1 );
+	
+	return inst;
+} ());
+
+var Signal = buildClass({
+	  TAG: 'Signal'
+	, _list: null
+	, constructor: function () {
+		this.init();
+	}
+	, init: function () {
+		this._list = [];
+	}
+	, dispose: function () {
+		this._list = null;
+	}
+	, add: function ( func ) {
+		if ( !setter.isValidFunc( func ) ) {
+			return;
+		}
+		this._list.push( func );
+	}
+	, dispatch: function ( data ) {
+		for(var i = 0; i < this._list.length; i++) {
+			this._list[i]( data );
+		}
+	}
+});
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////
+////////////////////////////////////////
+////////////////////
+//	CMath
+////////////////////
+////////////////////////////////////////
+////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+var CMath = (function () {
+	var inst = {};
+	
+	var Vec2 = buildClass({
+		  TAG: 'Vec2'
+		, __static__: {
+			  clone: function ( v ) {
+				return new Vec2( v.x, v.y );
+			}
+			, convertToObj: function ( v ) {
+				var x = setter.setNum( v.x, 0 );
+				var y = setter.setNum( v.y, 0 );
+				return { x: x, y: y };
+			}
+			, equals: function ( v0, v1 ) {
+				return ( v0.x === v1.x && v0.y === v1.y );
+			}
+			, addEql: function ( v0, v1 ) {
+				v0.x += v1.x;
+				v0.y += v1.y;
+				return v0;
+			}
+			, minusEql: function ( v0, v1 ) {
+				v0.x -= v1.x;
+				v0.y -= v1.y;
+				return v0;
+			}
+			, mulEql: function ( v, n ) {
+				v.x *= n;
+				v.y *= n;
+				return v;
+			}
+			, divEql: function ( v, n ) {
+				if ( n === 0 ) {
+					Vec2.err( 'divEql fail' );
+				} else {
+					Vec2.mulEql( v, 1 / n );
+				}
+				return v;
+			}
+			, add: function ( v0, v1 ) {
+				return Vec2.addEql( Vec2.clone( v0 ), v1 );
+			}
+			, minus: function ( v0, v1 ) {
+				return Vec2.minusEql( Vec2.clone( v0 ), v1 );
+			}
+			, mul: function ( v, n ) {
+				return Vec2.mulEql( Vec2.clone( v ), n );
+			}
+			, div: function ( v, n ) {
+				return Vec2.divEql( Vec2.clone( v ), n );
+			}
+			, magSqr: function ( v ) {
+				return v.x * v.x + v.y * v.y;
+			}
+			, mag: function ( v ) {
+				return Math.sqrt( Vec2.magSqr( v ) );
+			}
+			, normalize: function ( v ) {
+				if ( v.x !== 0 || v.y !== 0 ) {
+					var magInv = 1 / Vec2.mag( v );
+					return Vec2.mulEql( v, magInv );
+				}
+				return v;
+			}
+			, dot: function ( v0, v1 ) {
+				return v0.x * v1.x + v0.y * v1.y;
+			}
+			, cross: function ( v0, v1 ) {
+				return v0.x * v1.y - v0.y * v1.x;
+			}
+			, rotRight: function ( v ) {
+				return new Vec2( -v.y, v.x );
+			}
+		}
+		, x: 0
+		, y: 0
+		, constructor: function ( x, y ) {
+			this.x = setter.setNum( x, 0 );
+			this.y = setter.setNum( y, 0 );
+		}
+		, clone: function () {
+			return new Vec2( this.x, this.y );
+		}
+		, convertToObj: function () {
+			return { x: this.x, y: this.y };
+		}
+		, equals: function ( value ) {
+			return Vec2.equals( this, value );
+		}
+		, addEql: function ( value ) {
+			return Vec2.addEql( this, value );
+		}
+		, minusEql: function ( value ) {
+			return Vec2.minusEql( this, value );
+		}
+		, mulEql: function ( value ) {
+			return Vec2.mulEql( this, value );
+		}
+		, divEql: function ( value ) {
+			return Vec2.divEql( this, value );
+		}
+		, add: function ( value ) {
+			return Vec2.add( this, value );
+		}
+		, minus: function ( value ) {
+			return Vec2.minus( this, value );
+		}
+		, mul: function ( value ) {
+			return Vec2.mul( this, value );
+		}
+		, div: function ( value ) {
+			return Vec2.div( this, value );
+		}
+		, magSqr: function () {
+			return Vec2.magSqr( this );
+		}
+		, mag: function () {
+			return Vec2.mag( this );
+		}
+		, normalize: function () {
+			return Vec2.normalize( this );
+		}
+		, dot: function ( value ) {
+			return Vec2.dot( this, value );
+		}
+		, cross: function ( value ) {
+			return Vec2.cross( this, value );
+		}
+		, rotRight: function () {
+			return Vec2.rotRight( this );
+		}
+	});
+	
+	inst.Vec2 = Vec2;
+	
+	return inst;
+} ());
+var Vec2 = CMath.Vec2;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////
+////////////////////////////////////////
+////////////////////
+//	Model
+////////////////////
+////////////////////////////////////////
+////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+var Plane2D = buildClass({
+	  TAG: 'Plane2D'
+	, _pos: null
+	, _dir: null
+	, _shape: ''
+	, constructor: function () {
+		this.init();
+	}
+	, init: function () {
+		this._pos = new Vec2();
+		this._dir = new Vec2( 1, 0 );
+	}
+	, dispose: function () {
+		this._pos = null;
+		this._dir = null;
+	}
+	, clone: function () {
+		var obj = new Plane2D();
+		obj._pos = this._pos.clone();
+		obj._dir = this._dir.clone();
+		return obj;
+	}
+	, getDir: function () {
+		return this._dir.clone();
+	}
+	, setDir: function ( value ) {
+		this._dir = Vec2.clone( value );
+	}
+	, getPos: function () {
+		return this._pos.clone();
+	}
+	, setPos: function ( value ) {
+		this._pos = Vec2.clone( value );
+	}
+	, getShape: function () {
+		return this._shape;
+	}
+	, isOverlap: function ( target ) {
+		return Plane2DOverlapChecker.calc( this, target );
+	}
+	, distFrom: function ( target ) {
+		return Plane2DDistChecker.calc( this, target );
+	}
+	, touchDir: function ( target ) {
+		return Plane2DTouchChecker.calc( this, target );
+	}
+});
+
+var Plane2D_Wall = buildClass({
+	  TAG: 'Plane2D_Wall'
+	, superClass: Plane2D
+	, __static__: {
+		  SHAPE: 'Plane2D_Wall'
+	}
+	, constructor: function () {
+		Plane2D_Wall.__super__.constructor.apply( this, arguments );
+	}
+	, init: function () {
+		Plane2D_Wall.__super__.init.apply( this, arguments );
+		this._shape = Plane2D_Wall.SHAPE;
+	}
+	, dispose: function () {
+		Plane2D_Wall.__super__.dispose.apply( this, arguments );
+	}
+	, clone: function () {
+		var obj = new Plane2D_Wall();
+		obj._pos = this._pos.clone();
+		obj._dir = this._dir.clone();
+		return obj;
+	}
+});
+
+var Plane2D_Circle = buildClass({
+	  TAG: 'Plane2D_Circle'
+	, superClass: Plane2D
+	, __static__: {
+		  SHAPE: 'Plane2D_Circle'
+	}
+	, _radius: 0
+	, constructor: function ( radius ) {
+		// radius > 0 : circle
+		// radius < 0 : ring
+		this._radius = setter.setNum( radius, 0 );
+		
+		Plane2D_Circle.__super__.constructor.apply( this, arguments );
+	}
+	, init: function () {
+		Plane2D_Circle.__super__.init.apply( this, arguments );
+		this._shape = Plane2D_Circle.SHAPE;
+	}
+	, dispose: function () {
+		Plane2D_Circle.__super__.dispose.apply( this, arguments );
+	}
+	, clone: function () {
+		var obj = new Plane2D_Circle();
+		obj._pos = this._pos.clone();
+		obj._dir = this._dir.clone();
+		obj._radius = this._radius;
+		return obj;
+	}
+	, getRadius: function () {
+		return this._radius;
+	}
+});
+
+var Plane2D_Rect = buildClass({
+	  TAG: 'Plane2D_Rect'
+	, superClass: Plane2D
+	, __static__: {
+		  SHAPE: 'Plane2D_Rect'
+	}
+	, _cornerX: 0
+	, _cornerY: 0
+	, _width: 0
+	, _height: 0
+	, constructor: function ( width, height, cornerX, cornerY ) {
+		this._cornerX = setter.setNum( cornerX, 0 );
+		this._cornerY = setter.setNum( cornerY, 0 );
+		this._width = setter.setNum( width, 0, { min: 0 } );
+		this._height = setter.setNum( height, 0, { min: 0 } );
+		
+		Plane2D_Rect.__super__.constructor.apply( this, arguments );
+	}
+	, init: function () {
+		Plane2D_Rect.__super__.init.apply( this, arguments );
+		this._shape = Plane2D_Rect.SHAPE;
+	}
+	, dispose: function () {
+		Plane2D_Rect.__super__.dispose.apply( this, arguments );
+	}
+	, clone: function () {
+		var obj = new Plane2D_Rect();
+		obj._pos = this._pos.clone();
+		obj._dir = this._dir.clone();
+		obj._cornerX = this._cornerX;
+		obj._cornerY = this._cornerY;
+		obj._width = this._width;
+		obj._height = this._height;
+		return obj;
+	}
+	, getCorner: function () {
+		return new Vec2( this._cornerX, this._cornerY );
+	}
+	, getSize: function () {
+		return new Vec2( this._width, this._height );
+	}
+});
+
+var Plane2D_Poly = buildClass({
+	  TAG: 'Plane2D_Poly'
+	, superClass: Plane2D
+	, __static__: {
+		  SHAPE: 'Plane2D_Poly'
+	}
+	, _points: null
+	, constructor: function ( points ) {
+		this._points = [];
+		
+		if ( points instanceof Array ) {
+			if ( points !== null ) {
+				this._points = points;
+			}
+		}
+		
+		Plane2D_Poly.__super__.constructor.apply( this, arguments );
+	}
+	, init: function () {
+		Plane2D_Poly.__super__.init.apply( this, arguments );
+		this._shape = Plane2D_Poly.SHAPE;
+	}
+	, dispose: function () {
+		this._points = null;
+		Plane2D_Poly.__super__.dispose.apply( this, arguments );
+	}
+	, clone: function () {
+		var obj = new Plane2D_Poly();
+		obj._pos = this._pos.clone();
+		obj._dir = this._dir.clone();
+		obj._points = [];
+		for(var i = 0; i < this._points.length; i++) {
+			obj._points.push( { x: this._points[i].x, y: this._points[i].y } );
+		}
+		return obj;
+	}
+	, getPoints: function () {
+		if ( this._points === null ) {
+			return null;
+		}
+		return this._points;
+	}
+});
+
+Plane2DOverlapChecker = (function () {
+	var inst = {};
+	
+	var calcPointVsWall = function ( objPt, objWall ) {
+		if ( objWall._pos.minus( objPt._pos ).dot( objWall._dir ) > 0 ) {
+			return true;
+		}
+		return false;
+	};
+	var calcPointVsCircle = function ( objPt, objCir ) {
+		if ( objCir._radius <= 0 ) {
+			return false;
+		}
+		if ( objPt._pos.minus( objCir._pos ).mag() < objCir._radius ) {
+			return true;
+		}
+		return false;
+	};
+	var calcPointVsRect = function ( objPt, objRec ) {
+		if ( objPt._pos.x < objRec._pos.x + objRec._cornerX ) {
+			return false;
+		}
+		if ( objPt._pos.x > objRec._pos.x + objRec._cornerX + objRec._width ) {
+			return false;
+		}
+		if ( objPt._pos.y < objRec._pos.y + objRec._cornerY ) {
+			return false;
+		}
+		if ( objPt._pos.y > objRec._pos.y + objRec._cornerY + objRec._height ) {
+			return false;
+		}
+		return true;
+	};
+	
+	// p: point
+	// a: line end 0
+	// b: line end 1
+	// r: dir
+	var calcPtLineDist = function ( p, a, b, r ) {
+		var rslt = {};
+		rslt.dist = 0;
+		rslt.touch = false;
+		
+		if ( Vec2.equals( a, p ) || Vec2.equals( b, p ) ) {
+			rslt.touch = true;
+			return rslt;
+		}
+		
+		if ( Vec2.equals( r, { x: 0, y: 0 } ) ) {
+			return rslt;
+		}
+		
+		if ( Vec2.equals( a, b ) ) {
+			return rslt;
+		}
+		
+		var va = Vec2.minus( a, p );
+		var vb = Vec2.minus( b, p );
+		var ca = Vec2.cross( r, va );
+		var cb = Vec2.cross( r, vb );
+		
+		if ( ca * cb > 0 ) {
+			return rslt;
+		}
+		
+		rslt.touch = true;
+		var da = Vec2.dot( r, va );
+		var db = Vec2.dot( r, vb );
+		if ( ca === 0 ) {
+			if ( cb === 0 ) {
+				if ( da * db <= 0 ) {
+					return rslt;
+				}
+				if ( da > 0 ) {
+					if ( da <= db ) {
+						rslt.dist = da;
+						return rslt;
+					}
+					rslt.dist = db;
+					return rslt;
+				}
+				if ( da >= db ) {
+					rslt.dist = da;
+					return rslt;
+				}
+				rslt.dist = db;
+				return rslt;
+			}
+			rslt.dist = da;
+			return rslt;
+		} else if ( cb === 0 ) {
+			rslt.dist = db;
+			return rslt;
+		}
+		
+		rslt.dist = Vec2.cross( vb, va ) / ( ca - cb );
+		return rslt;
+	};
+	
+	var isPointInPoly = function ( point, poly, rulerMap ) {
+		if ( poly.length < 3 ) {
+			return false;
+		}
+		for(var i = 0; i < poly.length; i++) {
+			var p0 = poly[i];
+			var p1 = poly[0];
+			if ( i < poly.length - 1 ) {
+				p1 = poly[i + 1];
+			}
+			if ( Vec2.equals( p0, p1 ) ) {
+				continue;
+			}
+			var ruler = null;
+			if ( rulerMap ) {
+				ruler = rulerMap[i];
+			}
+			if ( !ruler ) {
+				ruler = Vec2.minus( p1, p0 ).normalize().rotRight();
+				if ( rulerMap ) {
+					rulerMap[i] = ruler;
+				}
+			}
+			var side = Vec2.minus( point, p0 ).dot( ruler );
+			if ( side === 0 ) {
+				continue;
+			}
+			var overlap = false;
+			for(var j = 0; j < poly.length; j++) {
+				var side2 = Vec2.minus( poly[j], p0 ).dot( ruler );
+				if ( side * side2 < 0 ) {
+					return false;
+				}
+				if ( side > 0 ) {
+					if ( side2 >= side ) {
+						overlap = true;
+					}
+				}
+				else if ( side < 0 ) {
+					if ( side2 <= side ) {
+						overlap = true;
+					}
+				}
+			}
+			if ( !overlap ) {
+				return false;
+			}
+		}
+		return true;
+	};
+	
+	var calcPointVsPoly = function ( objPt, objPoly ) {
+		return isPointInPoly( objPt._pos.minus( objPoly._pos ), objPoly._points );
+	};
+	var calcWallVsPoly = function ( objWall, objPoly ) {
+		for(var i = 0; i < objPoly._points.length; i++) {
+			var point = objPoly._points[i];
+			if ( objWall._dir.dot( objPoly._pos.add( point ).minus( objWall._pos )  <= 0) ) {
+				return true;
+			}
+		}
+		return false;
+	};
+	// to do
+	var calcCircleVsPoly = function ( objCir, objPoly ) {
+		var point = objCir._pos.minus( objPoly._pos );
+		var poly = objPoly._points;
+		if ( poly.length < 3 ) {
+			return false;
+		}
+		for(var i = 0; i < poly.length; i++) {
+			var p0 = poly[i];
+			var p1 = poly[0];
+			if ( i < poly.length - 1 ) {
+				p1 = poly[i + 1];
+			}
+			if ( Vec2.equals( p0, p1 ) ) {
+				continue;
+			}
+			var ruler = Vec2.minus( p1, p0 ).normalize().rotRight();
+			var side = Vec2.minus( point, p0 ).dot( ruler );
+			if ( side === 0 ) {
+				continue;
+			}
+			var overlap = false;
+			for(var j = 0; j < poly.length; j++) {
+				var side2 = Vec2.minus( poly[j], p0 ).dot( ruler );
+				if ( side * side2 < 0 ) {
+					return false;
+				}
+				if ( side > 0 ) {
+					if ( side2 >= side ) {
+						overlap = true;
+					}
+				}
+				else if ( side < 0 ) {
+					if ( side2 <= side ) {
+						overlap = true;
+					}
+				}
+			}
+			if ( !overlap ) {
+				return false;
+			}
+		}
+		return true;
+	};
+	// to do
+	var calcPolyVsPoly = function ( objPoly0, objPoly1 ) {
+		return false;
+	};
+	var calcWallVsCircle = function ( objWall, objCir ) {
+		var radius = objCir._radius;
+		if ( radius <= 0 ) {
+			radius = -radius;
+		}
+		if ( objWall._pos.minus( objCir._pos ).dot( objWall._dir ) > -radius ) {
+			return true;
+		}
+		return false;
+	};
+	var calcWallVsRect = function ( objWall, objRec ) {
+		if ( objWall._pos.minus( new Vec2( objRec._pos.x + objRec._cornerX, objRec._pos.y + objRec._cornerY ) ).dot( objWall._dir ) > 0 ) {
+			return true;
+		}
+		if ( objWall._pos.minus( new Vec2( objRec._pos.x + objRec._cornerX, objRec._pos.y + objRec._cornerY + objRec._height ) ).dot( objWall._dir ) > 0 ) {
+			return true;
+		}
+		if ( objWall._pos.minus( new Vec2( objRec._pos.x + objRec._cornerX + objRec._width, objRec._pos.y + objRec._cornerY ) ).dot( objWall._dir ) > 0 ) {
+			return true;
+		}
+		if ( objWall._pos.minus( new Vec2( objRec._pos.x + objRec._cornerX + objRec._width, objRec._pos.y + objRec._cornerY + objRec._height ) ).dot( objWall._dir ) > 0 ) {
+			return true;
+		}
+		return false;
+	};
+	var calcCircleVsCircle = function ( objCir0, objCir1 ) {
+		var r0 = objCir0._radius;
+		var r1 = objCir1._radius;
+		if ( r0 < 0 ) {
+			r0 = -r0;
+		}
+		if ( r1 < 0 ) {
+			r1 = -r1;
+		}
+		var dist = objCir0._pos.minus( objCir1._pos ).mag();
+		if ( dist >= r0 + r1 ) {
+			return false;
+		}
+		if ( objCir0._radius >= 0 && objCir1._radius >= 0 ) {
+			return true;
+		} else if ( objCir0._radius >= 0 && objCir1._radius < 0 ) {
+			if ( dist <= r1 - r0 ) {
+				return false;
+			}
+			return true;
+		} else if ( objCir0._radius < 0 && objCir1._radius >= 0 ) {
+			if ( dist <= r0 - r1 ) {
+				return false;
+			}
+			return true;
+		} else {
+			if ( r1 - r0 >= 0 ) {
+				if ( dist <= r1 - r0 ) {
+					return false;
+				}
+				return true;
+			} else {
+				if ( dist <= r0 - r1 ) {
+					return false;
+				}
+				return true;
+			}
+		}
+	};
+	var calcCircleVsRect = function ( objCir, objRec ) {
+		var radius = objCir._radius;
+		if ( radius < 0 ) {
+			radius = -radius;
+		}
+		var dist = objCir._pos.minus( objRec._pos ).mag();
+		
+		if ( objCir._radius < 0 && dist <= radius ) {
+			if ( objCir._pos.minus( new Vec2( objRec._pos.x + objRec._cornerX, objRec._pos.y + objRec._cornerY ) ).mag() > radius ) {
+				return true;
+			}
+			if ( objCir._pos.minus( new Vec2( objRec._pos.x + objRec._cornerX, objRec._pos.y + objRec._cornerY + objRec._height ) ).mag() > radius ) {
+				return true;
+			}
+			if ( objCir._pos.minus( new Vec2( objRec._pos.x + objRec._cornerX + objRec._width, objRec._pos.y + objRec._cornerY ) ).mag() > radius ) {
+				return true;
+			}
+			if ( objCir._pos.minus( new Vec2( objRec._pos.x + objRec._cornerX + objRec._width, objRec._pos.y + objRec._cornerY + objRec._height ) ).mag() > radius ) {
+				return true;
+			}
+			
+			return false;
+		}
+		
+		var rslt = true;
+		if ( objCir._pos.x + radius < objRec._pos.x + objRec._cornerX ) {
+			rslt = false;
+		} else if ( objCir._pos.x - radius > objRec._pos.x + objRec._cornerX + objRec._width ) {
+			rslt = false;
+		} else if ( objCir._pos.y < objRec._pos.y + objRec._cornerY ) {
+			rslt = false;
+		} else if ( objCir._pos.y > objRec._pos.y + objRec._cornerY + objRec._height ) {
+			rslt = false;
+		}
+		if ( rslt ) {
+			return true;
+		}
+		
+		var rslt = true;
+		if ( objCir._pos.x < objRec._pos.x + objRec._cornerX ) {
+			rslt = false;
+		} else if ( objCir._pos.x > objRec._pos.x + objRec._cornerX + objRec._width ) {
+			rslt = false;
+		} else if ( objCir._pos.y + radius < objRec._pos.y + objRec._cornerY ) {
+			rslt = false;
+		} else if ( objCir._pos.y - radius > objRec._pos.y + objRec._cornerY + objRec._height ) {
+			rslt = false;
+		}
+		if ( rslt ) {
+			return true;
+		}
+		
+		if ( objCir._pos.minus( new Vec2( objRec._pos.x + objRec._cornerX, objRec._pos.y + objRec._cornerY ) ).mag() < radius ) {
+			return true;
+		}
+		if ( objCir._pos.minus( new Vec2( objRec._pos.x + objRec._cornerX, objRec._pos.y + objRec._cornerY + objRec._height ) ).mag() < radius ) {
+			return true;
+		}
+		if ( objCir._pos.minus( new Vec2( objRec._pos.x + objRec._cornerX + objRec._width, objRec._pos.y + objRec._cornerY ) ).mag() < radius ) {
+			return true;
+		}
+		if ( objCir._pos.minus( new Vec2( objRec._pos.x + objRec._cornerX + objRec._width, objRec._pos.y + objRec._cornerY + objRec._height ) ).mag() < radius ) {
+			return true;
+		}
+		
+		return false;
+	};
+	var calcRectVsRect = function ( objRec0, objRec1 ) {
+		if ( objRec0._pos.x + objRec0._cornerX + objRec0._width < objRec1._pos.x + objRec1._cornerX ) {
+			return false;
+		}
+		if ( objRec0._pos.x + objRec0._cornerX > objRec1._pos.x + objRec1._cornerX + objRec1._width ) {
+			return false;
+		}
+		if ( objRec0._pos.y + objRec0._cornerY + objRec0._height < objRec1._pos.y + objRec1._cornerY ) {
+			return false;
+		}
+		if ( objRec0._pos.y + objRec0._cornerY > objRec1._pos.y + objRec1._cornerY + objRec1._height ) {
+			return false;
+		}
+		return true;
+	};
+	
+	var map = {};
+	
+	map['Plane2D'] = {};
+	map['Plane2D_Wall'] = {};
+	map['Plane2D_Circle'] = {};
+	map['Plane2D_Rect'] = {};
+	
+	map['Plane2D']['Plane2D_Wall'] = calcPointVsWall;
+	map['Plane2D']['Plane2D_Circle'] = calcPointVsCircle;
+	map['Plane2D']['Plane2D_Rect'] = calcPointVsCircle;
+	map['Plane2D_Wall']['Plane2D_Circle'] = calcWallVsCircle;
+	map['Plane2D_Wall']['Plane2D_Rect'] = calcWallVsRect;
+	map['Plane2D_Circle']['Plane2D_Circle'] = calcCircleVsCircle;
+	map['Plane2D_Circle']['Plane2D_Rect'] = calcCircleVsRect;
+	map['Plane2D_Rect']['Plane2D_Rect'] = calcRectVsRect;
+	
+	var calc = function ( obj0, obj1 ) {
+		var tag0 = obj0.getTag();
+		var tag1 = obj1.getTag();
+		var pre = null;
+		var func;
+		
+		pre = map[tag0];
+		if ( pre ) {
+			func = pre[tag1];
+			if ( func ) {
+				return func( obj0, obj1 );
+			}
+		}
+		
+		pre = map[tag1];
+		if ( pre ) {
+			func = pre[tag0];
+			if ( func ) {
+				return func( obj1, obj0 );
+			}
+		}
+		
+		return false;
+	};
+	
+	inst.calc = calc;
+	return inst;
+} ());
+
+Plane2DTouchChecker = (function () {
+	var inst = {};
+	
+	var calcPointVsWall = function ( objPt, objWall ) {
+		return objWall.getDir().mul( -1 );
+	};
+	var calcPointVsCircle = function ( objPt, objCir ) {
+		var dir = objCir._pos.minus( objPt._pos ).normalize();
+		if ( objCir._radius >= 0 ) {
+			return dir;
+		}
+		var dist = objPt._pos.minus( objCir._pos ).mag();
+		if ( dist >= -objCir._radius ) {
+			return dir;
+		}
+		return dir.mul( -1 );
+	};
+	var calcPointVsRect = function ( objPt, objRec ) {
+		var c0 = new Vec2( objRec._pos.x + objRec._cornerX + objRec._width, objRec._pos.y + objRec._cornerY + objRec._height );
+		var c1 = new Vec2( objRec._pos.x + objRec._cornerX, objRec._pos.y + objRec._cornerY + objRec._height );
+		var c2 = new Vec2( objRec._pos.x + objRec._cornerX, objRec._pos.y + objRec._cornerY );
+		var c3 = new Vec2( objRec._pos.x + objRec._cornerX + objRec._width, objRec._pos.y + objRec._cornerY );
+		var d0 =  objPt._pos.x - c0.x;
+		var d1 =  objPt._pos.y - c1.y;
+		var d2 = -objPt._pos.x + c2.x;
+		var d3 = -objPt._pos.y + c3.y;
+		
+		var num = 0;
+		if ( d1 > 0 ) {
+		} else if ( d1 === 0 ) {
+			num = 1;
+		} else if ( d3 < 0 ) {
+			num = 2;
+		} else if ( d3 === 0 ) {
+			num = 3;
+		} else {
+			num = 4;
+		}
+		if ( d0 > 0 ) {
+		} else if ( d0 === 0 ) {
+			num += 5;
+		} else if ( d2 < 0 ) {
+			num += 10;
+		} else if ( d2 === 0 ) {
+			num += 15;
+		} else {
+			num += 20;
+		}
+		
+		switch ( num ) {
+		case 0:
+			return c0.minus( objPt._pos ).normalize();
+		case 1:
+		case 2:
+		case 3:
+		case 7:
+			return new Vec2( -1, 0 );
+		case 4:
+			return c3.minus( objPt._pos ).normalize();
+		case 5:
+		case 10:
+		case 11:
+		case 15:
+			return new Vec2( 0, -1 );
+		case 6:
+			return ( new Vec2( -1, -1 ) ).normalize();
+		case 8:
+			return ( new Vec2( -1, 1 ) ).normalize();
+		case 9:
+		case 13:
+		case 14:
+		case 19:
+			return new Vec2( 0, 1 );
+		case 16:
+			return ( new Vec2( 1, -1 ) ).normalize();
+		case 17:
+		case 21:
+		case 22:
+		case 23:
+			return new Vec2( 1, 0 );
+		case 18:
+			return ( new Vec2( 1, 1 ) ).normalize();
+		case 20:
+			return c1.minus( objPt._pos ).normalize();
+		case 24:
+			return c2.minus( objPt._pos ).normalize();
+		case 12:
+		default:
+			return objRec._pos.minus( objPt._pos ).normalize();
+		}
+	};
+	var calcWallVsCircle = function ( objWall, objCir ) {
+		return objWall.getDir();
+	};
+	var calcWallVsRect = function ( objWall, objRec ) {
+		return objWall.getDir();
+	};
+	var calcCircleVsCircle = function ( objCir0, objCir1 ) {
+		var r0 = objCir0._radius;
+		var r1 = objCir1._radius;
+		if ( r0 < 0 ) {
+			r0 = -r0;
+		}
+		if ( r1 < 0 ) {
+			r1 = -r1;
+		}
+		
+		var dir = objCir1._pos.minus( objCir0._pos ).normalize();
+		var dist = objCir0._pos.minus( objCir1._pos ).mag();
+		if ( dist >= r0 + r1 ) {
+			return dir;
+		}
+		if ( objCir0._radius >= 0 && objCir1._radius >= 0 ) {
+			return dir;
+		} else if ( objCir0._radius >= 0 && objCir1._radius < 0 ) {
+			if ( r0 > r1 ) {
+				return dir;
+			}
+			if ( dist >= r1 ) {
+				return dir;
+			}
+			return dir.mul( -1 );
+		} else if ( objCir0._radius < 0 && objCir1._radius >= 0 ) {
+			if ( r0 < r1 ) {
+				return dir;
+			}
+			if ( dist <= r0 ) {
+				return dir.mul( -1 );
+			}
+			return dir;
+		} else {
+			if ( r1 - r0 >= 0 ) {
+				if ( dist <= r1 - r0 ) {
+					return dir.mul( -1 );
+				}
+				return dir;
+			} else {
+				if ( dist <= r0 - r1 ) {
+					return dir.mul( -1 );
+				}
+				return dir;
+			}
+		}
+	};
+	var calcCircleVsRect = function ( objCir, objRec ) {
+		var radius = objCir._radius;
+		if ( radius < 0 ) {
+			radius = -radius;
+		}
+		var dist = objCir._pos.minus( objRec._pos ).mag();
+		if ( objCir._radius >= 0 || dist > radius ) {
+			return calcPointVsRect( objCir, objRec );
+		}
+		
+		return calcPointVsRect( objCir, objRec ).mul( -1 );
+	};
+	var calcRectVsRect = function ( objRec0, objRec1 ) {
+		// to do
+		return calcPointVsRect( objRec0, objRec1 );
+	};
+	
+	var map = {};
+	
+	map['Plane2D'] = {};
+	map['Plane2D_Wall'] = {};
+	map['Plane2D_Circle'] = {};
+	map['Plane2D_Rect'] = {};
+	
+	map['Plane2D']['Plane2D_Wall'] = calcPointVsWall;
+	map['Plane2D']['Plane2D_Circle'] = calcPointVsCircle;
+	map['Plane2D']['Plane2D_Rect'] = calcPointVsCircle;
+	map['Plane2D_Wall']['Plane2D_Circle'] = calcWallVsCircle;
+	map['Plane2D_Wall']['Plane2D_Rect'] = calcWallVsRect;
+	map['Plane2D_Circle']['Plane2D_Circle'] = calcCircleVsCircle;
+	map['Plane2D_Circle']['Plane2D_Rect'] = calcCircleVsRect;
+	map['Plane2D_Rect']['Plane2D_Rect'] = calcRectVsRect;
+	
+	var calc = function ( obj0, obj1 ) {
+		var tag0 = obj0.getTag();
+		var tag1 = obj1.getTag();
+		var pre = null;
+		var func;
+		
+		pre = map[tag0];
+		if ( pre ) {
+			func = pre[tag1];
+			if ( func ) {
+				return func( obj0, obj1 );
+			}
+		}
+		
+		pre = map[tag1];
+		if ( pre ) {
+			func = pre[tag0];
+			if ( func ) {
+				return func( obj1, obj0 ).mul( -1 );
+			}
+		}
+		
+		return new Vec2();
+	};
+	
+	inst.calc = calc;
+	return inst;
+} ());
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////
+////////////////////////////////////////
+////////////////////
+//	UI
+////////////////////
+////////////////////////////////////////
+////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+var GlobalSignal = (function () {
+	var instance = {};
+	
+	var mouseMove = new Signal();
+	var mouseUp = new Signal();
+	
+	document.body.onmousedown = function ( e ) {
+	//	log("A");
+	};
+	
+	document.body.onmousemove = function ( e ) {
+		mouseMove.dispatch( e );
+	};
+	
+	document.body.onmouseup = function ( e ) {
+		mouseUp.dispatch( e );
+	};
+	
+	instance.mouseMove = mouseMove;
+	instance.mouseUp = mouseUp;
+	
+	return instance;
+} ());
+
+var DisplayObject = buildClass({
+	  TAG: 'DisplayObject'
+	, __static__: {
+		  ACTION_NULL: 'DisplayObject.ACTION_NULL'
+		, ACTION_SENSOR_UPDATE: 'DisplayObject.ACTION_SENSOR_UPDATE'
+	}
+	, _inst: null
+	, _type: ''
+	, _data: null
+	, _parent: null
+	, _posX: 0
+	, _posY: 0
+	, _dragable: null
+	, _sensor: null // html object
+	, _signal: null
+	, constructor: function ( type ) {
+		if ( !setter.isValidStr( type ) ) {
+			this.err( 'constructor fail >> ' + type );
+		}
+		this._type = type;
+		this.init();
+	}
+	, init: function () {
+		this._inst = document.createElement( this._type );
+		this._inst.style.position = "absolute";
+		this._inst.style.left = 0;
+		this._inst.style.top = 0;
+		this._inst.style.transformOrigin = "0 0";
+		
+		this._data = {};
+		this._signal = new Signal();
+	}
+	, dispose: function () {
+		this.removeFromParent();
+		this._data = null;
+		this._inst = null;
+		if ( this._dragable !== null ) {
+			this._dragable.dispose();
+			this._dragable = null;
+		}
+		this._sensor = null;
+		if ( this._signal !== null ) {
+			this._signal.dispose();
+			this._signal = null;
+		}
+	}
+	, clearData: function () {
+		this._data = {};
+	}
+	, getData: function () {
+		return this._data;
+	}
+	, getInst: function () {
+		return this._inst;
+	}
+	, setParent: function ( parent ) {
+		if ( !DisplayObject.isCreatorOf( parent ) ) {
+			this.err( 'setParent fail' );
+			return;
+		}
+		this._parent = parent;
+	}
+	, getPosX: function () {
+		return this._posX;
+	}
+	, getPosY: function () {
+		return this._posY;
+	}
+	, setPosX: function ( x ) {
+		this._posX = setter.setInt( x, this._posX );
+		this._inst.style.left = this._posX;
+	}
+	, setPosY: function ( y ) {
+		this._posY = setter.setInt( y, this._posY );
+		this._inst.style.top = this._posY;
+	}
+	, getDragable: function () {
+		if ( this._dragable === null ) {
+			this._dragable = new Dragable( this );
+		}
+		return this._dragable;
+	}
+	, getSensor: function () {
+		if ( this._sensor !== null ) {
+			return this._sensor;
+		}
+		return this._inst;
+	}
+	, setSensor: function ( obj ) {
+		this._sensor = obj;
+		this._signal.dispatch( { action: DisplayObject.ACTION_SENSOR_UPDATE } );
+	}
+	, getSignal: function () {
+		return this._signal;
+	}
+	, removeFromParent: function () {
+		if ( this._parent === null ) {
+			return;
+		}
+		this._parent.removeChild( this );
+		this._parent = null;
+	}
+});
+
+var DragManager = (function () {
+	var instance = {};
+	
+	var dragTarget = null;
+	var dragX = 0;
+	var dragY = 0;
+	var prevX = 0;
+	var prevY = 0;
+	
+	GlobalSignal.mouseMove.add( function ( e ) {
+		/*
+		if ( e.buttons === 0 ) {
+			dragTarget = null;
+		}
+		*/
+		
+		if ( dragTarget === null ) {
+			return;
+		}
+		
+		dragTarget.update( { position: { x: e.pageX, y: e.pageY }, point: { x: dragX, y: dragY }, move: { x: e.pageX - prevX, y: e.pageY - prevY } } );
+		prevX = e.pageX;
+		prevY = e.pageY;
+	});
+	
+	GlobalSignal.mouseUp.add( function ( e ) {
+		if ( dragTarget === null ) {
+			return;
+		}
+		dragTarget.endDrag();
+		dragTarget = null;
+	});
+	
+	var setTarget = function ( dragable, e ) {
+		dragTarget = dragable;
+		var pos = dragTarget.getPos();
+		dragX = pos.x - e.pageX;
+		dragY = pos.y - e.pageY;
+		prevX = e.pageX;
+		prevY = e.pageY;
+	};
+	
+	var unsetTarget = function ( dragable ) {
+		if ( dragTarget === dragable ) {
+			dragTarget = null;
+		}
+	};
+	
+	instance.setTarget = setTarget;
+	instance.unsetTarget = unsetTarget;
+	
+	return instance;
+} ());
+
+var Dragable = buildClass({
+	  TAG: 'Dragable'
+	, __static__: {
+		  ACTION_NULL: 'Dragable.ACTION_NULL'
+		, ACTION_SELECT: 'Dragable.ACTION_SELECT'
+		, ACTION_RELEASE: 'Dragable.ACTION_RELEASE'
+		, ACTION_BEFORE_MOVE: 'Dragable.ACTION_BEFORE_MOVE'
+		, ACTION_AFTER_MOVE: 'Dragable.ACTION_AFTER_MOVE'
+	}
+	, _inst: null
+	, _signal: null
+	, constructor: function ( inst ) {
+		this._inst = inst;
+		this.init();
+	}
+	, init: function () {
+		var self = this;
+		this._signal = new Signal();
+		this._inst.getSignal().add( function ( rslt ) {
+			if ( rslt.action !== DisplayObject.ACTION_SENSOR_UPDATE ) {
+				return;
+			}
+			self.updateSensor();
+		});
+	}
+	, dispose: function () {
+		this.enable( false );
+		this._inst = null;
+		if ( this._signal !== null ) {
+			this._signal.dispose();
+			this._signal = null;
+		}
+	}
+	, getInst: function () {
+		return this._inst;
+	}
+	, getPos: function () {
+		return { x: this._inst.getPosX(), y: this._inst.getPosY() };
+	}
+	, getSignal: function () {
+		return this._signal;
+	}
+	, enable: function ( value ) {
+		if ( value ) {
+			this.updateSensor();
+		} else {
+			var sensor = this._inst.getSensor();
+		//	sensor.style.userSelect = '';
+		//	sensor.style.userDrag = '';
+			sensor.onselectstart = null;
+			sensor.ondragstart = null;
+			sensor.onmousedown = null;
+			DragManager.unsetTarget( this );
+		}
+	}
+	, endDrag: function () {
+		this._signal.dispatch( { action: Dragable.ACTION_RELEASE, target: this } );
+	}
+	, update: function ( data ) {
+		if ( !setter.isValidObj( data ) ) {
+			this.err( 'update fail >> ' + data );
+			return;
+		}
+		
+		var position = data.position;
+		var point = data.point;
+		var move = data.move;
+		if ( !setter.isValidObj( position ) ) {
+			this.err( 'update fail >> position: ' + position );
+			return;
+		}
+		
+		var targetPos = { x: position.x + point.x, y: position.y + point.y };
+		this._signal.dispatch( { action: Dragable.ACTION_BEFORE_MOVE, target: this, position: targetPos, move: move } );
+		
+		this._inst.setPosX( targetPos.x );
+		this._inst.setPosY( targetPos.y );
+		this._signal.dispatch( { action: Dragable.ACTION_AFTER_MOVE, target: this, position: targetPos, move: move } );
+	}
+	, updateSensor: function () {
+		var self = this;
+		var sensor = self._inst.getSensor();
+	//	sensor.style.pointerEvents = "none";
+		sensor.dragable = false;
+		sensor.style.userSelect = 'none';
+		sensor.style.userDrag = 'none';
+		sensor.onselectstart = function () { return false; };
+		sensor.ondragstart = function () { return false; };
+		sensor.onmousedown = function ( e ) {
+			if ( Math.random() < 0.5 ) {
+			//	return false;
+			}
+			DragManager.setTarget( self, e );
+			self._signal.dispatch( { action: Dragable.ACTION_SELECT, target: self } );
+			log("B");
+			return false;
+		};
+	}
+});
+
+var Holder = buildClass({
+	  TAG: 'Holder'
+	, superClass: DisplayObject
+	, _childList: null
+	, constructor: function () {
+		Holder.__super__.constructor.apply( this, ['div'] );
+	}
+	, init: function () {
+		Holder.__super__.init.apply( this, arguments );
+		
+		this._childList = [];
+	}
+	, dispose: function () {
+		if ( this._childList ) {
+			while ( this._childList.length > 0 ) {
+				this._childList[0].dispose();
+			}
+			this._childList = null;
+		}
+		
+		Holder.__super__.dispose.apply( this, arguments );
+	}
+	, addChild: function ( child ) {
+		if ( !DisplayObject.isCreatorOf( child ) ) {
+			this.err( 'addChild fail' );
+			return;
+		}
+		
+		child.removeFromParent();
+		this.getInst().appendChild( child.getInst() );
+		child.setParent( this );
+		this._childList.push( child );
+	}
+	, removeChild: function ( child ) {
+		var index = this._childList.indexOf( child );
+		if ( index < 0 ) {
+			return;
+		}
+		
+		this._childList.splice( index, 1 );
+		this.getInst().removeChild( child.getInst() );
+	}
+});
+
+var Quad = buildClass({
+	  TAG: 'Quad'
+	, superClass: DisplayObject
+	, _width: 0
+	, _height: 0
+	, _color: ''
+	, _alpha: 0
+	, constructor: function ( width, height, color, alpha ) {
+		this._width = setter.setInt( width, 0, { min: 0 } );
+		this._height = setter.setInt( height, 0, { min: 0 } );
+		this._color = setter.setStr( color );
+		this._alpha = setter.setNum( alpha, 1, { min: 0, max: 1 } );
+		Quad.__super__.constructor.apply( this, ['div'] );
+	}
+	, init: function () {
+		Quad.__super__.init.apply( this, arguments );
+		this._inst.style.width = this._width;
+		this._inst.style.height = this._height;
+		this._inst.style.backgroundColor = this._color;
+	}
+	, dispose: function () {
+		Quad.__super__.dispose.apply( this, arguments );
+	}
+	, setColor: function ( value ) {
+		this._color = setter.setStr( value );
+		this._inst.style.backgroundColor = this._color;
+	}
+});
+
+var Image = buildClass({
+	  TAG: 'Image'
+	, superClass: DisplayObject
+	, _url: ''
+	, constructor: function ( url ) {
+		this._url = setter.setStr( url, '' );
+		
+		Image.__super__.constructor.apply( this, ['img'] );
+	}
+	, init: function () {
+		Image.__super__.init.apply( this, arguments );
+		
+		this._inst.src = this._url;
+	}
+	, dispose: function () {
+		Image.__super__.dispose.apply( this, arguments );
+	}
+});
+
+// to do
+var Button = buildClass({
+	  TAG: 'Button'
+	, superClass: DisplayObject
+	, _url: ''
+	, constructor: function ( url ) {
+		this._url = setter.setStr( url, '' );
+		
+		Button.__super__.constructor.apply( this, ['img'] );
+	}
+	, init: function () {
+		Button.__super__.init.apply( this, arguments );
+		
+		this._inst.src = this._url;
+	}
+	, dispose: function () {
+		Button.__super__.dispose.apply( this, arguments );
+	}
+});
+
+var Drawer2D = buildClass({
+	  TAG: 'Drawer2D'
+	, superClass: DisplayObject
+	, _width: 0
+	, _height: 0
+	, _ctx: null
+	, constructor: function ( width, height ) {
+		this._width = setter.setInt( width, 0, { min: 0 } );
+		this._height = setter.setInt( height, 0, { min: 0 } );
+		Drawer2D.__super__.constructor.apply( this, ['canvas'] );
+	}
+	, init: function () {
+		Drawer2D.__super__.init.apply( this, arguments );
+		this._inst.width = this._width;
+		this._inst.height = this._height;
+		this._ctx = this._inst.getContext( '2d' );
+	}
+	, dispose: function () {
+		this._ctx = null;
+		
+		Drawer2D.__super__.dispose.apply( this, arguments );
+	}
+	, clear: function () {
+		if ( this._ctx === null ) {
+			return;
+		}
+		this._ctx.clearRect( 0, 0, this._inst.width, this._inst.height );
+	}
+	, drawCircle: function ( x, y, radius ) {
+		if ( this._ctx === null ) {
+			return;
+		}
+		this._ctx.beginPath();
+		this._ctx.arc( setter.setNum( x ), setter.setNum( y ), setter.setNum( radius ) - 1, 0, 2 * Math.PI );
+		this._ctx.stroke();
+	}
+	, drawLine: function ( x0, y0, x1, y1 ) {
+		if ( this._ctx === null ) {
+			return;
+		}
+		this._ctx.beginPath();
+		this._ctx.moveTo( setter.setNum( x0 ) + 0.5, setter.setNum( y0 ) + 0.5 );
+		this._ctx.lineTo( setter.setNum( x1 ) + 0.5, setter.setNum( y1 ) + 0.5 );
+		this._ctx.stroke();
+	}
+	, drawRect: function ( x, y, width, height ) {
+		if ( this._ctx === null ) {
+			return;
+		}
+		this._ctx.beginPath();
+		this._ctx.rect( setter.setNum( x ) + 0.5, setter.setNum( y ) + 0.5, setter.setNum( width ) - 1, setter.setNum( height ) - 1 );
+		this._ctx.stroke();
+	}
+	, getImage: function () {
+		var dataUrl = this._inst.toDataURL();
+		var img = new Image( dataUrl );
+		return img;
+	}
+	, resize: function ( width, height ) {
+		this._width = setter.setInt( width, 0, { min: 0 } );
+		this._height = setter.setInt( height, 0, { min: 0 } );
+		this._inst.width = this._width;
+		this._inst.height = this._height;
+	}
+});
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////
+////////////////////////////////////////
+////////////////////
+//	Project
+////////////////////
+////////////////////////////////////////
+////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+var ModelCore = buildClass({
+	  TAG: 'ModelCore'
+	, _commander: null
+	, constructor: function ( commander ) {
+		this._commander = commander;
+		this.init();
+	}
+	, init: function () {
+		;
+	}
+	, dispose: function () {
+		this._commander = null;
+	}
+	, instruct: function ( action, data ) {
+		if ( !this._commander ) {
+			return;
+		}
+		
+		this._commander.instruct( action, data );
+	}
+});
+
+var ViewCore = buildClass({
+	  TAG: 'ViewCore'
+	, superClass: Holder
+	, _commander: null
+	, constructor: function ( commander ) {
+		this._commander = commander;
+		
+		ViewCore.__super__.constructor.apply( this, [] );
+	}
+	, init: function () {
+		ViewCore.__super__.init.apply( this, arguments );
+	}
+	, dispose: function () {
+		this._commander = null;
+		
+		ViewCore.__super__.dispose.apply( this, arguments );
+	}
+	, instruct: function ( action, data ) {
+		if ( !this._commander ) {
+			return;
+		}
+		
+		this._commander.instruct( action, data );
+	}
+});
+
+var ProjectCore = buildClass({
+	  TAG: 'ProjectCore'
+	, superClass: Holder
+	, _parent: null
+	, constructor: function ( parent ) {
+		if ( !setter.isValidObj( parent ) ) {
+			this.err( 'No parent' );
+			return;
+		}
+		this._parent = parent;
+		ProjectCore.__super__.constructor.apply( this, [] );
+		this.log( 'init() ready' );
+	}
+	, init: function () {
+		ProjectCore.__super__.init.apply( this, arguments );
+		
+		this._parent.appendChild( this._inst );
+	}
+	, dispose: function () {
+		this._parent = null;
+		
+		ProjectCore.__super__.dispose.apply( this, arguments );
+	}
+	, instruct: function ( action, data ) {
+		;
+	}
+});
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////
+////////////////////////////////////////
+////////////////////
+//	Components
+////////////////////
+////////////////////////////////////////
+////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+var DragView = buildClass({
+	  TAG: 'DragView'
+	, superClass: ViewCore
+	, __static__: {
+		  ACTION_DRAG_ITEM_END: 'DragView.ACTION_DRAG_ITEM_END'
+		, ACTION_DRAG_ITEM_MOVE: 'DragView.ACTION_DRAG_ITEM_MOVE'
+		, ACTION_DRAG_ITEM_START: 'DragView.ACTION_DRAG_ITEM_START'
+	}
+	, _drawer: null
+	, _itemMap: null
+	, constructor: function ( commander ) {
+		DragView.__super__.constructor.apply( this, arguments );
+	}
+	, init: function () {
+		DragView.__super__.init.apply( this, arguments );
+		
+		this._drawer = new Drawer2D( 300, 150 );
+		this._itemMap = {};
+	}
+	, dispose: function () {
+		if ( this._drawer ) {
+			this._drawer.dispose();
+			this._drawer = null;
+		}
+		this._itemMap = null;
+		
+		DragView.__super__.dispose.apply( this, arguments );
+	}
+	, addItem: function ( id, inst, x, y ) {
+		var sp = new Holder();
+		sp.setSensor( inst.getInst() );
+		sp.addChild( inst );
+		sp.getData().id = id;
+		sp.setPosX( x );
+		sp.setPosY( y );
+		this.addChild( sp );
+		this._itemMap[id] = sp;
+		
+		var self = this;
+		sp.getDragable().enable( true );
+		sp.getDragable().getSignal().add( function ( rslt ) {
+			self.onDrag( rslt );
+		});
+	}
+	, addItemCircle: function ( id, x, y, radius ) {
+		if ( !this._drawer ) {
+			return;
+		}
+		this._drawer.clear();
+		this._drawer.resize( radius * 2, radius * 2 );
+		this._drawer.drawCircle( radius, radius, radius );
+		var img = this._drawer.getImage();
+		img.getInst().style.borderRadius = '50%';
+		img.setPosX( -radius );
+		img.setPosY( -radius );
+		this.addItem( id, img, x, y );
+	}
+	, addItemRect: function ( id, x, y, width, height ) {
+		if ( !this._drawer ) {
+			return;
+		}
+		var cornerX = -width * 0.5;
+		var cornerY = -height * 0.5;
+		this._drawer.clear();
+		this._drawer.resize( width, height );
+		this._drawer.drawRect( 0, 0, width, height );
+		var img = this._drawer.getImage();
+		img.setPosX( cornerX );
+		img.setPosY( cornerY );
+		this.addItem( id, img, x, y );
+	}
+	, onDrag: function ( rslt ) {
+		var action = rslt.action;
+		var target = rslt.target;
+		var pos = rslt.position;
+		var sp = target.getInst();
+		var id = sp.getData().id;
+		switch ( action ) {
+		case Dragable.ACTION_SELECT:
+			this.instruct( DragView.ACTION_DRAG_ITEM_START, { id: id } );
+			break;
+		case Dragable.ACTION_RELEASE:
+			this.instruct( DragView.ACTION_DRAG_ITEM_END, { id: id } );
+			break;
+		case Dragable.ACTION_BEFORE_MOVE:
+			break;
+		case Dragable.ACTION_AFTER_MOVE:
+			this.instruct( DragView.ACTION_DRAG_ITEM_MOVE, { id: id, x: pos.x, y: pos.y } );
+			break;
+		default:
+			;
+		}
+	}
+	, update: function ( id, x, y ) {
+		if ( !this._itemMap ) {
+			return;
+		}
+		var sp = this._itemMap[id];
+		if ( !sp ) {
+			return;
+		}
+		sp.setPosX( x );
+		sp.setPosY( y );
+	} 
+});
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////
+////////////////////////////////////////
+////////////////////
+//	ProjectModelViewTest
+////////////////////
+////////////////////////////////////////
+////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+var ProjectModelViewTest = (function () {
+	
+////////////////////////////////////////////////////////////
+////////////////////////////////////////
+////////////////////
+//	Model
+////////////////////
+////////////////////////////////////////
+////////////////////////////////////////////////////////////
+	
+	var CollideModel = buildClass({
+		  TAG: 'CollideModel'
+		, superClass: ModelCore
+		, __static__: {
+			  ACTION_ADD_ITEM: 'CollideModel.ACTION_ADD_ITEM'
+			, ACTION_UPDATE_POS: 'CollideModel.ACTION_UPDATE_POS'
+		}
+		, _itemList: null
+		, constructor: function ( commander ) {
+			CollideModel.__super__.constructor.apply( this, arguments );
+		}
+		, init: function () {
+			CollideModel.__super__.init.apply( this, arguments );
+			
+			this._itemList = [];
+		}
+		, dispose: function () {
+			CollideModel.__super__.dispose.apply( this, arguments );
+		}
+		, addItemCircle: function ( x, y, radius ) {
+			if ( !this._itemList ) {
+				return;
+			}
+			
+			var id = this._itemList.length;
+			var plane = new Plane2D_Circle( radius );
+			plane.setPos( { x: x, y: y } );
+			this._itemList.push( plane );
+			this.instruct( CollideModel.ACTION_ADD_ITEM, { id: id, shape: plane.getShape(), x: x, y: y, radius: radius } );
+		}
+		, addItemRect: function ( x, y, width, height ) {
+			if ( !this._itemList ) {
+				return;
+			}
+			
+			var id = this._itemList.length;
+			var cornerX = -width * 0.5;
+			var cornerY = -height * 0.5;
+			var plane = new Plane2D_Rect( width, height, cornerX, cornerY );
+			plane.setPos( { x: x, y: y } );
+			this._itemList.push( plane );
+			this.instruct( CollideModel.ACTION_ADD_ITEM, { id: id, shape: plane.getShape(), x: x, y: y, width: width, height: height } );
+		}
+		, addItemWall: function ( x, y, dir ) {
+			if ( !this._itemList ) {
+				return;
+			}
+			
+			var id = this._itemList.length;
+			var plane = new Plane2D_Wall();
+			plane.setDir( dir );
+			plane.setPos( { x: x, y: y } );
+			this._itemList.push( plane );
+			this.instruct( CollideModel.ACTION_ADD_ITEM, { id: id, shape: plane.getShape(), x: x, y: y, dir: dir } );
+		}
+		, calcPtLineDist: function ( p, a, b, r ) {
+			var rslt = {};
+			rslt.dist = 0;
+			rslt.touch = false;
+			
+			if ( Vec2.equals( a, p ) || Vec2.equals( b, p ) ) {
+				rslt.touch = true;
+				return rslt;
+			}
+			
+			if ( Vec2.equals( r, { x: 0, y: 0 } ) ) {
+				return rslt;
+			}
+			
+			if ( Vec2.equals( a, b ) ) {
+				return rslt;
+			}
+			
+			var va = Vec2.minus( a, p );
+			var vb = Vec2.minus( b, p );
+			var ca = Vec2.cross( r, va );
+			var cb = Vec2.cross( r, vb );
+			
+			if ( ca * cb > 0 ) {
+				return rslt;
+			}
+			
+			rslt.touch = true;
+			var da = Vec2.dot( r, va );
+			var db = Vec2.dot( r, vb );
+			if ( ca === 0 ) {
+				if ( cb === 0 ) {
+					if ( da * db <= 0 ) {
+						return rslt;
+					}
+					if ( da > 0 ) {
+						if ( da <= db ) {
+							rslt.dist = da;
+							return rslt;
+						}
+						rslt.dist = db;
+						return rslt;
+					}
+					if ( da >= db ) {
+						rslt.dist = da;
+						return rslt;
+					}
+					rslt.dist = db;
+					return rslt;
+				}
+				rslt.dist = da;
+				return rslt;
+			} else if ( cb === 0 ) {
+				rslt.dist = db;
+				return rslt;
+			}
+			
+			rslt.dist = Vec2.cross( vb, va ) / ( ca - cb );
+			return rslt;
+		}
+		, test: function () {
+			var p = this._itemList[0].getPos();
+			var a = this._itemList[1].getPos();
+			var b = this._itemList[2].getPos();
+			var r = this._itemList[3].getPos().minus( p ).normalize();
+			var rslt = this.calcPtLineDist( p, a, b, r );
+			if ( !rslt.touch ) {
+				this.log( 'not touch' );
+				return;
+			}
+			var r2 = r.mul( rslt.dist ).add( p );
+			this._itemList[4].setPos( r2 );
+			this.instruct( CollideModel.ACTION_UPDATE_POS, { id: 4, x: r2.x, y: r2.y } );
+		}
+		, updatePos: function ( id, x, y ) {
+			if ( !this._itemList ) {
+				return;
+			}
+			if ( !setter.isValidInt( id ) ) {
+				return;
+			}
+			if ( id < 0 || id >= this._itemList.length ) {
+				return;
+			}
+			
+			var pos = { x: x, y: y };
+			var item = this._itemList[id];
+			var itemTest = item.clone();
+			itemTest.setPos( pos );
+			for(var i = 0; i < this._itemList.length; i++) {
+				if ( i === id ) {
+					continue;
+				}
+				
+				var item2 = this._itemList[i];
+				if ( itemTest.isOverlap( item2 ) ) {
+					pos = item.getPos();
+					break;
+				}
+			}
+			item.setPos( pos );
+			
+			this.test();
+			
+			this.instruct( CollideModel.ACTION_UPDATE_POS, { id: id, x: pos.x, y: pos.y } );
+		}
+	});
+	
+////////////////////////////////////////////////////////////
+////////////////////////////////////////
+////////////////////
+//	View
+////////////////////
+////////////////////////////////////////
+////////////////////////////////////////////////////////////
+	
+////////////////////////////////////////////////////////////
+////////////////////////////////////////
+////////////////////
+//	Main
+////////////////////
+////////////////////////////////////////
+////////////////////////////////////////////////////////////
+	
+	return buildClass({
+		  TAG: 'ProjectModelViewTest'
+		, superClass: ProjectCore
+		, _dragView: null
+		, _collideModel: null
+		, constructor: function ( parent ) {
+			ProjectModelViewTest.__super__.constructor.apply( this, arguments );
+		}
+		, init: function () {
+			ProjectModelViewTest.__super__.init.apply( this, arguments );
+			
+			this._collideModel = new CollideModel( this );
+			this._dragView = new DragView( this );
+			
+			this.addChild( this._dragView );
+			
+			this._collideModel.addItemCircle( 100, 100, 20 );
+			this._collideModel.addItemCircle( 200, 100, 20 );
+			this._collideModel.addItemCircle( 300, 100, 20 );
+			this._collideModel.addItemCircle( 400, 100, 20 );
+			this._collideModel.addItemCircle( 500, 100, 20 );
+			<!-- this._collideModel.addItemRect( 100, 200, 40, 40 ); -->
+			<!-- this._collideModel.addItemRect( 200, 200, 40, 40 ); -->
+			<!-- this._collideModel.addItemWall( 0, 300, { x: 1, y: 0 } ); -->
+			<!-- this._collideModel.addItemWall( 500, 0, { x: 0, y: 1 } ); -->
+			<!-- this._collideModel.addItemWall( 1000, 300, { x: -1, y: 0 } ); -->
+			<!-- this._collideModel.addItemWall( 500, 600, { x: 0, y: -1 } ); -->
+		}
+		, dispose: function () {
+			if ( this._collideModel ) {
+				this._collideModel.dispose();
+				this._collideModel = null;
+			}
+			if ( this._dragView ) {
+				this._dragView.dispose();
+				this._dragView = null;
+			}
+			
+			ProjectModelViewTest.__super__.dispose.apply( this, arguments );
+		}
+		, instruct: function ( action, data ) {
+			this.log( 'instruct >> ' + action + ', ' + JSON.stringify( data ) );
+			switch ( action ) {
+			case CollideModel.ACTION_ADD_ITEM:
+				var id = data.id;
+				var shape = data.shape;
+				var x = data.x;
+				var y = data.y;
+				switch ( shape ) {
+				case Plane2D_Circle.SHAPE:
+					this._dragView.addItemCircle( id, x, y, data.radius );
+					break;
+				case Plane2D_Rect.SHAPE:
+					this._dragView.addItemRect( id, x, y, data.width, data.height );
+					break;
+				default:
+					this.log( 'Unknown add item >> ' + shape );
+				}
+				break;
+			case CollideModel.ACTION_UPDATE_POS:
+				var id = data.id;
+				var x = data.x;
+				var y = data.y;
+				this._dragView.update( id, x, y );
+				break;
+			case DragView.ACTION_DRAG_ITEM_MOVE:
+				var id = data.id;
+				var x = data.x;
+				var y = data.y;
+				this._collideModel.updatePos( id, x, y );
+				break;
+			default:
+				this.log( 'Unknown action >> ' + action );
+			}
+		}
+	});
+} ());
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////
+////////////////////////////////////////
+////////////////////
+//	ProjectCollideTest
+////////////////////
+////////////////////////////////////////
+////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+var ProjectCollideTest = (function () {
+	
+////////////////////////////////////////////////////////////
+////////////////////////////////////////
+////////////////////
+//	Model
+////////////////////
+////////////////////////////////////////
+////////////////////////////////////////////////////////////
+	var createAngleAdder = function () {
+		var inst = {};
+		
+		// dir remain
+		var v0 = null;
+		var v1 = null;
+		var full = false;
+		// vtr: dir to be remove, unit vtr
+		var add = function ( vtr ) {
+			if ( vtr.x === 0 && vtr.y === 0 ) {
+				return;
+			}
+			var vf = new Vec2( vtr.y, -vtr.x );
+			var vt = new Vec2( -vtr.y, vtr.x );
+			if ( v0 === null ) {
+				v0 = vt;
+				v1 = vf;
+				return;
+			}
+			if ( full ) {
+				return;
+			}
+			// to do: full
+			if ( ( vf.cross( v0 ) > 0 || ( vf.cross( v0 ) === 0 && vf.dot( v0 ) > 0 ) ) && ( v1.cross( vt ) > 0 || ( v1.cross( vt ) === 0 && v1.dot( vt ) > 0 ) ) ) {
+				full = true;
+				return;
+			}
+			if ( v0.cross( vf ) > 0 && vf.cross( v1 ) > 0 ) {
+				v1 = vf;
+			}
+			if ( v0.cross( vt ) > 0 && vt.cross( v1 ) > 0 ) {
+				v0 = vt;
+			}
+		};
+		
+		var calc = function ( vtr ) {
+			if ( v0 === null ) {
+				return vtr;
+			}
+			if ( full ) {
+				return new Vec2();
+			}
+			if ( ( v0.cross( vtr ) > 0 || ( v0.cross( vtr ) === 0 && v0.dot( vtr ) > 0 ) ) && ( vtr.cross( v1 ) > 0 || ( vtr.cross( v1 ) === 0 && vtr.dot( v1 ) > 0 ) ) ) {
+				return vtr;
+			}
+			var rslt = vtr;
+			var dotValue = vtr.dot( v0 );
+			if ( vtr.cross( v0 ) >= 0 && dotValue > 0 ) {
+				rslt = v0.mul( dotValue );
+				return rslt;
+			}
+			var dotValue = vtr.dot( v1 );
+			if ( vtr.cross( v1 ) <= 0 && dotValue > 0 ) {
+				rslt = v1.mul( dotValue );
+				return rslt;
+			}
+			return new Vec2();
+		};
+		
+		inst.add = add;
+		inst.calc = calc;
+		
+		return inst;
+	};
+	
+	var GravityItem = buildClass({
+		  TAG: 'GravityItem'
+		, _id: 0
+		, _mass: 0
+		, _plane: null
+		, _acc: null
+		, _vec: null
+		, _blockList: null
+		, _blockRslt: null
+		, _bind: false
+		, _watch: false
+		, constructor: function ( id, plane, vec, mass ) {
+			if ( !Plane2D.isCreatorOf( plane ) ) {
+				this.err( 'constructor fail >> plane: ' + plane );
+			}
+			
+			this._id = setter.setInt( id, 0, { min: 0 } );
+			this._plane = plane;
+			this._acc = null;
+			this._vec = Vec2.clone( vec );
+			this._mass = setter.setNum( mass, 0, { min: 0 } );
+			
+			this.init();
+		}
+		, init: function () {
+			;
+		}
+		, dispose: function () {
+			if ( this._plane ) {
+				this._plane.dispose();
+				this._plane = null;
+			}
+			this._vec = null;
+			this._vecAfter = null;
+		}
+		, bind: function ( value ) {
+			this._bind = setter.setBool( value );
+			if ( this._bind ) {
+				this._vec = new Vec2();
+			}
+		}
+		, watch: function ( value ) {
+			this._watch = setter.setBool( value );
+		}
+		, getId: function () {
+			return this._id;
+		}
+		, getMass: function () {
+			return this._mass;
+		}
+		, getPlane: function () {
+			return this._plane;
+		}
+		, getPos: function () {
+			return this._plane.getPos();
+		}
+		, getVec: function () {
+			return this._vec.clone();
+		}
+		, setVec: function ( value ) {
+			this._vec = Vec2.clone( value );
+		}
+		, actBlock: function ( target ) {
+			if ( !GravityItem.isCreatorOf( target ) ) {
+				this.err( 'beBlocked fail >> ' + target );
+				return;
+			}
+			if ( !this._plane.isOverlap( target._plane ) ) {
+				return;
+			}
+			
+			var dir = this._plane.touchDir( target._plane );
+			this._blockList.push( dir );
+		}
+		, actBlockSettle: function () {
+			this._blockRslt = createAngleAdder();
+			for(var i = 0; i < this._blockList.length; i++) {
+				this._blockRslt.add( this._blockList[i] );
+			}
+		}
+		, actForce: function ( value ) {
+			this._acc.addEql( value );
+		}
+		, actForceSettle: function () {
+			this._acc = this._blockRslt.calc( this._acc );
+			this._vec.addEql( this._acc );
+		}
+		, actCalcStart: function () {
+			this._acc = new Vec2();
+			this._blockList = [];
+		}
+		, isCloseTo: function ( target ) {
+			var vecDir = this._vec.minus( target._vec );
+			var posDir = new Vec2();
+			if ( Plane2D_Wall.isCreatorOf( this._plane ) ) {
+				if ( Plane2D_Wall.isCreatorOf( target._plane ) ) {
+					return false;
+				} else {
+					posDir = this._plane.getDir();
+				}
+			} else {
+				if ( Plane2D_Wall.isCreatorOf( target._plane ) ) {
+					vecDir = target._vec.minus( this._vec );
+					posDir = target._plane.getDir();
+				} else {
+					posDir = target.getPos().minus( this.getPos() );
+				}
+			}
+			return ( posDir.dot( vecDir ) > 0 );
+		}
+		, collide: function ( target ) {
+			if ( this._mass + target._mass <= 0 ) {
+				return;
+			}
+			if ( !this._plane.isOverlap( target._plane ) ) {
+				return;
+			}
+			if ( !this.isCloseTo( target ) ) {
+				return;
+			}
+			
+			var dir = this._plane.touchDir( target._plane );
+			
+			var speed0 = this._vec.dot( dir );
+			var speed1 = target._vec.dot( dir );
+			
+			var speedAfter0 = 0;
+			var speedAfter1 = 0;
+			var mass0 = this._mass;
+			var mass1 = target._mass;
+			if ( this._bind ) {
+				mass0 = 0;
+				speed0 = 0;
+			}
+			if ( target._bind ) {
+				mass1 = 0;
+				speed1 = 0;
+			}
+			if ( mass0 > 0 && mass1 > 0 ) {
+				speedAfter0 = ( speed0 * ( 0 + mass0 - mass1 ) + 2 * mass1 * speed1 ) / ( mass0 + mass1 );
+				speedAfter1 = ( speed1 * ( 0 - mass0 + mass1 ) + 2 * mass0 * speed0 ) / ( mass0 + mass1 );
+			} else if ( mass0 > 0 ) {
+				speedAfter0 = ( speed0 * ( -1 ) + 2 * speed1 );
+				speedAfter1 = speed1;
+			} else if ( mass1 > 0 ) {
+				speedAfter0 = speed0;
+				speedAfter1 = ( speed1 * ( -1 ) + 2 * speed0 );
+			} else {
+				speedAfter0 = speed0;
+				speedAfter1 = speed1;
+			}
+			
+			if ( !this._bind ) {
+				this._vec.addEql( dir.mul( speedAfter0 - speed0 ) );
+			}
+			if ( !target._bind ) {
+				target._vec.addEql( dir.mul( speedAfter1 - speed1 ) );
+			}
+		}
+		, actCalcFinal: function ( p_limit ) {
+			if ( this._bind ) {
+				this._vec = new Vec2();
+				return;
+			}
+			
+			var value = setter.setNum( p_limit, 0, { min: 0 } );
+			if ( value > 0 ) {
+				var mag = this._vec.mag();
+				if ( mag > value ) {
+					this._vec.normalize();
+					this._vec.mulEql( value );
+				}
+			}
+			else
+			{
+				this._vec = new Vec2();
+			}
+			
+			var vec = this._blockRslt.calc( this._vec );
+			
+			var pos = this._plane.getPos();
+			pos.addEql( vec );
+			this._plane.setPos( pos );
+		}
+	});
+
+	var GravityForce = buildClass({
+		  TAG: 'GravityForce'
+		, _id: 0
+		, _pos: null
+		, constructor: function () {
+			this.init();
+		}
+		, init: function () {
+			this._pos = new Vec2();
+		}
+		, dispose: function () {
+			this._pos = null;
+		}
+		, getId: function () {
+			return this._id;
+		}
+		, setId: function ( value ) {
+			return this._id = setter.setInt( value, 0, { min: 0 } );
+		}
+		, setPos: function ( value ) {
+			this._pos = Vec2.clone( value );
+		}
+		, calcAcc: function ( pos, mass ) {
+			return new Vec2();
+		}
+	});
+
+	var GravityForce_Point = buildClass({
+		  TAG: 'GravityForce_Point'
+		, superClass: GravityForce
+		, _posInit: null
+		, _mag: 0
+		, _isConst: false
+		, constructor: function ( pos, mag, isConst ) {
+			this._posInit = Vec2.clone( pos );
+			this._mag = setter.setNum( mag, 0 );
+			this._isConst = setter.setBool( isConst, false );
+			GravityForce_Point.__super__.constructor.apply( this, arguments );
+		}
+		, init: function () {
+			GravityForce_Earth.__super__.init.apply( this, arguments );
+			this._pos = this._posInit;
+			this._posInit = null;
+		}
+		, dispose: function () {
+			this._posInit = null;
+			
+			GravityForce_Earth.__super__.dispose.apply( this, arguments );
+		}
+		, calcAcc: function ( pos, p_mass ) {
+			var mass = setter.setNum( p_mass, 0 );
+			
+			var rslt = new Vec2();
+			if ( this._pos === null || mass === 0 ) {
+				return rslt;
+			}
+			
+			rslt = this._pos.minus( pos ).normalize().mul( this._mag );
+			if ( !this._isConst ) {
+				rslt.divEql( mass );
+			}
+			
+			return rslt;
+		}
+	});
+
+	var GravityForce_Earth = buildClass({
+		  TAG: 'GravityForce_Earth'
+		, superClass: GravityForce
+		, _force: null
+		, _isConst: false
+		, constructor: function ( force, isConst ) {
+			this._force = Vec2.clone( force );
+			this._isConst = setter.setBool( isConst, false );
+			GravityForce_Earth.__super__.constructor.apply( this, arguments );
+		}
+		, init: function () {
+			GravityForce_Earth.__super__.init.apply( this, arguments );
+		}
+		, dispose: function () {
+			this._force = null;
+			
+			GravityForce_Earth.__super__.dispose.apply( this, arguments );
+		}
+		, calcAcc: function ( pos, p_mass ) {
+			var rslt = new Vec2();
+			if ( this._force === null ) {
+				return rslt;
+			}
+			
+			rslt = this._force.clone();
+			if ( !this._isConst ) {
+				var mass = setter.setNum( p_mass, 0 );
+				if ( mass === 0 ) {
+					rslt = new Vec2();
+				} else {
+					rslt.divEql( mass );
+				}
+			}
+			
+			return rslt;
+		}
+	});
+	
+	var FunModel = buildClass({
+		  TAG: 'FunModel'
+		, superClass: ModelCore
+		, __static__: {
+			  ACTION_UPDATE_FORCE: 'FunModel.ACTION_UPDATE_FORCE'
+		}
+		, _map: null
+		, constructor: function () {
+			FunModel.__super__.constructor.apply( this, arguments );
+		}
+		, init: function () {
+			FunModel.__super__.init.apply( this, arguments );
+			
+			this._map = {};
+		}
+		, dispose: function () {
+			this._map = null;
+			
+			FunModel.__super__.dispose.apply( this, arguments );
+		}
+		, regForce: function ( id, forceId ) {
+			if ( this._map === null ) {
+				return;
+			}
+			
+			this._map[id] = forceId;
+		}
+		, update: function ( id, x, y ) {
+			if ( !setter.hasValidNum( this._map, id ) ) {
+				return;
+			}
+			
+			var forceId = this._map[id];
+			this.instruct( FunModel.ACTION_UPDATE_FORCE, { id: forceId, x: x, y: y } );
+		}
+	});
+	
+	var GravityModel = buildClass({
+		  TAG: 'GravityModel'
+		, superClass: ModelCore
+		, __static__: {
+			  ACTION_ADD_ITEM: 'GravityModel.ACTION_ADD_ITEM'
+			, ACTION_UPDATE_POS: 'GravityModel.ACTION_UPDATE_POS'
+			, ITEM_CIRCLE: 'GravityModel.ITEM_CIRCLE'
+			, ITEM_RECT: 'GravityModel.ITEM_RECT'
+		}
+		, _bindId: 0
+		, _watchId: 0
+		, _maxSpeed: 0
+		, _nextForceId: 0
+		, _nextItemId: 0
+		, _wall: null
+		, _force: null
+		, _child: null
+		, _timer: null
+		, constructor: function () {
+			GravityModel.__super__.constructor.apply( this, arguments );
+		}
+		, init: function () {
+			GravityModel.__super__.init.apply( this, arguments );
+			
+			var self = this;
+			this._maxSpeed = 0;
+			this._nextForceId = 0;
+			this._nextItemId = 0;
+			this._child = [];
+			this._force = [];
+			this._wall = [];
+			
+			var plane = null;
+			plane = new Plane2D_Wall();
+			plane.setDir( { x:  1, y:  0 } );
+			this._wall.push( new GravityItem( this.createItemId(), plane, { x: 0, y: 0 }, 0 ) );
+			plane = new Plane2D_Wall();
+			plane.setDir( { x:  0, y:  1 } );
+			this._wall.push( new GravityItem( this.createItemId(), plane, { x: 0, y: 0 }, 0 ) );
+			plane = new Plane2D_Wall();
+			plane.setDir( { x: -1, y:  0 } );
+			this._wall.push( new GravityItem( this.createItemId(), plane, { x: 0, y: 0 }, 0 ) );
+			plane = new Plane2D_Wall();
+			plane.setDir( { x:  0, y: -1 } );
+			this._wall.push( new GravityItem( this.createItemId(), plane, { x: 0, y: 0 }, 0 ) );
+			
+			for(var i = 0; i < this._wall.length; i++) {
+				this._wall[i].bind( true );
+				this._child.push( this._wall[i] );
+			}
+			this._timer = TimeCore.timer( function ( diff ) {
+				self.run( diff );
+			}, 1 );
+			this._timer.run();
+		}
+		, dispose: function () {
+			if ( this._child !== null ) {
+				while ( this._child.length > 0 ) {
+					var item = this._child.pop();
+					item.dispose();
+				}
+				this._child = null;
+			}
+			if ( this._force !== null ) {
+				while ( this._force.length > 0 ) {
+					var item = this._force.pop();
+					item.dispose();
+				}
+				this._force = null;
+			}
+			this._wall = null;
+			if ( this._timer !== null ) {
+				this._timer.dispose();
+				this._timer = null;
+			}
+			
+			GravityModel.__super__.dispose.apply( this, arguments );
+		}
+		, createForceId: function () {
+			this._nextForceId++;
+			return this._nextForceId;
+		}
+		, createItemId: function () {
+			this._nextItemId++;
+			return this._nextItemId;
+		}
+		, setMaxSpeed: function ( value ) {
+			this._maxSpeed = setter.setNum( value, 0, { min: 0 } );
+		}
+		, setRect: function ( p_x, p_y, p_w, p_h ) {
+			if ( !this._wall ) {
+				return;
+			}
+			var x = setter.setInt( p_x, 0 );
+			var y = setter.setInt( p_y, 0 );
+			var w = setter.setInt( p_w, 0, { min: 0 } );
+			var h = setter.setInt( p_h, 0, { min: 0 } );
+			this._wall[0].getPlane().setPos( { x: x + w * 0.0, y: y + h * 0.5 } );
+			this._wall[1].getPlane().setPos( { x: x + w * 0.5, y: y + h * 0.0 } );
+			this._wall[2].getPlane().setPos( { x: x + w * 1.0, y: y + h * 0.5 } );
+			this._wall[3].getPlane().setPos( { x: x + w * 0.5, y: y + h * 1.0 } );
+		}
+		, addForce: function ( obj ) {
+			if ( this._force === null ) {
+				return -1;
+			}
+			if ( !setter.isValidObj( obj ) ) {
+				return -1;
+			}
+			
+			var id = this.createForceId();
+			obj.setId( id );
+			this._force.push( obj );
+			return id;
+		}
+		, addItem: function ( plane, x, y, vec, mass ) {
+			if ( this._child === null ) {
+				return;
+			}
+			if ( !setter.isValidObj( plane ) ) {
+				return;
+			}
+			
+			var id = this.createItemId();
+			plane.setPos( { x: setter.setNum( x ), y: setter.setNum( y ) } );
+			var item = new GravityItem( id, plane, Vec2.clone( vec ), setter.setNum( mass, 0, { min: 0 } ) );
+			this._child.push( item );
+			this.instruct( GravityModel.ACTION_ADD_ITEM, { id: id, plane: plane, mass: item.getMass() } );
+		}
+		, actCalcStart: function () {
+			for(var i = 0; i < this._child.length; i++) {
+				var item = this._child[i];
+				item.actCalcStart();
+			}
+		}
+		, blockCheck: function ( child0, child1 ) {
+			child0.actBlock( child1 );
+			child1.actBlock( child0 );
+		}
+		, actBlock: function () {
+			looper.pairs( this._child, this.blockCheck );
+			for(var i = 0; i < this._child.length; i++) {
+				var item = this._child[i];
+				item.actBlockSettle();
+			}
+		}
+		, actForce: function () {
+			for(var j = 0; j < this._force.length; j++) {
+				var force = this._force[j];
+				for(var i = 0; i < this._child.length; i++) {
+					var item = this._child[i];
+					var accVtr = force.calcAcc( item.getPos(), item.getMass() );
+					item.actForce( accVtr );
+				}
+			}
+			for(var i = 0; i < this._child.length; i++) {
+				var item = this._child[i];
+				item.actForceSettle();
+			}
+		}
+		, collision: function ( child0, child1 ) {
+			child0.collide( child1 );
+		}
+		, actCollide: function () {
+			looper.pairs( this._child, this.collision );
+		}
+		, actCalcFinal: function () {
+			for(var i = 0; i < this._child.length; i++) {
+				var item = this._child[i];
+				item.actCalcFinal( this._maxSpeed );
+			}
+		}
+		, actUpdate: function () {
+			for(var i = 0; i < this._child.length; i++) {
+				var item = this._child[i];
+				var id = item.getId();
+				var pos = item.getPos();
+				this.instruct( GravityModel.ACTION_UPDATE_POS, { id: id, x: pos.x, y: pos.y } );
+			}
+		}
+		, run: function ( diff ) {
+			this.actCalcStart();
+			this.actBlock();
+			this.actForce();
+			this.actCollide();
+			this.actCalcFinal();
+			this.actUpdate();
+		}
+		, getForceById( id ) {
+			if ( !this._force ) {
+				return null;
+			}
+			for(var i = 0; i < this._force.length; i++) {
+				var item = this._force[i];
+				if ( item.getId() === id ) {
+					return item;
+				}
+			}
+			return null;
+		}
+		, getItemById( id ) {
+			if ( !this._child ) {
+				return null;
+			}
+			for(var i = 0; i < this._child.length; i++) {
+				var item = this._child[i];
+				if ( item.getId() === id ) {
+					return item;
+				}
+			}
+			return null;
+		}
+		, watch: function ( id ) {
+			var item = null;
+			if ( this._watchId > 0 ) {
+				item = this.getItemById( this._watchId );
+				if ( item !== null ) {
+					item.watch( false );
+				}
+			}
+			this._watchId = id;
+			if ( this._watchId > 0 ) {
+				item = this.getItemById( this._watchId );
+				if ( item !== null ) {
+					item.watch( true );
+				}
+			}
+		}
+		, bindItem: function ( id ) {
+			var item = null;
+			if ( this._bindId > 0 ) {
+				item = this.getItemById( this._bindId );
+				if ( item !== null ) {
+					item.bind( false );
+				}
+			}
+			this._bindId = id;
+			if ( this._bindId > 0 ) {
+				item = this.getItemById( this._bindId );
+				if ( item !== null ) {
+					item.bind( true );
+				}
+			}
+		}
+		, updatePos: function ( id, x, y ) {
+			var item = this.getItemById( id );
+			if ( item === null ) {
+				return;
+			}
+			
+			var pos = { x: x, y: y };
+			var plane = item.getPlane();
+			
+			var planeTest = plane.clone();
+			planeTest.setPos( pos );
+			for(var i = 0; i < this._child.length; i++) {
+				var item2 = this._child[i];
+				if ( item2.getId() === id ) {
+					continue;
+				}
+				
+				var plane2 = item2.getPlane();
+				if ( planeTest.isOverlap( plane2 ) ) {
+				//	pos = plane.getPos();
+					break;
+				}
+			}
+			plane.setPos( pos );
+			
+			this.instruct( GravityModel.ACTION_UPDATE_POS, { id: id, x: pos.x, y: pos.y } );
+		}
+		, updateForce: function ( id, x, y ) {
+			var item = this.getForceById( id );
+			if ( item === null ) {
+				return;
+			}
+			item.setPos( { x: x, y: y } );
+		}
+	});
+	
+////////////////////////////////////////////////////////////
+////////////////////////////////////////
+////////////////////
+//	View
+////////////////////
+////////////////////////////////////////
+////////////////////////////////////////////////////////////
+	
+	
+	
+////////////////////////////////////////////////////////////
+////////////////////////////////////////
+////////////////////
+//	Main
+////////////////////
+////////////////////////////////////////
+////////////////////////////////////////////////////////////
+	
+	return buildClass({
+		  TAG: 'ProjectCollideTest'
+		, superClass: ProjectCore
+		, _dragView: null
+		, _gravityModel: null
+		, _funModel: null
+		, constructor: function ( parent ) {
+			ProjectCollideTest.__super__.constructor.apply( this, arguments );
+		}
+		, init: function () {
+			ProjectCollideTest.__super__.init.apply( this, arguments );
+			
+			this._funModel = new FunModel( this );
+			this._gravityModel = new GravityModel( this );
+			this._dragView = new DragView( this );
+			this.addChild( this._dragView );
+			
+			const CORNER_X = 0;
+			const CORNER_Y = 0;
+			const MAX_SPEED = 6;
+			const MAX_W = 1000;
+			const MAX_H = 200;
+			const RADIUS = 3;
+			
+			this._gravityModel.setMaxSpeed( MAX_SPEED );
+			this._gravityModel.setRect( CORNER_X, CORNER_Y, MAX_W, MAX_H );
+			
+			for(var i = 0; i < 150; i++) {
+				this._gravityModel.addItem( new Plane2D_Circle( RADIUS ), CORNER_X + MAX_W * 0.5 + (Math.random() - 0.5) * ( MAX_W * 0.3 ), CORNER_Y + MAX_H * 0.5 + (Math.random() - 0.5) * ( MAX_H * 0.9 ), { x: -6, y: 0 }, 1 );
+			//	this._gravityModel.addItem( new Plane2D_Rect( RADIUS * 2, RADIUS * 2, -RADIUS, -RADIUS ), CORNER_X + Math.floor( Math.random() * ( MAX_W - RADIUS * 2 * 20 ) + RADIUS * 20 ), Math.floor( Math.random() * ( MAX_H - RADIUS * 2 ) + RADIUS ), { x: 1, y: 1 }, 1 );
+			}
+			var a = 10;
+			for(var i = 0; i < a * 2; i++) {
+				this._gravityModel.addItem( new Plane2D_Circle( RADIUS * 2 ), CORNER_X + MAX_W * 0.3, CORNER_Y + MAX_H * 0.5 + (i - a) * RADIUS * 4.1, { x: 1, y: 0 }, 0 );
+				this._gravityModel.addItem( new Plane2D_Circle( RADIUS * 2 ), CORNER_X + MAX_W * 0.3 - RADIUS * 3.2, CORNER_Y + MAX_H * 0.5 + (i - a) * RADIUS * 4.1 - RADIUS * 2, { x: 2, y: 0 }, 0 );
+				this._gravityModel.addItem( new Plane2D_Circle( RADIUS * 2 ), CORNER_X + MAX_W * 0.3 - RADIUS * 3.2 * 2, CORNER_Y + MAX_H * 0.5 + (i - a) * RADIUS * 4.1 - RADIUS * 2 * 2, { x: 3, y: 0 }, 0 );
+			}
+			//	this._gravityModel.addItem( new Plane2D_Circle( 50 ), CORNER_X + 20, 150, { x: 0, y: -5 }, 200 );
+			//this._gravityModel.addItem( new Plane2D_Circle( -RADIUS ), CORNER_X + Math.floor( Math.random() * ( MAX_W - RADIUS * 2 ) + RADIUS ), Math.floor( Math.random() * ( MAX_H - RADIUS * 2 ) + RADIUS ), { x: 1, y: 0 }, 0 );
+			//this._gravityModel.addItem( new Plane2D_Rect( 10, 10, -5, -5 ), CORNER_X + 150, 550, { x: 0, y: -5 }, 1 );
+
+		//	this._gravityModel.addItem( new Plane2D_Circle( RADIUS * 0.3 ), CORNER_X + Math.floor( Math.random() * ( MAX_W - RADIUS * 2 ) + RADIUS ), Math.floor( Math.random() * ( MAX_H - RADIUS * 2 ) + RADIUS ), { x: 1, y: 0 }, 1 );
+		//	this._gravityModel.addForce( new GravityForce_Earth( { x: 0, y: 0.01 }, true ) );
+		//	this._gravityModel.addForce( new GravityForce_Point( { x: 300, y: 300 }, 0.1, true ) );
+		}
+		, dispose: function () {
+			if ( this._gravityModel ) {
+				this._gravityModel.dispose();
+				this._gravityModel = null;
+			}
+			if ( this._dragView ) {
+				this._dragView.dispose();
+				this._dragView = null;
+			}
+			
+			ProjectCollideTest.__super__.dispose.apply( this, arguments );
+		}
+		, instruct: function ( action, data ) {
+			switch ( action ) {
+			case FunModel.ACTION_UPDATE_FORCE:
+				var id = data.id;
+				var x = data.x;
+				var y = data.y;
+				this._gravityModel.updateForce( id, x, y );
+				break;
+			case GravityModel.ACTION_ADD_ITEM:
+				var id = data.id;
+				var plane = data.plane;
+				var shape = plane.getShape();
+				var pos = plane.getPos();
+				var x = pos.x;
+				var y = pos.y;
+				var mass = data.mass;
+				switch ( shape ) {
+				case Plane2D_Circle.SHAPE:
+					var radius = plane.getRadius();
+					if ( radius < 0 ) {
+						radius = -radius;
+					}
+					this._dragView.addItemCircle( id, x, y, radius );
+					break;
+				case Plane2D_Rect.SHAPE:
+					var size = plane.getSize();
+					this._dragView.addItemRect( id, x, y, size.x, size.y );
+					break;
+				default:
+					this.log( 'Unknown add item >> ' + shape );
+				}
+			//	var forceId = this._gravityModel.addForce( new GravityForce_Point( { x: x, y: y }, 0.02 * mass, true ) );
+			//	this._funModel.regForce( id, forceId );
+				break;
+			case GravityModel.ACTION_UPDATE_POS:
+				var id = data.id;
+				var x = data.x;
+				var y = data.y;
+				this._dragView.update( id, x, y );
+				this._funModel.update( id, x, y );
+				break;
+			case DragView.ACTION_DRAG_ITEM_START:
+				var id = data.id;
+				this._gravityModel.watch( id );
+				this._gravityModel.bindItem( id );
+				break;
+			case DragView.ACTION_DRAG_ITEM_END:
+				this._gravityModel.bindItem( 0 );
+				break;
+			case DragView.ACTION_DRAG_ITEM_MOVE:
+				var id = data.id;
+				var x = data.x;
+				var y = data.y;
+				this._gravityModel.updatePos( id, x, y );
+				break;
+			default:
+				this.log( 'Unknown action >> ' + action );
+			}
+		}
+	});
+} ());
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////
+////////////////////////////////////////
+////////////////////
+//	ProjectText
+////////////////////
+////////////////////////////////////////
+////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+var ProjectText = (function () {
+	
+////////////////////////////////////////////////////////////
+////////////////////////////////////////
+////////////////////
+//	Model
+////////////////////
+////////////////////////////////////////
+////////////////////////////////////////////////////////////
+	
+////////////////////////////////////////////////////////////
+////////////////////////////////////////
+////////////////////
+//	View
+////////////////////
+////////////////////////////////////////
+////////////////////////////////////////////////////////////
+
+
+
+var TextField = buildClass({
+	  TAG: 'TextField'
+	, superClass: DisplayObject
+	, _txt: ''
+	, constructor: function ( value ) {
+		this._txt = setter.setStr( value, '' );
+		
+		TextField.__super__.constructor.apply( this, ['div'] );
+	}
+	, init: function () {
+		TextField.__super__.init.apply( this, arguments );
+		this._inst.style.whiteSpace = "nowrap";
+		this.setText( this._txt );
+	}
+	, dispose: function () {
+		TextField.__super__.dispose.apply( this, arguments );
+	}
+	, clear: function () {
+		while (this._inst.hasChildNodes()) {
+			this._inst.removeChild(this._inst.lastChild);
+		}
+	}
+	, setText: function ( value ) {
+		this._txt = value;
+		this.clear();
+		
+		var t = document.createTextNode( this._txt );
+		this._inst.appendChild( t );
+	}
+});
+	
+////////////////////////////////////////////////////////////
+////////////////////////////////////////
+////////////////////
+//	Main
+////////////////////
+////////////////////////////////////////
+////////////////////////////////////////////////////////////
+	
+	return buildClass({
+		  TAG: 'ProjectText'
+		, superClass: ProjectCore
+		, constructor: function ( parent ) {
+			ProjectText.__super__.constructor.apply( this, arguments );
+		}
+		, init: function () {
+			ProjectText.__super__.init.apply( this, arguments );
+			
+			var tf = new TextField( 'This is a text field.' );
+			tf.getDragable().enable( true );
+			this.addChild( tf );
+		}
+		, dispose: function () {
+			ProjectText.__super__.dispose.apply( this, arguments );
+		}
+		, instruct: function ( action, data ) {
+			switch ( action ) {
+			default:
+				this.log( 'Unknown action >> ' + action );
+			}
+		}
+	});
+} ());
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////
+////////////////////////////////////////
+////////////////////
+//	Start
+////////////////////
+////////////////////////////////////////
+////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// new ProjectModelViewTest( document.body );
+// new ProjectCollideTest( document.body );
+// new ProjectText( document.body );
+
+var createFormula = function ( str ) {
+	var ops = {
+		'+':	{o: 1, t: 0, p: 2},
+		'-':	{o: 1, t: 0, p: 2},
+		'*':	{o: 2, t: 0, p: 2},
+		'/':	{o: 2, t: 0, p: 2},
+		'^':	{o: 3, t: 0, p: 2},
+		'!':	{o: 5, t: 2, p: 1},
+		'%':	{o: 5, t: 2, p: 1},
+		'abs':	{o: 4, t: 1, p: 1},
+		'sqrt':	{o: 4, t: 1, p: 1},
+		'sin':	{o: 4, t: 1, p: 1},
+		'cos':	{o: 4, t: 1, p: 1},
+		'tan':	{o: 4, t: 1, p: 1},
+		'asin':	{o: 4, t: 1, p: 1},
+		'acos':	{o: 4, t: 1, p: 1},
+		'atan':	{o: 4, t: 1, p: 1},
+		'atn2':	{o: 4, t: 1, p: 2},
+		'log':	{o: 4, t: 1, p: 1},
+		'ln':	{o: 4, t: 1, p: 1},
+		'logb':	{o: 4, t: 1, p: 2}
+	};
+	var list = str.split('');
+	var peek = (a) => a[a.length - 1];
+	var vb = '';
+	var nameList = [];
+	while(list.length > 0) {
+		var c = list.splice(0, 1)[0];
+		if (ops.hasOwnProperty(c) || c === ' ' || c === ',' || c === '(' || c === ')') {
+			if (vb.length > 0) {
+				nameList.push(vb);
+				vb = '';
+			}
+			if ( c !== ' ' ) {
+				nameList.push(c);
+			}
+		} else {
+			vb += c;
+		}
+	}
+	if (vb.length > 0) {
+		nameList.push(vb);
+	}
+	
+	var machine = [];
+	var ob = [];
+	
+	while(nameList.length > 0) {
+		var item = nameList.splice(0, 1)[0];
+		if ( item === '(' ) {
+			ob.push( item );
+		} else if ( item === ')' ) {
+			var foundOpen = false;
+			while ( true ) {
+				if (ob.length === 0) {
+					break;
+				}
+				var opFound = ob.pop();
+				if ( opFound === '(' ) {
+					break;
+				}
+				machine.push({t: 2, v: opFound});
+			}
+		} else if ( item === ',' ) {
+			var foundOpen = false;
+			while ( true ) {
+				if (ob.length === 0) {
+					break;
+				}
+				var opFound = ob.pop();
+				if ( opFound === '(' ) {
+					ob.push( '(' );
+					break;
+				}
+				machine.push({t: 2, v: opFound});
+			}
+		} else if ( ops.hasOwnProperty(item) ) {
+			var oA = ops[item];
+			if (oA.t === 2) {
+				machine.push({t: 2, v: item});
+			} else {
+				while (true) {
+					if (ob.length === 0) {
+						break;
+					}
+					var oB = ops[ob[ob.length - 1]];
+					if (!oB) {
+						break;
+					}
+					if (oA.o > oB.o) {
+						break;
+					}
+					machine.push({t: 2, v: ob.pop()});
+				}
+				ob.push( item );
+			}
+		} else {
+			var num = parseFloat( item );
+			if ( isNaN( num ) ) {
+				machine.push({t: 1, v: item});
+			} else {
+				machine.push({t: 0, v: num});
+			}
+		}
+	}
+	while(ob.length > 0) {
+		machine.push({t: 2, v: ob.pop()});
+	}
+	
+	var inst = {};
+	
+	var factorial = function ( value ) {
+		if ( value >= 2 ) {
+			return value * factorial( value - 1 );
+		}
+		return 1;
+	};
+	
+	var run = function ( param ) {
+		var result = [];
+		
+		for(var i = 0; i < machine.length; i++) {
+			var item = machine[i];
+			if ( item.t === 0 ) {
+				result.push( item.v );
+			} else if ( item.t === 1 ) {
+				var num = 0;
+				if ( param.hasOwnProperty( item.v ) ) {
+					num = parseFloat( param[item.v] );
+					if ( isNaN( num ) ) {
+						num = 0;
+					}
+				}
+				result.push( num );
+			} else if ( item.t === 2 ) {
+				var opsData = ops[item.v];
+				if ( result.length < opsData.p ) {
+					return 0;
+				}
+				var n0 = 0;
+				var n1 = 0;
+				var n2 = 0;
+				switch ( opsData.p ) {
+				case 1:
+					n0 = result.pop();
+					break;
+				case 2:
+					n1 = result.pop();
+					n0 = result.pop();
+					break;
+				}
+				switch ( item.v ) {
+				case '+':	n2 = n0 + n1; break;
+				case '-':	n2 = n0 - n1; break;
+				case '*':	n2 = n0 * n1; break;
+				case '/':	n2 = n0 / n1; break;
+				case '^':	n2 = Math.pow( n0, n1 ); break;
+				case '!':	n2 = factorial( Math.floor( n0 ) ); break;
+				case '%':	n2 = n0 * 0.01; break;
+				case 'abs': 	n2 = Math.abs( n0 ); break;
+				case 'sqrt':	n2 = Math.sqrt( n0 ); break;
+				case 'sin': 	n2 = Math.sin( n0 ); break;
+				case 'cos': 	n2 = Math.cos( n0 ); break;
+				case 'tan': 	n2 = Math.tan( n0 ); break;
+				case 'asin':	n2 = Math.asin( n0 ); break;
+				case 'acos':	n2 = Math.acos( n0 ); break;
+				case 'atan':	n2 = Math.atan( n0 ); break;
+				case 'atn2':	n2 = Math.atan2( n0, n1 ); break;
+				case 'log': 	n2 = Math.log( n0 ) / Math.LN10; break;
+				case 'ln':  	n2 = Math.log( n0 ); break;
+				case 'logb':	n2 = Math.log( n0 ) / Math.log( n1 ); break;
+				}
+				result.push( n2 );
+			}
+		}
+		
+		if (result.length > 0) {
+			return result[0];
+		}
+		
+		return 0;
+	};
+	
+	inst.run = run;
+	
+	return inst;
+}
+
+var fA = createFormula( 'atn2(1,1)+2*x' );
+console.log( fA.run({x: 1}) );
+console.log( fA.run({x: 2}) );
+console.log( fA.run({x: 3}) );
+/*
+
+let yard = (infix) => {
+  let ops = {'+': 1, '-': 1, '*': 2, '/': 2};
+  let peek = (a) => a[a.length - 1];
+  let stack = [];
+
+  return infix
+    .split('')
+    .reduce((output, token) => {
+      if (parseFloat(token)) {
+        output.push(token);
+      }
+
+      if (token in ops) {
+        while (peek(stack) in ops && ops[token] <= ops[peek(stack)])
+          output.push(stack.pop());
+        stack.push(token);
+      }
+
+      if (token == '(') {
+        stack.push(token);
+      }
+
+      if (token == ')') {
+        while (peek(stack) != '(')
+          output.push(stack.pop());
+        stack.pop();
+      }
+
+      return output;
+    }, [])
+    .concat(stack.reverse())
+    .join(' ');
+};
+
+let rpn = (ts, s = []) => {
+  ts.split(' ').forEach(t =>
+    s.push(t == +t ? t : eval(s.splice(-2,1)[0] + t + s.pop())));
+  return s[0];
+}
+
+var str = yard( '(3) + 42 * 5 / (3 + 2)' );
+// 3 4 5 * 3 2 + / +
+console.log( str );
+console.log( rpn( str ) );
+*/
+<!-- Notices -->
+/*
+//
+
+//
+*/
+
+<!-- Testing Area -->
+/*
+//
+//
+*/
+
+
+
+
+
+</script>
+</html>

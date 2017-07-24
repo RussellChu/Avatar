@@ -1,0 +1,38 @@
+<html>
+<head>
+</head>
+<body>
+<script>
+const MAX_ROUND = 100000;
+var credit = 0;
+var creditMax = 0;
+var creditMin = 0;
+var bet = 1;
+for(var i = 0; i < MAX_ROUND; i++) {
+	var win = 0;
+	if ( Math.random() < 0.5 ) {
+		win -= bet;
+	} else {
+		win += bet;
+	}
+	credit += win;
+	if ( win > 0 ) {
+		bet = 1;
+	} else {
+		bet *= 2;
+	}
+	if ( credit > creditMax ) {
+		creditMax = credit;
+		console.log( 'max: ' + credit );
+	}
+	if ( credit < creditMin ) {
+		creditMin = credit;
+		console.log( 'min: ' + credit );
+	}
+}
+console.log( 'final max: ' + creditMax );
+console.log( 'final min: ' + creditMin );
+console.log( 'final: ' + credit );
+</script>
+</body>
+</html>
