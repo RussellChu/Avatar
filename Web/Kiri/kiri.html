@@ -1,0 +1,480 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kiri Test</title>
+<style>
+.divPage {
+	position: absolute;
+	top: 0px;
+	left: 0px;
+	width: 100%;
+	height: 100%;
+	font-size: 48px;
+}
+
+.btnMenu2,
+.btnMenu3,
+.btnMenu4,
+.btnMenu5,
+.btnRecord {
+	float: left;
+	width: 100%;
+	height: 100%;
+	font-size: inherit;
+}
+
+.btnMenu2 {
+	height: 50%;
+}
+
+.btnMenu3 {
+	height: 33%;
+}
+
+.btnMenu4 {
+	height: 25%;
+}
+
+.btnMenu5 {
+	height: 20%;
+}
+
+.btnRecord {
+	width: 50%;
+	height: 33%;
+}
+
+.divRecord {
+	float: left;
+	width: 100%;
+	height: 33%;
+	font-size: 36px;
+	text-align: center;
+}
+
+.divStat {
+	float: left;
+	width: 100%;
+	height: 33%;
+	font-size: 36px;
+	text-align: center;
+}
+</style>
+</head>
+<body width="100%" height="100%">
+<div id="menu" class="divPage">
+	<button id="menuBtnKiri" class="btnMenu4">Kiri Select</button>
+	<button id="menuBtnBlade" class="btnMenu4">Blade Side</button>
+	<button id="menuBtnStart" class="btnMenu4">Cut Test</button>
+</div>
+<div id="kiri" class="divPage">
+	<button id="kiriBtnMigiKasa" class="btnMenu5">R.Kasa</button>
+	<button id="kiriBtnHidariKasa" class="btnMenu5">L.Kasa</button>
+	<button id="kiriBtnMigiSuihei" class="btnMenu5">R.Suihei</button>
+	<button id="kiriBtnHidariSuihei" class="btnMenu5">L.Suihei</button>
+	<button id="kiriBtnCancel" class="btnMenu5">Cancel</button>
+</div>
+<div id="blade" class="divPage">
+	<button id="bladeBtnLeft" class="btnMenu3">Left</button>
+	<button id="bladeBtnRight" class="btnMenu3">Right</button>
+	<button id="bladeBtnCancel" class="btnMenu3">Cancel</button>
+</div>
+<div id="measure" class="divPage">
+	<div id="divRecord" class="divRecord"></div>
+	<div id="divStat" class="divStat"></div>
+	<button id="measureBtnTarget" class="btnRecord">Target</button>
+	<button id="measureBtnBack" class="btnRecord">Back</button>
+</div>
+</body>
+<script>
+
+const KIRI_HIDARI_KESA = 'Hidari Kesagiri';
+const KIRI_MIGI_KESA = 'Migi Kesagiri';
+const KIRI_HIDARI_SUIHEI = 'Hidari Suiheigiri';
+const KIRI_MIGI_SUIHEI = 'Migi Suiheigiri';
+
+const PANEL_MENU = 'PANEL_MENU';
+const PANEL_KIRI = 'PANEL_KIRI';
+const PANEL_BLADE = 'PANEL_BLADE';
+const PANEL_MEASURE = 'PANEL_MEASURE';
+
+var katana = (function () {
+	
+	var inst = {};
+	var tatamiDir = 0;
+	var frontDir = 0;
+	var frontVtr = { x: 0, y: 0, z: 1 };
+	var leftVtr = { x: 0, y: -1, z: 0 }; // screen left, cut dir
+	var orientation = { a: 0, b: 0, c: 0 };
+	var cutType = KIRI_MIGI_KESA;
+	var bladeSide = 0;
+	var lastFIdx = 0;
+	var lastFMark = 0;
+	
+	var Vtr3Normalize = function ( v ) {
+		var len = Math.sqrt( v.x * v.x + v.y * v.y  + v.z * v.z );
+		if ( len === 0 ) {
+			return { x: 0, y: 0, z: 0 };
+		}
+		var inv = 1 / len;
+		return { x: v.x * inv, y: v.y * inv, z: v.z * inv };
+	};
+	
+	var Vtr3DotProduct = function ( v0, v1 ) {
+		return v0.x * v1.x + v0.y * v1.y + v0.z * v1.z;
+	};
+	
+	var Vtr3CrossProduct = function ( v0, v1 ) {
+		return {
+			x: v0.y * v1.z - v0.z * v1.y,
+			y: v0.z * v1.x - v0.x * v1.z,
+			z: v0.x * v1.y - v0.y * v1.x
+		};
+	};
+	
+	var Vtr3ToStr = function ( v ) {
+		return '( ' + ('' + Math.round( v.x * 100 ) / 100).substring(0, 4) + ', ' + ('' + Math.round( v.y * 100 ) / 100).substring(0, 4) + ', ' + ('' + Math.round( v.z * 100 ) / 100).substring(0, 4) + ' )'
+	};
+	
+	var updateVector = function () {
+		frontDir = ( orientation.a - tatamiDir + 180 ) % 360 - 180;
+		
+		var orieA = ( orientation.a - tatamiDir ) * Math.PI / 180;
+		var orieB = orientation.b * Math.PI / 180;
+		var orieC = orientation.c * Math.PI / 180;
+		
+		var sA = Math.sin( orieA );
+		var sB = Math.sin( orieB );
+		var sC = Math.sin( orieC );
+		var cA = Math.cos( orieA );
+		var cB = Math.cos( orieB );
+		var cC = Math.cos( orieC );
+		
+		frontVtr.x = sA * cB;
+		frontVtr.y = sB;
+		frontVtr.z = cA * cB;
+		
+		leftVtr.x = -sA * sB * sC + cA * cC;
+		leftVtr.y = cB * sC;
+		leftVtr.z = -cA * sB * sC - sA * cC;
+	};
+	
+	var setTatami = function ( value ) {
+		tatamiDir = value;
+		
+		lastFIdx = 0;
+		lastFMark = 0;
+		var div = document.getElementById( 'divStat' );
+		for(var i = 0; i < 100; i++) {
+			var divMark = document.getElementById( 'divStat' + i );
+			if ( divMark ) {
+				divMark.style.height = '0%';
+			}
+		}
+		updateVector();
+		testCut();
+	};
+	
+	var setOrientation = function ( a, b, c ) {
+		orientation.a = a;
+		orientation.b = b;
+		orientation.c = c;
+		updateVector();
+		testCut();
+	};
+	
+	var getKiri = function () {
+		return cutType;
+	};
+	
+	var setKiri = function ( value ) {
+		cutType = value;
+	};
+	
+	var setBlade = function ( value ) {
+		bladeSide = value;
+	};
+	
+	var updateStatBar = function ( index, value ) {
+		var div = document.getElementById( 'divStat' );
+		var divMark = document.getElementById( 'divStat' + index );
+		if ( !divMark ) {
+			divMark = document.createElement( 'div' );
+			divMark.id = 'divStat' + index;
+			divMark.style.position = 'absolute';
+			divMark.style.cssFloat = 'left';
+			divMark.style.background = '#000';
+			divMark.style.width = '1%';
+			divMark.style.left = index + '%';
+			divMark.style.top = '33%';
+			div.appendChild( divMark );
+		}
+		if ( value > 30 ) {
+			value = 30;
+		}
+		if ( value < -30 ) {
+			value = -30;
+		}
+		if ( value < 0 ) {
+			divMark.style.background = '#f00';
+			divMark.style.top = ( 50 + value / 2 ) + '%';
+		} else {
+			divMark.style.background = '#00f';
+			divMark.style.top = '50%';
+		}
+		divMark.style.height = ( Math.abs( value ) / 2 ) + '%';
+	};
+
+	var testCut = function () {
+		var cutStart = { x: 0, y: 1, z: 0 };
+		var sqrt2 = Math.sqrt( 0.5 );
+		
+		var calcFrontVtr = {};
+		calcFrontVtr.x = frontVtr.x;
+		calcFrontVtr.y = frontVtr.y;
+		calcFrontVtr.z = frontVtr.z;
+		
+		var calcLeftVtr = {};
+		calcLeftVtr.x = leftVtr.x;
+		calcLeftVtr.y = leftVtr.y;
+		calcLeftVtr.z = leftVtr.z;
+		
+		if ( bladeSide === 0 )
+		{
+			switch ( cutType ) {
+			case KIRI_HIDARI_KESA:
+				cutStart = { x: sqrt2, y: sqrt2, z: 0 };
+				break;
+			case KIRI_MIGI_KESA:
+				cutStart = { x: -sqrt2, y: sqrt2, z: 0 };
+				break;
+			case KIRI_HIDARI_SUIHEI:
+				cutStart = { x: 1, y: 0, z: 0 };
+				break;
+			case KIRI_MIGI_SUIHEI:
+				cutStart = { x: -1, y: 0, z: 0 };
+				break;
+			}
+		} else {
+			calcFrontVtr.x = -calcFrontVtr.x;
+			calcLeftVtr.y = -calcLeftVtr.y;
+			calcLeftVtr.z = -calcLeftVtr.z;
+			switch ( cutType ) {
+			case KIRI_HIDARI_KESA:
+				cutStart = { x: -sqrt2, y: sqrt2, z: 0 };
+				break;
+			case KIRI_MIGI_KESA:
+				cutStart = { x: sqrt2, y: sqrt2, z: 0 };
+				break;
+			case KIRI_HIDARI_SUIHEI:
+				cutStart = { x: -1, y: 0, z: 0 };
+				break;
+			case KIRI_MIGI_SUIHEI:
+				cutStart = { x: 1, y: 0, z: 0 };
+				break;
+			}
+		}
+		
+		var calcTopVtr = Vtr3Normalize( Vtr3CrossProduct( calcFrontVtr, calcLeftVtr ) );
+		var dotResultF = Vtr3DotProduct( cutStart, calcFrontVtr );
+		var dotResultL = Vtr3DotProduct( cutStart, calcLeftVtr );
+		var dotResultT = Vtr3DotProduct( cutStart, calcTopVtr );
+		var tMark = Math.round( dotResultT * 100 );
+		
+		var goDir = 'Well';
+		if ( Math.abs( dotResultF ) >= Math.abs( dotResultL ) ) {
+			if ( tMark > 0 ) {
+				goDir = 'Bottom';
+			} else if ( tMark < 0 ) {
+				goDir = 'Top';
+			}
+		} else {
+			if ( bladeSide === 0 ) {
+				if ( tMark > 0 ) {
+					goDir = 'Left';
+				} else if ( tMark < 0 ) {
+					goDir = 'Right';
+				}
+			} else {
+				if ( tMark > 0 ) {
+					goDir = 'Right';
+				} else if ( tMark < 0 ) {
+					goDir = 'Left';
+				}
+			}
+		}
+		
+		var mark = 100 - Math.abs( tMark );
+		var topMark = Math.round( calcTopVtr.y * 1000 );
+		var frontIndex = Math.round( frontDir );
+		var div = document.getElementById( 'divRecord' );
+		divRecord.innerHTML = mark + '<br/>' + goDir + '<br/>' + frontIndex + ' ; ' + topMark;
+		
+		if ( frontIndex > lastFIdx ) {
+			for(var i = lastFIdx; i <= frontIndex; i++) {
+				if ( i >= -50 && i < 50 ) {
+					updateStatBar( i + 50, ( tMark * ( i - lastFIdx ) + lastFMark * ( frontIndex - i ) ) / ( frontIndex - lastFIdx ) );
+				}
+			}
+		} else if ( frontIndex < lastFIdx ) {
+			for(var i = frontIndex; i <= lastFIdx; i++) {
+				if ( i >= -50 && i < 50 ) {
+					updateStatBar( i + 50, ( tMark * ( lastFIdx - i ) + lastFMark * ( i - frontIndex ) ) / ( lastFIdx - frontIndex ) );
+				}
+			}
+		} else {
+			if ( frontIndex >= -50 && frontIndex < 50 ) {
+				updateStatBar( frontIndex + 50, tMark );
+			}
+		}
+		console.log( lastFIdx + ' : ' + lastFMark );
+		lastFIdx = frontIndex;
+		lastFMark = tMark;
+		console.log( lastFIdx + ' : ' + lastFMark );
+	};
+	
+	inst.setTatami = setTatami;
+	inst.setOrientation = setOrientation;
+	inst.getKiri = getKiri;
+	inst.setKiri = setKiri;
+	inst.setBlade = setBlade;
+	inst.testCut = testCut;
+	
+	return inst;
+} ());
+
+var recorder = (function () {
+	var inst = {};
+	
+	var orientation = { a: 0, b: 0, c: 0 };
+	
+	var setOrientation = function ( a, b, c ) {
+		orientation.a = a;
+		orientation.b = b;
+		orientation.c = c;
+		katana.setOrientation( a, b, c );
+	};
+	
+	inst.orientation = orientation;
+	inst.setOrientation = setOrientation;
+	
+	return inst;
+} ());
+
+if (window.DeviceOrientationEvent) {
+	window.addEventListener("deviceorientation", function () {
+		recorder.setOrientation( event.alpha, event.beta, event.gamma );
+	});
+}
+
+if (window.MozOrientation) {
+	window.addEventListener("MozOrientation", function () {
+		recorder.setOrientation( event.alpha, event.beta, event.gamma );
+	});
+}
+
+var menuPanel = document.getElementById( 'menu' );
+var kiriPanel = document.getElementById( 'kiri' );
+var bladePanel = document.getElementById( 'blade' );
+var measurePanel = document.getElementById( 'measure' );
+
+var switchPanel = function ( name ) {
+	menuPanel.style.display = 'none';
+	kiriPanel.style.display = 'none';
+	bladePanel.style.display = 'none';
+	measurePanel.style.display = 'none';
+	switch ( name ) {
+	case PANEL_MENU: menuPanel.style.display = 'block'; break;
+	case PANEL_KIRI: kiriPanel.style.display = 'block'; break;
+	case PANEL_BLADE: bladePanel.style.display = 'block'; break;
+	case PANEL_MEASURE: measurePanel.style.display = 'block'; break;
+	}
+}
+
+function selectKiri ( name ) {
+	katana.setKiri( name );
+	var btnKiri = document.getElementById( 'menuBtnKiri' );
+	btnKiri.innerHTML = katana.getKiri();
+	switchPanel( PANEL_MENU );
+}
+
+function initPageMenu () {
+	var btnKiri = document.getElementById( 'menuBtnKiri' );
+	var btnBlade = document.getElementById( 'menuBtnBlade' );
+	var btnStart = document.getElementById( 'menuBtnStart' );
+	btnKiri.onclick = function () {
+		switchPanel( PANEL_KIRI );
+	}
+	btnBlade.onclick = function () {
+		switchPanel( PANEL_BLADE );
+	}
+	btnStart.onclick = function () {
+		switchPanel( PANEL_MEASURE );
+	}
+};
+
+function initPageKiri () {
+	var btnMK = document.getElementById( 'kiriBtnMigiKasa' );
+	var btnHK = document.getElementById( 'kiriBtnHidariKasa' );
+	var btnMS = document.getElementById( 'kiriBtnMigiSuihei' );
+	var btnHS = document.getElementById( 'kiriBtnHidariSuihei' );
+	var btnCancel = document.getElementById( 'kiriBtnCancel' );
+	btnMK.onclick = function () {
+		selectKiri( KIRI_MIGI_KESA );
+	}
+	btnHK.onclick = function () {
+		selectKiri( KIRI_HIDARI_KESA );
+	}
+	btnMS.onclick = function () {
+		selectKiri( KIRI_MIGI_SUIHEI );
+	}
+	btnHS.onclick = function () {
+		selectKiri( KIRI_HIDARI_SUIHEI );
+	}
+	btnCancel.onclick = function () {
+		switchPanel( PANEL_MENU );
+	}
+};
+
+function initPageBlade () {
+	var btnLeft = document.getElementById( 'bladeBtnLeft' );
+	var btnRight = document.getElementById( 'bladeBtnRight' );
+	var btnCancel = document.getElementById( 'bladeBtnCancel' );
+	btnLeft.onclick = function () {
+		katana.setBlade( 0 );
+		switchPanel( PANEL_MENU );
+	}
+	btnRight.onclick = function () {
+		katana.setBlade( 1 );
+		switchPanel( PANEL_MENU );
+	}
+	btnCancel.onclick = function () {
+		switchPanel( PANEL_MENU );
+	}
+};
+
+function initPageMeasure () {
+	var btnTartget = document.getElementById( 'measureBtnTarget' );
+	var btnBack = document.getElementById( 'measureBtnBack' );
+	btnTartget.onclick = function () {
+		katana.setTatami( recorder.orientation.a );
+	}
+	btnBack.onclick = function () {
+		switchPanel( PANEL_MENU );
+	}
+};
+
+(function main () {
+	console.log( 'Start' );
+	initPageMenu();
+	initPageKiri();
+	initPageBlade();
+	initPageMeasure();
+	selectKiri( katana.getKiri() );
+	console.log( 'Init OK' );
+} ());
+
+</script>
+</html>
