@@ -5,113 +5,389 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Kiri Test</title>
 <style>
-.divPage {
+
+/* r = 1.25 */
+.wrapper {
 	position: absolute;
-	top: 0px;
 	left: 0px;
-	width: 100%;
-	height: 100%;
-	font-size: 48px;
+	top: 0px;
+	width: 300px; /* w */
+	height: 375px; /* w * r */
+	background: #000;
 }
 
-.btnMenu2,
-.btnMenu3,
-.btnMenu4,
-.btnMenu5,
-.btnRecord {
+.menu {
+	position: absolute;
+	top: 300px;
+	width: 100%;
+	height: 75px;
+	background: #f00;
+	font-size: calc(25vw * 0.25);
+}
+
+.btnMenu {
 	float: left;
-	width: 100%;
+	width: 25%;
 	height: 100%;
-	font-size: inherit;
+	font-size: 100%;
 }
 
-.btnMenu2 {
+.display {
+	position: absolute;
+	left: 0px;
+	top: calc(50% - 188px);
+	width: 100%;
+	height: 300px;
+	background: #ccc;
+}
+
+.meter {
+	position: absolute;
+	left: 0px;
+	top: 50%;
+	width: 100%;
 	height: 50%;
+	background: #888;
 }
 
-.btnMenu3 {
-	height: 33%;
+.bar {
+	position: absolute;
+	left: 50%;
+	top: 0px;
+	width: 0.4%;
+	height: 50%;
+	background: #f00;
 }
 
-.btnMenu4 {
-	height: 25%;
+.test {
+	position: absolute;
+	font-size: calc(25vw * 0.25);
 }
 
-.btnMenu5 {
-	height: 20%;
+/* 100 / 100r */
+@media only screen and (min-aspect-ratio: 100/125) and (min-width: 300px) and (max-height: 374px) {
+	.wrapper {
+		left: calc(50% - 150px); /* 200px = w * 0.5 */
+	}
+
+	.menu {
+		top: calc(100% - 75px);
+		font-size: calc(5vh);
+	}
+
+	.test {
+		font-size: calc(5vh);
+	}
 }
 
-.btnRecord {
-	width: 50%;
-	height: 33%;
+@media only screen and (min-aspect-ratio: 100/125) and (min-width: 300px) and (min-height: 375px) {
+	.wrapper {
+		left: calc(50% - 40vh); /* 40vh = 100 / 2r */
+		width: calc(80vh); /* 80vh = 100 / r */
+		height: 100%;
+	}
+
+	.menu {
+		top: 80%;
+		height: 20%;
+		font-size: calc(5vh);
+	}
+
+	.test {
+		font-size: calc(5vh);
+	}
+
+	.display {
+		top: 0px;
+		height: 80%;
+	}
 }
 
-.divRecord {
-	float: left;
-	width: 100%;
-	height: 33%;
-	font-size: 36px;
-	text-align: center;
+@media only screen and (max-aspect-ratio: 100/125) and (min-height: 375px) {
+	.wrapper {
+		height: 100%;
+	}
+
+	.menu {
+		top: calc(100% - 75px);
+	}
+
+	.display {
+		top: 0px;
+		height: calc(100% - 75px);
+	}
 }
 
-.divStat {
-	float: left;
-	width: 100%;
-	height: 33%;
-	font-size: 36px;
-	text-align: center;
+@media only screen and (max-aspect-ratio: 100/125) and (min-width: 300px) and (min-height: 375px) {
+	.wrapper {
+		width: 100%;
+	}
+
+	.menu {
+		top: calc(100% - 25vw);
+		height: calc(25vw);
+	}
+
+	.display {
+		top: 0px;
+		height: calc(100% - 25vw);
+	}
 }
+
 </style>
 </head>
 <body width="100%" height="100%">
-<div id="menu" class="divPage">
-	<button id="menuBtnKiri" class="btnMenu4">Kiri Select</button>
-	<button id="menuBtnBlade" class="btnMenu4">Blade Side</button>
-	<button id="menuBtnStart" class="btnMenu4">Cut Test</button>
-</div>
-<div id="kiri" class="divPage">
-	<button id="kiriBtnMigiKasa" class="btnMenu5">R.Kasa</button>
-	<button id="kiriBtnHidariKasa" class="btnMenu5">L.Kasa</button>
-	<button id="kiriBtnMigiSuihei" class="btnMenu5">R.Suihei</button>
-	<button id="kiriBtnHidariSuihei" class="btnMenu5">L.Suihei</button>
-	<button id="kiriBtnCancel" class="btnMenu5">Cancel</button>
-</div>
-<div id="blade" class="divPage">
-	<button id="bladeBtnLeft" class="btnMenu3">Left</button>
-	<button id="bladeBtnRight" class="btnMenu3">Right</button>
-	<button id="bladeBtnCancel" class="btnMenu3">Cancel</button>
-</div>
-<div id="measure" class="divPage">
-	<div id="divRecord" class="divRecord"></div>
-	<div id="divStat" class="divStat"></div>
-	<button id="measureBtnTarget" class="btnRecord">Target</button>
-	<button id="measureBtnBack" class="btnRecord">Back</button>
-</div>
 </body>
 <script>
+
+var UI_EVENT = {};
+UI_EVENT.MAKIWARA = 'UI_EVENT.MAKIWARA';
+UI_EVENT.KIRI = 'UI_EVENT.KIRI';
+UI_EVENT.STATE = 'UI_EVENT.STATE';
+
+var CTRL_EVENT = {};
+CTRL_EVENT.TEST = 'CTRL_EVENT.TEST';
+CTRL_EVENT.UI = 'CTRL_EVENT.UI';
+
+var createSignal = function () {
+	var inst = {};
+	
+	var list = [];
+	
+	var dispose = function () {
+		if ( inst === null ) {
+			return;
+		}
+		
+		inst = null;
+		list = null;
+	};
+	
+	var add = function ( target, func ) {
+		if ( list === null ) {
+			return;
+		}
+		if ( !target || !func ) {
+			return;
+		}
+		list.push( { target: target, func: func } );
+	};
+	
+	var dispatch = function () {
+		if ( list === null ) {
+			return;
+		}
+		for(var i = 0; i < list.length; i++) {
+			var target = list[i].target;
+			var func = list[i].func;
+			func.apply( target, arguments );
+		}
+	};
+	
+	inst.dispose = dispose;
+	inst.add = add;
+	inst.dispatch = dispatch;
+	
+	return inst;
+};
+
+var ui = (function () {
+	var inst = {};
+	
+	var lastDir = 0;
+	var lastScore = 0;
+	var signal = createSignal();
+	
+	var getLang = function ( code ) {
+		const data = {};
+		var map = {};
+		if ( !data.hasOwnProperty( 'map' ) ) {
+			map['cmd_makiwara'] = '巻藁';
+			map['cmd_start'] = '開始';
+			map['cmd_stop'] = '停止';
+			map['word_hidarikesa'] = '左袈裟';
+			map['word_hidarisuihei'] = '左水平';
+			map['word_migikesa'] = '右袈裟';
+			map['word_migisuihei'] = '右水平';
+			data.map = map;
+		}
+		map = data.map;
+		if ( !map.hasOwnProperty( code ) ) {
+			return code;
+		}
+		return map[code];
+	};
+
+	var createObj = function ( type, className, text ) {
+		var obj = document.createElement( type );
+		obj.className = className;
+		
+		if ( typeof text !== 'undefined' ) {
+			obj.innerHTML = text;
+		}
+		
+		return obj;
+	};
+
+	var divWrapper = createObj( 'div', 'wrapper' );
+	var divDisplay = createObj( 'div', 'display' );
+	var divMeter = createObj( 'div', 'meter' );
+	var divMenu = createObj( 'div', 'menu' );
+	var divTest = createObj( 'div', 'test' );
+	var btnMakiwara = createObj( 'button', 'btnMenu', getLang( 'cmd_makiwara' ) );
+	var btnKiri = createObj( 'button', 'btnMenu', 'Kiri' );
+	var btnC = createObj( 'button', 'btnMenu', '' );
+	var btnState = createObj( 'button', 'btnMenu', 'State' );
+
+	document.body.appendChild( divWrapper );
+	divWrapper.appendChild( divDisplay );
+	divDisplay.appendChild( divMeter );
+	divWrapper.appendChild( divMenu );
+	divMenu.appendChild( btnMakiwara );
+	divMenu.appendChild( btnKiri );
+	divMenu.appendChild( btnC );
+	divMenu.appendChild( btnState );
+	divWrapper.appendChild( divTest );
+	
+	var setBar = function ( dir, value ) {
+		if ( dir < -180 || dir >= 180 ) {
+			return;
+		}
+		var index = dir + 180;
+		var key = 'divMeterBar_' + index;
+		var divBar = document.getElementById( key );
+		if ( !divBar ) {
+			divBar = createObj( 'div', 'bar' );
+			divBar.style.left = 'calc(50% + ' + 0.3 * dir + '%)';
+			divBar.id = key;
+			divMeter.appendChild( divBar );
+		}
+		var heightStr = '' + Math.abs( value ) + '%';
+		if ( value >= 0 ) {
+			divBar.style.top = '0px';
+			divBar.style.background = '#f00';
+		} else {
+			divBar.style.top = '-' + heightStr;
+			divBar.style.background = '#00f';
+		}
+		divBar.style.height = heightStr;
+	};
+	
+	var actScore = function ( data ) {
+		if ( data.hasOwnProperty( 'clear' ) ) {
+			if ( data.clear ) {
+				for(var i = -180; i <= 179; i++) {
+					setBar( i, 0 );
+				}
+				lastScore = 0;
+				return;
+			}
+		}
+	
+		if ( data.hasOwnProperty( 'dir' ) && data.hasOwnProperty( 'score' ) ) {
+			var dir = data.dir; // -180 - 179
+			var score = data.score;
+			if ( dir > lastDir ) {
+				for(var i = lastDir; i <= dir; i++) {
+					setBar( i, ( score * ( i - lastDir ) + lastScore * ( dir - i ) ) / ( dir - lastDir ) );
+				}
+			} else if ( dir < lastDir ) {
+				for(var i = dir; i <= lastDir; i++) {
+					setBar( i, ( score * ( lastDir - i ) + lastScore * ( i - dir ) ) / ( lastDir - dir ) );
+				}
+			} else {
+				setBar( dir, score );
+			}
+			lastDir = dir;
+			lastScore = score;
+		}
+	};
+	
+	btnMakiwara.onclick = function () {
+		signal.dispatch( UI_EVENT.MAKIWARA );
+	};
+	
+	btnKiri.onclick = function () {
+		signal.dispatch( UI_EVENT.KIRI );
+	};
+	
+	btnState.onclick = function () {
+		signal.dispatch( UI_EVENT.STATE );
+	};
+	
+	var actTest = function ( data ) {
+		divTest.innerHTML = data.msg;
+	};
+	
+	var actUI = function ( data ) {
+		if ( data.hasOwnProperty( 'state' ) ) {
+			var state = data.state;
+			if ( state ) {
+				btnState.innerHTML = getLang( 'cmd_stop' );
+				btnMakiwara.disabled = false;
+			} else {
+				btnState.innerHTML = getLang( 'cmd_start' );
+				btnMakiwara.disabled = true;
+			}
+		}
+		if ( data.hasOwnProperty( 'kiri' ) ) {
+			var kiri = data.kiri;
+			switch ( kiri ) {
+			case KIRI_HIDARI_KESA:
+				btnKiri.innerHTML = getLang( 'word_hidarikesa' );
+				break;
+			case KIRI_HIDARI_SUIHEI:
+				btnKiri.innerHTML = getLang( 'word_hidarisuihei' );
+				break;
+			case KIRI_MIGI_KESA:
+				btnKiri.innerHTML = getLang( 'word_migikesa' );
+				break;
+			case KIRI_MIGI_SUIHEI:
+				btnKiri.innerHTML = getLang( 'word_migisuihei' );
+				break;
+			}
+		}
+	};
+	
+	var onSignal = function ( action, data ) {
+		switch ( action ) {
+		case CTRL_EVENT.TEST:
+			actTest( data );
+		case CTRL_EVENT.UI:
+			actUI( data );
+			break;
+		case CTRL_EVENT.SCORE:
+			actScore( data );
+			break;
+		default:
+			console.log( 'ui onSignal, action >> ' + action );
+		}
+	};
+	
+	inst.onSignal = onSignal;
+	inst.signal = signal;
+	
+	return inst;
+} ());
 
 const KIRI_HIDARI_KESA = 'Hidari Kesagiri';
 const KIRI_MIGI_KESA = 'Migi Kesagiri';
 const KIRI_HIDARI_SUIHEI = 'Hidari Suiheigiri';
 const KIRI_MIGI_SUIHEI = 'Migi Suiheigiri';
 
-const PANEL_MENU = 'PANEL_MENU';
-const PANEL_KIRI = 'PANEL_KIRI';
-const PANEL_BLADE = 'PANEL_BLADE';
-const PANEL_MEASURE = 'PANEL_MEASURE';
-
 var katana = (function () {
 	
 	var inst = {};
-	var tatamiDir = 0;
+	
+	var initTarget = false;
+	var targetDir = 0;
 	var frontDir = 0;
 	var frontVtr = { x: 0, y: 0, z: 1 };
 	var leftVtr = { x: 0, y: -1, z: 0 }; // screen left, cut dir
 	var orientation = { a: 0, b: 0, c: 0 };
 	var cutType = KIRI_MIGI_KESA;
 	var bladeSide = 0;
-	var lastFIdx = 0;
-	var lastFMark = 0;
+	var result = {};
 	
 	var Vtr3Normalize = function ( v ) {
 		var len = Math.sqrt( v.x * v.x + v.y * v.y  + v.z * v.z );
@@ -139,9 +415,9 @@ var katana = (function () {
 	};
 	
 	var updateVector = function () {
-		frontDir = ( orientation.a - tatamiDir + 180 ) % 360 - 180;
+		frontDir = ( orientation.a - targetDir + 180 ) % 360 - 180;
 		
-		var orieA = ( orientation.a - tatamiDir ) * Math.PI / 180;
+		var orieA = ( orientation.a - targetDir ) * Math.PI / 180;
 		var orieB = orientation.b * Math.PI / 180;
 		var orieC = orientation.c * Math.PI / 180;
 		
@@ -161,18 +437,8 @@ var katana = (function () {
 		leftVtr.z = -cA * sB * sC - sA * cC;
 	};
 	
-	var setTatami = function ( value ) {
-		tatamiDir = value;
-		
-		lastFIdx = 0;
-		lastFMark = 0;
-		var div = document.getElementById( 'divStat' );
-		for(var i = 0; i < 100; i++) {
-			var divMark = document.getElementById( 'divStat' + i );
-			if ( divMark ) {
-				divMark.style.height = '0%';
-			}
-		}
+	var setTarget = function () {
+		targetDir = orientation.a;
 		updateVector();
 		testCut();
 	};
@@ -181,6 +447,10 @@ var katana = (function () {
 		orientation.a = a;
 		orientation.b = b;
 		orientation.c = c;
+		if ( !initTarget ) {
+			initTarget = true;
+			targetDir = orientation.a;
+		}
 		updateVector();
 		testCut();
 	};
@@ -191,42 +461,14 @@ var katana = (function () {
 	
 	var setKiri = function ( value ) {
 		cutType = value;
+		testCut();
 	};
 	
 	var setBlade = function ( value ) {
 		bladeSide = value;
+		testCut();
 	};
 	
-	var updateStatBar = function ( index, value ) {
-		var div = document.getElementById( 'divStat' );
-		var divMark = document.getElementById( 'divStat' + index );
-		if ( !divMark ) {
-			divMark = document.createElement( 'div' );
-			divMark.id = 'divStat' + index;
-			divMark.style.position = 'absolute';
-			divMark.style.cssFloat = 'left';
-			divMark.style.background = '#000';
-			divMark.style.width = '1%';
-			divMark.style.left = index + '%';
-			divMark.style.top = '33%';
-			div.appendChild( divMark );
-		}
-		if ( value > 30 ) {
-			value = 30;
-		}
-		if ( value < -30 ) {
-			value = -30;
-		}
-		if ( value < 0 ) {
-			divMark.style.background = '#f00';
-			divMark.style.top = ( 50 + value / 2 ) + '%';
-		} else {
-			divMark.style.background = '#00f';
-			divMark.style.top = '50%';
-		}
-		divMark.style.height = ( Math.abs( value ) / 2 ) + '%';
-	};
-
 	var testCut = function () {
 		var cutStart = { x: 0, y: 1, z: 0 };
 		var sqrt2 = Math.sqrt( 0.5 );
@@ -306,174 +548,150 @@ var katana = (function () {
 			}
 		}
 		
-		var mark = 100 - Math.abs( tMark );
-		var topMark = Math.round( calcTopVtr.y * 1000 );
-		var frontIndex = Math.round( frontDir );
-		var div = document.getElementById( 'divRecord' );
-		divRecord.innerHTML = mark + '<br/>' + goDir + '<br/>' + frontIndex + ' ; ' + topMark;
-		
-		if ( frontIndex > lastFIdx ) {
-			for(var i = lastFIdx; i <= frontIndex; i++) {
-				if ( i >= -50 && i < 50 ) {
-					updateStatBar( i + 50, ( tMark * ( i - lastFIdx ) + lastFMark * ( frontIndex - i ) ) / ( frontIndex - lastFIdx ) );
-				}
-			}
-		} else if ( frontIndex < lastFIdx ) {
-			for(var i = frontIndex; i <= lastFIdx; i++) {
-				if ( i >= -50 && i < 50 ) {
-					updateStatBar( i + 50, ( tMark * ( lastFIdx - i ) + lastFMark * ( i - frontIndex ) ) / ( lastFIdx - frontIndex ) );
-				}
-			}
-		} else {
-			if ( frontIndex >= -50 && frontIndex < 50 ) {
-				updateStatBar( frontIndex + 50, tMark );
-			}
-		}
-		console.log( lastFIdx + ' : ' + lastFMark );
-		lastFIdx = frontIndex;
-		lastFMark = tMark;
-		console.log( lastFIdx + ' : ' + lastFMark );
+		result = {
+			dir: Math.round( frontDir ),
+			top: Math.round( calcTopVtr.y * 1000 ),
+			score: tMark
+		};
 	};
 	
-	inst.setTatami = setTatami;
-	inst.setOrientation = setOrientation;
+	var getResult = function () {
+		return result;
+	};
+	
+	inst.setBlade = setBlade;
 	inst.getKiri = getKiri;
 	inst.setKiri = setKiri;
-	inst.setBlade = setBlade;
+	inst.setOrientation = setOrientation;
+	inst.getResult = getResult;
+	inst.setTarget = setTarget;
 	inst.testCut = testCut;
 	
 	return inst;
 } ());
 
-var recorder = (function () {
+var modal = (function () {
 	var inst = {};
 	
-	var orientation = { a: 0, b: 0, c: 0 };
+	var data = {};
+	data.kiri = KIRI_MIGI_SUIHEI;
+	data.state = false;
 	
-	var setOrientation = function ( a, b, c ) {
-		orientation.a = a;
-		orientation.b = b;
-		orientation.c = c;
-		katana.setOrientation( a, b, c );
+	var switchKiri = function () {
+		var kiri = data.kiri;
+		switch ( data.kiri ) {
+		case KIRI_HIDARI_KESA:
+			data.kiri = KIRI_HIDARI_SUIHEI;
+			break;
+		case KIRI_HIDARI_SUIHEI:
+			data.kiri = KIRI_MIGI_KESA;
+			break;
+		case KIRI_MIGI_KESA:
+			data.kiri = KIRI_MIGI_SUIHEI;
+			break;
+		case KIRI_MIGI_SUIHEI:
+			data.kiri = KIRI_HIDARI_KESA;
+			break;
+		default:
+			data.kiri = KIRI_MIGI_SUIHEI;
+		}
 	};
 	
-	inst.orientation = orientation;
-	inst.setOrientation = setOrientation;
+	var switchState = function () {
+		data.state = !data.state;
+	};
+	
+	inst.data = data;
+	inst.switchKiri = switchKiri;
+	inst.switchState = switchState;
 	
 	return inst;
 } ());
 
-if (window.DeviceOrientationEvent) {
-	window.addEventListener("deviceorientation", function () {
-		recorder.setOrientation( event.alpha, event.beta, event.gamma );
-	});
-}
+var ctrl = (function () {
+	var inst = {};
+	
+	var signal = createSignal();
+	
+	var updateCut = function () {
+		var result = katana.getResult();
+		var dir = result.dir;
+		var score = result.score;
+		signal.dispatch( CTRL_EVENT.TEST, { msg: '(' + dir + ', ' + score + ')' } );
+		signal.dispatch( CTRL_EVENT.SCORE, result );
+	};
+	
+	var onOrientation = function () {
+	//	signal.dispatch( CTRL_EVENT.TEST, { msg: '(' + event.alpha + ', ' + event.beta + ', ' + event.gamma + ')' } );
+		katana.setOrientation( event.alpha, event.beta, event.gamma );
+		updateCut();
+	};
+	
+	var actKiri = function () {
+		modal.switchKiri();
+		katana.setKiri( modal.data.kiri );
+		signal.dispatch( CTRL_EVENT.SCORE, { clear: true } );
+		signal.dispatch( CTRL_EVENT.UI, { kiri: modal.data.kiri } );
+	};
+	
+	var actState = function () {
+		modal.switchState();
+		var state = modal.data.state;
+		if ( state ) {
+			if ( window.DeviceOrientationEvent ) {
+				window.addEventListener("deviceorientation", onOrientation );
+			} else if (window.MozOrientation) {
+				window.addEventListener("MozOrientation", onOrientation );
+			}
+		} else {
+			if ( window.DeviceOrientationEvent ) {
+				window.removeEventListener("deviceorientation", onOrientation );
+			} else if (window.MozOrientation) {
+				window.removeEventListener("MozOrientation", onOrientation );
+			}
+		}
+		signal.dispatch( CTRL_EVENT.UI, { state: state } );
+	};
 
-if (window.MozOrientation) {
-	window.addEventListener("MozOrientation", function () {
-		recorder.setOrientation( event.alpha, event.beta, event.gamma );
-	});
-}
+	var actTarget = function () {
+		katana.setTarget();
+		signal.dispatch( CTRL_EVENT.SCORE, { clear: true } );
+		updateCut();
+	};
+	
+	var onSignal = function ( action, data ) {
+		switch ( action ) {
+		case UI_EVENT.MAKIWARA:
+			actTarget();
+			break;
+		case UI_EVENT.KIRI:
+			actKiri();
+			break;
+		case UI_EVENT.STATE:
+			actState();
+			break;
+		default:
+			console.log( 'ctrl onSignal, action >> ' + action );
+		}
+	};
+	
+	var start = function () {
+		katana.setKiri( modal.data.kiri );
+		signal.dispatch( CTRL_EVENT.UI, modal.data );
+	};
+	
+	inst.onSignal = onSignal;
+	inst.signal = signal;
+	inst.start = start;
+	
+	return inst;
+} ());
 
-var menuPanel = document.getElementById( 'menu' );
-var kiriPanel = document.getElementById( 'kiri' );
-var bladePanel = document.getElementById( 'blade' );
-var measurePanel = document.getElementById( 'measure' );
-
-var switchPanel = function ( name ) {
-	menuPanel.style.display = 'none';
-	kiriPanel.style.display = 'none';
-	bladePanel.style.display = 'none';
-	measurePanel.style.display = 'none';
-	switch ( name ) {
-	case PANEL_MENU: menuPanel.style.display = 'block'; break;
-	case PANEL_KIRI: kiriPanel.style.display = 'block'; break;
-	case PANEL_BLADE: bladePanel.style.display = 'block'; break;
-	case PANEL_MEASURE: measurePanel.style.display = 'block'; break;
-	}
-}
-
-function selectKiri ( name ) {
-	katana.setKiri( name );
-	var btnKiri = document.getElementById( 'menuBtnKiri' );
-	btnKiri.innerHTML = katana.getKiri();
-	switchPanel( PANEL_MENU );
-}
-
-function initPageMenu () {
-	var btnKiri = document.getElementById( 'menuBtnKiri' );
-	var btnBlade = document.getElementById( 'menuBtnBlade' );
-	var btnStart = document.getElementById( 'menuBtnStart' );
-	btnKiri.onclick = function () {
-		switchPanel( PANEL_KIRI );
-	}
-	btnBlade.onclick = function () {
-		switchPanel( PANEL_BLADE );
-	}
-	btnStart.onclick = function () {
-		switchPanel( PANEL_MEASURE );
-	}
-};
-
-function initPageKiri () {
-	var btnMK = document.getElementById( 'kiriBtnMigiKasa' );
-	var btnHK = document.getElementById( 'kiriBtnHidariKasa' );
-	var btnMS = document.getElementById( 'kiriBtnMigiSuihei' );
-	var btnHS = document.getElementById( 'kiriBtnHidariSuihei' );
-	var btnCancel = document.getElementById( 'kiriBtnCancel' );
-	btnMK.onclick = function () {
-		selectKiri( KIRI_MIGI_KESA );
-	}
-	btnHK.onclick = function () {
-		selectKiri( KIRI_HIDARI_KESA );
-	}
-	btnMS.onclick = function () {
-		selectKiri( KIRI_MIGI_SUIHEI );
-	}
-	btnHS.onclick = function () {
-		selectKiri( KIRI_HIDARI_SUIHEI );
-	}
-	btnCancel.onclick = function () {
-		switchPanel( PANEL_MENU );
-	}
-};
-
-function initPageBlade () {
-	var btnLeft = document.getElementById( 'bladeBtnLeft' );
-	var btnRight = document.getElementById( 'bladeBtnRight' );
-	var btnCancel = document.getElementById( 'bladeBtnCancel' );
-	btnLeft.onclick = function () {
-		katana.setBlade( 0 );
-		switchPanel( PANEL_MENU );
-	}
-	btnRight.onclick = function () {
-		katana.setBlade( 1 );
-		switchPanel( PANEL_MENU );
-	}
-	btnCancel.onclick = function () {
-		switchPanel( PANEL_MENU );
-	}
-};
-
-function initPageMeasure () {
-	var btnTartget = document.getElementById( 'measureBtnTarget' );
-	var btnBack = document.getElementById( 'measureBtnBack' );
-	btnTartget.onclick = function () {
-		katana.setTatami( recorder.orientation.a );
-	}
-	btnBack.onclick = function () {
-		switchPanel( PANEL_MENU );
-	}
-};
-
-(function main () {
-	console.log( 'Start' );
-	initPageMenu();
-	initPageKiri();
-	initPageBlade();
-	initPageMeasure();
-	selectKiri( katana.getKiri() );
-	console.log( 'Init OK' );
+var main = (function () {
+	ui.signal.add( ctrl, ctrl.onSignal );
+	ctrl.signal.add( ui, ui.onSignal );
+	
+	ctrl.start();
 } ());
 
 </script>
