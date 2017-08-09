@@ -50,6 +50,28 @@
 	background: #888;
 }
 
+.compass_center {
+	position: absolute;
+	left: 50%;
+	top: 50%;
+	width: 150px;
+	height: 150px;
+}
+
+.compass_pointer {
+	position: absolute;
+    left: 0;
+    top: 0;
+    margin: -40% 0 0 -20%;
+    transform: rotate(0deg);
+	width: 0;
+	height: 0;
+	border-left: 30px solid transparent;
+	border-right: 30px solid transparent;
+	border-bottom: 120px solid #ccc;
+	opacity: 0.5;
+}
+
 .bar {
 	position: absolute;
 	left: 50%;
@@ -101,6 +123,17 @@
 		top: 0px;
 		height: 80%;
 	}
+
+	.compass_center {
+		width: calc(40vh);
+		height: calc(40vh);
+	}
+	
+	.compass_pointer {
+		border-left-width: calc(8vh);
+		border-right-width: calc(8vh);
+		border-bottom-width: calc(32vh);
+	}
 }
 
 @media only screen and (max-aspect-ratio: 100/125) and (min-height: 375px) {
@@ -115,6 +148,17 @@
 	.display {
 		top: 0px;
 		height: calc(100% - 75px);
+	}
+
+	.compass_center {
+		width: calc(40vh);
+		height: calc(40vh);
+	}
+	
+	.compass_pointer {
+		border-left-width: calc(8vh);
+		border-right-width: calc(8vh);
+		border-bottom-width: calc(32vh);
 	}
 }
 
@@ -131,6 +175,17 @@
 	.display {
 		top: 0px;
 		height: calc(100% - 25vw);
+	}
+
+	.compass_center {
+		width: calc(50vw);
+		height: calc(50vw);
+	}
+	
+	.compass_pointer {
+		border-left-width: calc(10vw);
+		border-right-width: calc(10vw);
+		border-bottom-width: calc(40vw);
 	}
 }
 
@@ -233,6 +288,8 @@ var ui = (function () {
 	var divDisplay = createObj( 'div', 'display' );
 	var divMeter = createObj( 'div', 'meter' );
 	var divMenu = createObj( 'div', 'menu' );
+	var divCompassCenter = createObj( 'div', 'compass_center' );
+	var divCompassPointer = createObj( 'div', 'compass_pointer' );
 	var divTest = createObj( 'div', 'test' );
 	var btnMakiwara = createObj( 'button', 'btnMenu', getLang( 'cmd_makiwara' ) );
 	var btnKiri = createObj( 'button', 'btnMenu', 'Kiri' );
@@ -242,6 +299,8 @@ var ui = (function () {
 	document.body.appendChild( divWrapper );
 	divWrapper.appendChild( divDisplay );
 	divDisplay.appendChild( divMeter );
+	divDisplay.appendChild( divCompassCenter );
+	divCompassCenter.appendChild( divCompassPointer );
 	divWrapper.appendChild( divMenu );
 	divMenu.appendChild( btnMakiwara );
 	divMenu.appendChild( btnKiri );
@@ -273,6 +332,18 @@ var ui = (function () {
 		divBar.style.height = heightStr;
 	};
 	
+	btnMakiwara.onclick = function () {
+		signal.dispatch( UI_EVENT.MAKIWARA );
+	};
+	
+	btnKiri.onclick = function () {
+		signal.dispatch( UI_EVENT.KIRI );
+	};
+	
+	btnState.onclick = function () {
+		signal.dispatch( UI_EVENT.STATE );
+	};
+	
 	var actScore = function ( data ) {
 		if ( data.hasOwnProperty( 'clear' ) ) {
 			if ( data.clear ) {
@@ -284,7 +355,7 @@ var ui = (function () {
 			}
 		}
 	
-		if ( data.hasOwnProperty( 'dir' ) && data.hasOwnProperty( 'score' ) ) {
+		if ( data.hasOwnProperty( 'dir' ) && data.hasOwnProperty( 'score' ) && data.hasOwnProperty( 'pointer' ) ) {
 			var dir = data.dir; // -180 - 179
 			var score = data.score;
 			if ( dir > lastDir ) {
@@ -300,19 +371,20 @@ var ui = (function () {
 			}
 			lastDir = dir;
 			lastScore = score;
+			
+			var ptr = data.pointer;
+			if ( score === 0 ) {
+				divCompassPointer.style.display = 'none';
+			} else {
+				divCompassPointer.style.transform = 'rotate(' + ptr + 'deg)';
+				divCompassPointer.style.display = 'block';
+				if ( score > 0 ) {
+					divCompassPointer.style.borderBottomColor = '#f80';
+				} else {
+					divCompassPointer.style.borderBottomColor = '#08f';
+				}
+			}
 		}
-	};
-	
-	btnMakiwara.onclick = function () {
-		signal.dispatch( UI_EVENT.MAKIWARA );
-	};
-	
-	btnKiri.onclick = function () {
-		signal.dispatch( UI_EVENT.KIRI );
-	};
-	
-	btnState.onclick = function () {
-		signal.dispatch( UI_EVENT.STATE );
 	};
 	
 	var actTest = function ( data ) {
@@ -384,6 +456,7 @@ var katana = (function () {
 	var frontDir = 0;
 	var frontVtr = { x: 0, y: 0, z: 1 };
 	var leftVtr = { x: 0, y: -1, z: 0 }; // screen left, cut dir
+	var motion = { x: 0, y: 0, z: 0 };
 	var orientation = { a: 0, b: 0, c: 0 };
 	var cutType = KIRI_MIGI_KESA;
 	var bladeSide = 0;
@@ -455,6 +528,12 @@ var katana = (function () {
 		testCut();
 	};
 	
+	var setMotion = function ( x, y, z ) {
+		motion.x = x;
+		motion.y = y;
+		motion.z = z;
+	};
+	
 	var getKiri = function () {
 		return cutType;
 	};
@@ -520,38 +599,19 @@ var katana = (function () {
 		}
 		
 		var calcTopVtr = Vtr3Normalize( Vtr3CrossProduct( calcFrontVtr, calcLeftVtr ) );
-		var dotResultF = Vtr3DotProduct( cutStart, calcFrontVtr );
-		var dotResultL = Vtr3DotProduct( cutStart, calcLeftVtr );
-		var dotResultT = Vtr3DotProduct( cutStart, calcTopVtr );
-		var tMark = Math.round( dotResultT * 100 );
-		
-		var goDir = 'Well';
-		if ( Math.abs( dotResultF ) >= Math.abs( dotResultL ) ) {
-			if ( tMark > 0 ) {
-				goDir = 'Bottom';
-			} else if ( tMark < 0 ) {
-				goDir = 'Top';
-			}
-		} else {
-			if ( bladeSide === 0 ) {
-				if ( tMark > 0 ) {
-					goDir = 'Left';
-				} else if ( tMark < 0 ) {
-					goDir = 'Right';
-				}
-			} else {
-				if ( tMark > 0 ) {
-					goDir = 'Right';
-				} else if ( tMark < 0 ) {
-					goDir = 'Left';
-				}
-			}
-		}
+		var targetTop = Vtr3Normalize( Vtr3CrossProduct( cutStart, { x: 0, y: 0, z: 1 } ) );
+		var dotF = Vtr3DotProduct( targetTop, calcFrontVtr );
+		var dotL = Vtr3DotProduct( targetTop, calcLeftVtr );
+		var dotT = Vtr3DotProduct( cutStart, calcTopVtr );
+		var tMark = Math.round( dotT * 100 );
+		var pointer = Math.atan2( -dotL, dotF );
 		
 		result = {
 			dir: Math.round( frontDir ),
-			top: Math.round( calcTopVtr.y * 1000 ),
-			score: tMark
+			score: tMark,
+			orientation: orientation,
+			motion: motion,
+			pointer: Math.round( pointer * 180 / Math.PI )
 		};
 	};
 	
@@ -562,6 +622,7 @@ var katana = (function () {
 	inst.setBlade = setBlade;
 	inst.getKiri = getKiri;
 	inst.setKiri = setKiri;
+	inst.setMotion = setMotion;
 	inst.setOrientation = setOrientation;
 	inst.getResult = getResult;
 	inst.setTarget = setTarget;
@@ -617,14 +678,18 @@ var ctrl = (function () {
 		var result = katana.getResult();
 		var dir = result.dir;
 		var score = result.score;
-		signal.dispatch( CTRL_EVENT.TEST, { msg: '(' + dir + ', ' + score + ')' } );
+		var top = result.top;
+		signal.dispatch( CTRL_EVENT.TEST, { msg: '' + dir + ', ' + score } );
 		signal.dispatch( CTRL_EVENT.SCORE, result );
 	};
 	
 	var onOrientation = function () {
-	//	signal.dispatch( CTRL_EVENT.TEST, { msg: '(' + event.alpha + ', ' + event.beta + ', ' + event.gamma + ')' } );
 		katana.setOrientation( event.alpha, event.beta, event.gamma );
 		updateCut();
+	};
+	
+	var onMotion = function () {
+		katana.setMotion( event.acceleration.x, event.acceleration.y, event.acceleration.z );
 	};
 	
 	var actKiri = function () {
@@ -643,11 +708,17 @@ var ctrl = (function () {
 			} else if (window.MozOrientation) {
 				window.addEventListener("MozOrientation", onOrientation );
 			}
+			if ( window.DeviceMotionEvent ) {
+			//	window.addEventListener("devicemotion", onMotion );
+			}
 		} else {
 			if ( window.DeviceOrientationEvent ) {
 				window.removeEventListener("deviceorientation", onOrientation );
 			} else if (window.MozOrientation) {
 				window.removeEventListener("MozOrientation", onOrientation );
+			}
+			if ( window.DeviceMotionEvent ) {
+			//	window.removeEventListener("devicemotion", onMotion );
 			}
 		}
 		signal.dispatch( CTRL_EVENT.UI, { state: state } );
