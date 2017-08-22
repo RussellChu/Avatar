@@ -80,108 +80,151 @@ var eventDispatcher = (function () {
 	inst.dispatch = dispatch;
 	inst.remove = remove;
 	return inst;
-}());
-
-var createFlow = function () {
-	var inst = {};
-	return inst;
-};
-
-var hasProp = {}.hasOwnProperty;
-
-var isObjWithKey = function ( obj, key ) {
-	if ( typeof obj !== 'object' ) {
-		return false;
-	}
-	if ( obj === null ) {
-		return false;
-	}
-	return hasProp.call( obj, key );
-};
+} ());
 
 var log = function ( value ) {
 	console.log( value );
 };
+
+var utils = (function () {
+	var inst = {};
+	var hasProp = {}.hasOwnProperty;
+	var objHasKey = function ( obj, key ) {
+		if (
+			typeof obj !== 'object' ||
+			obj === null
+		) {
+			return false;
+		}
+		return hasProp.call( obj, key );
+	};
+	var findElement = function ( obj, keys, defaultValue ) {
+		var rslt = null;
+		if ( typeof defaultValue !== 'undefined' ) {
+			rslt = defaultValue;
+		}
+		if (
+			!obj ||
+			!( keys instanceof Array )
+		) {
+			return rslt;
+		}
+		
+		var buff = obj;
+		for(var i = 0; i < keys.length; i++) {
+			var key = keys[i];
+			if ( !buff.hasOwnProperty( key ) ) {
+				break;
+			}
+			buff = buff[key];
+			if ( i === keys.length - 1 ) {
+				rslt = buff[key];
+			}
+		}
+		return rslt;
+	};
+	var createConst = function ( list ) {
+		var rslt = {};
+		if ( !( list instanceof Array ) ) {
+			return rslt;
+		}
+		for(var i = 0; i < list.length; i++) {
+			var key = list[i];
+			rslt[key] = key;
+		}
+		return rslt;
+	};
+	var createConstAsIdx = function ( list ) {
+		var rslt = {};
+		if ( !( list instanceof Array ) ) {
+			return rslt;
+		}
+		for(var i = 0; i < list.length; i++) {
+			var key = list[i];
+			rslt[key] = i;
+		}
+		return rslt;
+	};
+	
+	inst.hasProp = hasProp;
+	inst.objHasKey = objHasKey;
+	inst.findElement = findElement;
+	inst.createConst = createConst;
+	inst.createConstAsIdx = createConstAsIdx;
+	return inst;
+} ());
+
 /*******************************************************************************
  *	Data
  */
 	
-var ActionCardType = {};
-ActionCardType.ANY = 1;
-ActionCardType.SWORD = 2;
-ActionCardType.GUN = 3;
-ActionCardType.SHIELD = 4;
-ActionCardType.MOVE = 5;
-ActionCardType.STAR = 6;
-ActionCardType.HEAL = 7;
-ActionCardType.DETOX = 8;
-ActionCardType.DRAW = 9;
-ActionCardType.THROW = 10;
+var ActionCardType = utils.createConstAsIdx([
+	  'NONE'
+	, 'ANY'
+	, 'SWORD'
+	, 'GUN'
+	, 'SHIELD'
+	, 'MOVE'
+	, 'STAR'
+	, 'HEAL'
+	, 'DETOX'
+	, 'DRAW'
+	, 'THROW'
+]);
 
-var ActionCardStage = {};
-ActionCardStage.FREE = 1; // move / atk / guard
-ActionCardStage.FIGHT = 2; // atk / guard
+var ActionCardStage = utils.createConst([
+	  'FREE' // move / atk / guard
+	, 'FIGHT' // atk / guard
+]);
 
-var SkillTriggerStage = {};
-SkillTriggerStage.MOV = 'MOV';
-SkillTriggerStage.ATK = 'ATK';
-SkillTriggerStage.DEF = 'DEF';
-SkillTriggerStage.ALL = 'ALL';
+var SkillTriggerStage = utils.createConst([ 'ALL', 'ATK', 'DEF', 'MOV' ]);
+var SkillTriggerDistance = utils.createConst([ 'NONE', 'S', 'M', 'SM', 'L', 'SL', 'ML', 'SML' ]);
+var SkillCardCalc = utils.createConst([ 'SUM_MIN', 'SUM_EQU', 'SUM_MAX', 'ONE_MIN', 'ONE_EQU', 'ONE_MAX' ]);
 
-var SkillTriggerDistance = {};
-SkillTriggerDistance.S = 'S';
-SkillTriggerDistance.M = 'M';
-SkillTriggerDistance.SM = 'SM';
-SkillTriggerDistance.L = 'L';
-SkillTriggerDistance.SL = 'SL';
-SkillTriggerDistance.ML = 'ML';
-SkillTriggerDistance.SML = 'SML';
+var SkillResultStage = utils.createConst([
+	  'NONE'
+	, 'ATK_DAMAGE_CALCED_A'
+	, 'ATK_INC_A'
+	, 'ATK_THROW_CARD_A'
+	, 'DEF_COUNTERATK_A'
+	, 'DEF_INC_A'
+	, 'DEF_OVERCOME_CALCED_A'
+	, 'MOV_BEFORE_ACT_A'
+]);
 
-var SkillCardCalc = {};
-SkillCardCalc.SUM_MIN = 'SUM_MIN';
-SkillCardCalc.SUM_EQU = 'SUM_EQU';
-SkillCardCalc.SUM_MAX = 'SUM_MAX';
-SkillCardCalc.ONE_MIN = 'ONE_MIN';
-SkillCardCalc.ONE_EQU = 'ONE_EQU';
-SkillCardCalc.ONE_MAX = 'ONE_MAX';
+var SkillResultTarget = utils.createConst([
+	  'NONE'
+	, 'ATK_ATKPOWER'
+	, 'ATK_HP'
+	, 'ATK_CARDHOLD'
+	, 'DEF_DEFPOWER'
+	, 'DEF_HP'
+	, 'DEF_CARDHOLD'
+	, 'VARIBLE'
+]);
 
-var SkillResultStage = {};
-SkillResultStage.ATK_DAMAGE_CALCED_A = 'ATK_DAMAGE_CALCED_A';
-SkillResultStage.ATK_INC_A = 'ATK_INC_A';
-SkillResultStage.ATK_THROW_CARD_A = 'ATK_THROW_CARD_A';
-SkillResultStage.DEF_COUNTERATK_A = 'DEF_COUNTERATK_A';
-SkillResultStage.DEF_INC_A = 'DEF_INC_A';
-SkillResultStage.DEF_OVERCOME_CALCED_A = 'DEF_OVERCOME_CALCED_A';
-SkillResultStage.MOV_BEFORE_ACT_A = 'MOV_BEFORE_ACT_A';
+var SkillResultCalc = utils.createConst([
+	  'NONE'
+	, 'CARDHOLD_ADD_001' // + c01
+	, 'CARDHOLD_THROW_001' // - c01
+	, 'VALUE_ADD_001' // v = v + c01
+	, 'VALUE_ADD_002' // v = v + roundUp( c01 * c02 )
+	, 'VALUE_CALC_001'
+	, 'VALUE_MINUS_001' // v = v - c01
+	, 'VALUE_MULTI_001' // v = roundDown( v * c01 )
+	, 'VAR_SET_BYATK_DAMAGE_CALCED'
+	, 'VAR_SET_BYATK_HURT_AMOUNT'
+	, 'VAR_SET_BYATK_SWORD_AMOUNT'
+	, 'VAR_SET_BYDEF_OVERCOME_CALCED'
+]);
 
-var SkillResultTarget = {};
-SkillResultTarget.ATK_ATKPOWER = 'ATK_ATKPOWER';
-SkillResultTarget.ATK_HP = 'ATK_HP';
-SkillResultTarget.ATK_CARDHOLD = 'ATK_CARDHOLD';
-SkillResultTarget.DEF_DEFPOWER = 'DEF_DEFPOWER';
-SkillResultTarget.DEF_HP = 'DEF_HP';
-SkillResultTarget.DEF_CARDHOLD = 'DEF_CARDHOLD';
-SkillResultTarget.VARIBLE = 'VARIBLE';
-
-var SkillResultCalc = {};
-SkillResultCalc.CARDHOLD_ADD_BYCONST = 'CARDHOLD_ADD_BYCONST';
-SkillResultCalc.CARDHOLD_THROW_BYVAR = 'CARDHOLD_THROW_BYVAR';
-SkillResultCalc.VALUE_ADD_BYCONST = 'VALUE_ADD_BYCONST';
-SkillResultCalc.VALUE_ADD_BYVAR = 'VALUE_ADD_BYVAR';
-SkillResultCalc.VALUE_MINUS_BYCONST = 'VALUE_ADD_BYCONST';
-SkillResultCalc.VALUE_MINUS_BYVAR = 'VALUE_ADD_BYVAR';
-SkillResultCalc.VAR_SET_BYATK_DAMAGE_CALCED = 'VAR_SET_BYATK_DAMAGE_CALCED';
-SkillResultCalc.VAR_SET_BYATK_HURT_AMOUNT = 'VAR_SET_BYATK_HURT_AMOUNT';
-SkillResultCalc.VAR_SET_BYATK_SWORD_AMOUNT = 'VAR_SET_BYATK_SWORD_AMOUNT';
-SkillResultCalc.VAR_SET_BYDEF_OVERCOME_CALCED = 'VAR_SET_BYDEF_OVERCOME_CALCED';
-
-var SkillVarible = {};
-SkillVarible.COUNTER_ATK = 'COUNTER_ATK';
-SkillVarible.HURT_AMOUNT = 'HURT_AMOUNT';
-SkillVarible.SWORD_AMOUNT = 'SWORD_AMOUNT';
-SkillVarible.THROW_CARD = 'THROW_CARD';
-
-var Const = {};
+var SkillVarible = utils.createConst([
+	  'NONE'
+	, 'COUNTER_ATK'
+	, 'HURT_AMOUNT'
+	, 'SWORD_AMOUNT'
+	, 'THROW_CARD'
+]);
 
 var dataBase = (function () {
 	var inst = {};
@@ -202,7 +245,7 @@ var dataBase = (function () {
 			if ( !inst ) {
 				return null;
 			}
-			if ( !hasProp.call( idxMap, _key ) ) {
+			if ( !utils.hasProp.call( idxMap, _key ) ) {
 				return null;
 			}
 			var idx = idxMap[_key];
@@ -222,12 +265,12 @@ var dataBase = (function () {
 		};
 		
 		var insert = function ( data ) {
-			if ( !inst || !isObjWithKey( data, keyName ) ) {
+			if ( !inst || !utils.objHasKey( data, keyName ) ) {
 				return false;
 			}
 			
 			var key = data[keyName];
-			if ( hasProp.call( idxMap, key ) ) {
+			if ( utils.hasProp.call( idxMap, key ) ) {
 				var idx = idxMap[key];
 				dataArr[idx] = data;
 			} else {
@@ -272,7 +315,7 @@ var dataBase = (function () {
 			};
 			
 			insert( ActionCardType.SWORD,	'Sword', ActionCardStage.FREE, '' );
-			insert( ActionCardType.GUN,	'Gun', ActionCardStage.FREE, '' );
+			insert( ActionCardType.GUN,		'Gun', ActionCardStage.FREE, '' );
 			insert( ActionCardType.SHIELD,	'Shield', ActionCardStage.FREE, '' );
 			insert( ActionCardType.MOVE,	'Move', ActionCardStage.FREE, '' );
 			insert( ActionCardType.STAR,	'Star', ActionCardStage.FREE, '' );
@@ -391,31 +434,56 @@ var dataBase = (function () {
 			var insert = function ( id, list ) {
 				table.insert( { id: id, list: list } );
 			};
+			/*
+SkillResultStage.ATK_DAMAGE_CALCED_A = 'ATK_DAMAGE_CALCED_A';
+SkillResultStage.ATK_INC_A = 'ATK_INC_A';
+SkillResultStage.ATK_THROW_CARD_A = 'ATK_THROW_CARD_A';
+SkillResultStage.DEF_COUNTERATK_A = 'DEF_COUNTERATK_A';
+SkillResultStage.DEF_DAMAGE_CALCED_A = 'DEF_DAMAGE_CALCED_A';
+SkillResultStage.DEF_INC_A = 'DEF_INC_A';
+SkillResultStage.DEF_OVERCOME_CALCED_A = 'DEF_OVERCOME_CALCED_A';
+SkillResultStage.MOV_BEFORE_ACT_A = 'MOV_BEFORE_ACT_A';
+			*/
+			
+			/*
+SkillResultCalc.VALUE_ADD_001 = 'VALUE_ADD_001'; // v = v + c01
+SkillResultCalc.VALUE_ADD_002 = 'VALUE_ADD_002'; // v = v + roundUp( c01 * c02 )
+SkillResultCalc.VALUE_CALC_001 = 'VALUE_CALC_001';
+SkillResultCalc.VALUE_MINUS_001 = 'VALUE_MINUS_001'; // v = v - c01
+SkillResultCalc.VALUE_MULTI_001 = 'VALUE_MULTI_001'; // v = roundDown( v * c01 )
+			*/
 			
 			insert( 'Attack', [
-				{stage: SkillResultStage.ATK_INC_A, target: SkillResultTarget.ATK_ATKPOWER, calc: SkillResultCalc.VALUE_ADD_BYCONST, value: 'a'}
-			] );
-			insert( 'Lightning', [
-				{stage: SkillResultStage.ATK_INC_A, target: SkillResultTarget.ATK_ATKPOWER, calc: SkillResultCalc.VALUE_ADD_BYCONST, value: 'a'},
+				{stage: SkillResultStage.ATK_INC_A, target: SkillResultTarget.ATK_ATKPOWER, calc: SkillResultCalc.VALUE_ADD_001, varible: ['a']}
+			]);
+			insert( 'Torpedo', [
+				{stage: SkillResultStage.ATK_INC_A, target: SkillResultTarget.ATK_ATKPOWER, calc: SkillResultCalc.VALUE_ADD_001, varible: ['a']},
 				{stage: SkillResultStage.ATK_DAMAGE_CALCED_A, target: SkillResultTarget.VARIBLE, calc: SkillResultCalc.VAR_SET_BYATK_DAMAGE_CALCED, varible: SkillVarible.THROW_CARD},
-				{stage: SkillResultStage.ATK_THROW_CARD_A, target: SkillResultTarget.DEF_CARDHOLD, calc: SkillResultCalc.CARDHOLD_THROW_BYVAR, varible: SkillVarible.THROW_CARD}
-			] );
-			insert( 'Thorns', [
-				{stage: SkillResultStage.DEF_INC_A, target: SkillResultTarget.DEF_DEFPOWER, calc: SkillResultCalc.VALUE_ADD_BYCONST, value: 'a'},
+				{stage: SkillResultStage.ATK_THROW_CARD_A, target: SkillResultTarget.DEF_CARDHOLD, calc: SkillResultCalc.CARDHOLD_THROW_001, varible: [SkillVarible.THROW_CARD]}
+			]);
+			insert( 'Thorn', [
+				{stage: SkillResultStage.DEF_INC_A, target: SkillResultTarget.DEF_DEFPOWER, calc: SkillResultCalc.VALUE_ADD_001, varible: ['a']},
 				{stage: SkillResultStage.DEF_OVERCOME_CALCED_A, target: SkillResultTarget.VARIBLE, calc: SkillResultCalc.VAR_SET_BYDEF_OVERCOME_CALCED, varible: SkillVarible.COUNTER_ATK},
-				{stage: SkillResultStage.DEF_COUNTERATK_A, target: SkillResultTarget.ATK_HP, calc: SkillResultCalc.VALUE_MINUS_BYVAR, varible: SkillVarible.COUNTER_ATK},
-			] );
-			insert( 'Strategy', [
-				{stage: SkillResultStage.MOV_BEFORE_ACT_A, target: SkillResultTarget.ATK_CARDHOLD, calc: SkillResultCalc.CARDHOLD_ADD_BYCONST, value: 'a'}
-			] );
+				{stage: SkillResultStage.DEF_COUNTERATK_A, target: SkillResultTarget.ATK_HP, calc: SkillResultCalc.VALUE_MINUS_001, varible: [SkillVarible.COUNTER_ATK]},
+			]);
+			insert( 'Tactics', [
+				{stage: SkillResultStage.MOV_BEFORE_ACT_A, target: SkillResultTarget.ATK_CARDHOLD, calc: SkillResultCalc.CARDHOLD_ADD_001, varible: ['a']}
+			]);
 			insert( 'AttackAddSword', [
-				{stage: SkillResultStage.ATK_PREPARE_A, target: SkillResultTarget.VARIBLE, calc: SkillResultCalc.VAR_SET_BYATK_SWORD_AMOUNT, varible: SkillVarible.SWORD_AMOUNT}
-				{stage: SkillResultStage.ATK_INC_A, target: SkillResultTarget.ATK_ATKPOWER, calc: SkillResultCalc.VALUE_ADD_BYVAR, varible: SkillVarible.SWORD_AMOUNT}
-			] );
+				{stage: SkillResultStage.ATK_PREPARE_A, target: SkillResultTarget.VARIBLE, calc: SkillResultCalc.VAR_SET_BYATK_SWORD_AMOUNT, varible: SkillVarible.SWORD_AMOUNT},
+				{stage: SkillResultStage.ATK_INC_A, target: SkillResultTarget.ATK_ATKPOWER, calc: SkillResultCalc.VALUE_ADD_002, varible: [SkillVarible.SWORD_AMOUNT, 'a']}
+			]);
 			insert( 'AttackAddHurt', [
-				{stage: SkillResultStage.ATK_PREPARE_A, target: SkillResultTarget.VARIBLE, calc: SkillResultCalc.VAR_SET_BYATK_HURT_AMOUNT, varible: SkillVarible.HURT_AMOUNT}
-				{stage: SkillResultStage.ATK_INC_A, target: SkillResultTarget.ATK_ATKPOWER, calc: SkillResultCalc.VALUE_ADD_BYVAR, varible: SkillVarible.HURT_AMOUNT}
-			] );
+				{stage: SkillResultStage.ATK_PREPARE_A, target: SkillResultTarget.VARIBLE, calc: SkillResultCalc.VAR_SET_BYATK_HURT_AMOUNT, varible: SkillVarible.HURT_AMOUNT},
+				{stage: SkillResultStage.ATK_INC_A, target: SkillResultTarget.ATK_ATKPOWER, calc: SkillResultCalc.VALUE_ADD_002, varible: [SkillVarible.HURT_AMOUNT, 'a']}
+			]);
+			
+			// to do
+			insert( 'HurtLimitHp', [
+				{stage: SkillResultStage.DEF_DAMAGE_CALCED_A, target: SkillResultTarget.VARIBLE, calc: SkillResultCalc.VAR_SET_BYDEF_HP, varible: SkillVarible.HURT_LIMIT},
+				{stage: SkillResultStage.DEF_DAMAGE_CALCED_B, target: SkillResultTarget.VARIBLE, calc: SkillResultCalc.VALUE_MINUS_001, varible: [SkillVarible.HURT_LIMIT, 'a']},
+				{stage: SkillResultStage.DEF_DAMAGE_CALCED_C, target: SkillResultTarget.VARIBLE, calc: SkillResultCalc.VALUE_MINUS_001, varible: [SkillVarible.HURT_LIMIT, 'a']},
+			]);
 		});
 		
 		var skillTable = (function () {
@@ -425,44 +493,67 @@ var dataBase = (function () {
 				table.insert( { id: id, name: name, triggerStage: triggerStage, triggerDistance: triggerDistance, triggerCards: triggerCards, eventResultId: eventResultId, eventResultValue: eventResultValue } );
 			};
 			
-			insert( 1, 'Shoot', SkillTriggerStage.ATK, SkillTriggerDistance.ML,
+			// Precise Marksmanship, Torpedo Attack, Thorn Forest, Intelligent Tactics
+			// Rapidfire, Supersonic Sword, Adrenalin Attack, Indomitable Spirit
+			// Bash, Kill Stance, Blood's Blessing, Spirit Drain
+			// Slash, Charged Thrust, Sword Dance, Abandon
+			// Shadow Strike, Red Fang, Counter Attack, Backstab
+			// Desert Mirage, Thousand Yard Stare, Abyss, Swirling Evil
+			// String of Fate, Circle of Fate, Time of Fate, Ghost of Fate
+			// Land Mine, Desperado, Shadow Shot, Defense Shot
+			// Reject Sword, Counter Guard, Pain Free, Suicide Bombing
+			// Flashbang, Sealing Chain, Holy Light, Wave of Healing
+			// Suicidal Tendency, Misfit, Big Black, Let's Knife
+			// One Heart, Body Double, 9 Spirits, 13 Eyes
+			// Wit, Thorn Stance, Sword of Liberation, Cursed Blade
+			// Issen, Jissen, Hyakusen, Shura no Kamae
+			// Moonshine, Rapture, Doomsday, The Hellbound Heart
+			
+			insert( 101, 'Precise Marksmanship', SkillTriggerStage.ATK, SkillTriggerDistance.ML,
 				[
-					{card: ActionCardType.GUN, num: 4, calc: SkillCardCalc.SUM_MIN}
-				], 'Attack', { a: 4 }
+					{card: ActionCardType.GUN, num: 5, calc: SkillCardCalc.SUM_MIN}
+				], 'Attack', { a: 10 }
 			);
-			insert( 2, 'Lightning', SkillTriggerStage.ATK, SkillTriggerDistance.S,
+			insert( 102, 'Torpedo Attack', SkillTriggerStage.ATK, SkillTriggerDistance.S,
 				[
-					{card: ActionCardType.STAR, num: 2, calc: SkillCardCalc.SUM_MIN}
-				], 'Lightning', { a: 4 }
+					{card: ActionCardType.STAR, num: 2, calc: SkillCardCalc.SUM_MIN},
+					{card: ActionCardType.SWORD, num: 4, calc: SkillCardCalc.SUM_MIN}
+				], 'Torpedo', { a: 8 }
 			);
-			insert( 3, 'Thorns', SkillTriggerStage.DEF, SkillTriggerDistance.SM,
+			insert( 103, 'Thorn Forest', SkillTriggerStage.DEF, SkillTriggerDistance.SM,
 				[
-					{card: ActionCardType.SHIELD, num: 3, calc: SkillCardCalc.SUM_MIN},
-					{card: ActionCardType.STAR, num: 2, calc: SkillCardCalc.SUM_MIN}
-				], 'Thorns', { a: 4 }
+					{card: ActionCardType.STAR, num: 3, calc: SkillCardCalc.SUM_MIN},
+					{card: ActionCardType.SHIELD, num: 3, calc: SkillCardCalc.SUM_MIN}
+				], 'Thorn', { a: 12 }
 			);
-			insert( 4, 'Strategy', SkillTriggerStage.MOV, SkillTriggerDistance.SML,
+			insert( 104, 'Intelligent Tactics', SkillTriggerStage.MOV, SkillTriggerDistance.SML,
 				[
-					{card: ActionCardType.ANY, num: 1, calc: SkillCardCalc.ONE_MIN},
 					{card: ActionCardType.ANY, num: 1, calc: SkillCardCalc.ONE_MIN},
 					{card: ActionCardType.ANY, num: 1, calc: SkillCardCalc.ONE_MIN}
-				], 'Strategy', { a: 2 }
+				], 'Tactics', { a: 3 }
 			);
-			insert( 5, 'DoubleShoot', SkillTriggerStage.ATK, SkillTriggerDistance.ML,
+			insert( 201, 'Rapidfire,', SkillTriggerStage.ATK, SkillTriggerDistance.ML,
+				[
+					{card: ActionCardType.GUN, num: 3, calc: SkillCardCalc.ONE_EQU},
+					{card: ActionCardType.GUN, num: 3, calc: SkillCardCalc.ONE_EQU}
+				], 'Attack', { a: 14 }
+			);
+			insert( 202, 'Supersonic Sword', SkillTriggerStage.ATK, SkillTriggerDistance.ML,
+				[
+					{card: ActionCardType.SWORD, num: 3, calc: SkillCardCalc.SUM_MIN},
+					{card: ActionCardType.GUN, num: 3, calc: SkillCardCalc.SUM_MIN}
+				], 'AttackAddSword', { a: 1 }
+			);
+			insert( 203, 'Adrenalin Attack', SkillTriggerStage.ATK, SkillTriggerDistance.S,
+				[
+					{card: ActionCardType.STAR, num: 3, calc: SkillCardCalc.SUM_MIN}
+				], 'AttackAddHurt', { a: 2 }
+			);
+			insert( 204, 'Indomitable Spirit', SkillTriggerStage.ATK, SkillTriggerDistance.S,
 				[
 					{card: ActionCardType.GUN, num: 1, calc: SkillCardCalc.ONE_EQU},
 					{card: ActionCardType.GUN, num: 1, calc: SkillCardCalc.ONE_EQU}
-				], 'Attack', { a: 5 }
-			);
-			insert( 6, 'QuickCut', SkillTriggerStage.ATK, SkillTriggerDistance.ML,
-				[
-					{card: ActionCardType.SWORD, num: 1, calc: SkillCardCalc.SUM_MIN}
-				], 'AttackAddSword', {}
-			);
-			insert( 7, 'Angry', SkillTriggerStage.ATK, SkillTriggerDistance.S,
-				[
-					{card: ActionCardType.STAR, num: 3, calc: SkillCardCalc.SUM_MIN}
-				], 'AttackAddHurt', {}
+				], 'HurtLimitHp', { a: 1 }
 			);
 			
 			log( 'db - skillTable >> ' + table.getSize() );
@@ -476,8 +567,21 @@ var dataBase = (function () {
 				table.insert( { id: id, name: name } );
 			};
 			
-			insert( 1, 'Evarist' );
-			insert( 2, 'Izzac' );
+			insert(  1, 'Evarist' );
+			insert(  2, 'Izac' );
+			insert(  3, 'Grunwald' );
+			insert(  4, 'Abel' );
+			insert(  5, 'Leon' );
+			insert(  6, 'Kronig' );
+			insert(  7, 'Jead' );
+			insert(  8, 'Archibald' );
+			insert(  9, 'Max' );
+			insert( 10, 'Blaise' );
+			insert( 11, 'Sheri' );
+			insert( 12, 'Ayn' );
+			insert( 13, 'Bernhard' );
+			insert( 14, 'Friedrich' );
+			insert( 15, 'Marguerite' );
 			
 			log( 'db - charGroupTable >> ' + table.getSize() );
 			return table;
@@ -490,16 +594,21 @@ var dataBase = (function () {
 				table.insert( { id: id, gid: gid, level: level, hp: hp, atk: atk, def: def, skills: skills } );
 			};
 			
-			insert( 101, 1, 1, 8, 5, 6, [1] );
-			insert( 102, 1, 2, 9, 5, 7, [1, 2] );
-			insert( 103, 1, 3, 10, 6, 7, [1, 2, 3] );
-			insert( 104, 1, 4, 12, 8, 8, [1, 2, 3] );
-			insert( 105, 1, 5, 12, 9, 9, [1, 2, 3, 4] );
-			insert( 201, 2, 1, 8, 5, 6, [5] );
-			insert( 202, 2, 2, 9, 5, 7, [5, 6] );
-			insert( 203, 2, 3, 10, 6, 7, [5, 6, 7] );
-			insert( 204, 2, 4, 12, 8, 8, [5, 6, 7] );
-			insert( 205, 2, 5, 12, 9, 9, [5, 6, 7, 8] );
+			insert(  105,  1, 5, 15, 9, 9, [ 101,  102,  103,  104] );
+			insert(  205,  2, 5, 15, 9, 7, [ 201,  202,  203,  204] );
+			insert(  305,  3, 5, 13, 11, 9, [ 301,  302,  303,  304] );
+			insert(  405,  4, 5, 14, 10, 8, [ 401,  402,  403,  404] );
+			insert(  505,  5, 5, 12, 10, 10, [ 501,  502,  503,  504] );
+			insert(  605,  6, 5, 12, 7, 11, [ 601,  602,  603,  604] );
+			insert(  705,  7, 5, 11, 9, 9, [ 701,  702,  703,  704] );
+			insert(  805,  8, 5, 12, 11, 9, [ 801,  802,  803,  804] );
+			insert(  905,  9, 5, 12, 11, 8, [ 901,  902,  903,  904] );
+			insert( 1005, 10, 5, 12, 9, 9, [1001, 1002, 1003, 1004] );
+			insert( 1105, 11, 5, 16, 7, 7, [1101, 1102, 1103, 1104] );
+			insert( 1205, 12, 5, 11, 9, 11, [1201, 1202, 1203, 1204] );
+			insert( 1305, 13, 5, 13, 9, 10, [1301, 1302, 1303, 1304] );
+			insert( 1405, 14, 5, 13, 10, 9, [1401, 1402, 1403, 1404] );
+			insert( 1505, 15, 5, 12, 9, 10, [1501, 1502, 1503, 1504] );
 			
 			log( 'db - charTable >> ' + table.getSize() );
 			return table;
@@ -545,6 +654,7 @@ var createUI = function () {
  *	Model
  */
 
+ // to do
 var createFlow = function () {
 	var inst = {};
 	
@@ -562,7 +672,7 @@ var createFlow = function () {
 	
 	return inst;
 };
-
+/*
 var GameStage = {};
 GameStage.DEAL = 'DEAL';
 GameStage.END = 'END';
@@ -597,25 +707,94 @@ var flow = (function () {
 	inst.next( GameStage.ERROR, FlowResult.FAIL, GameStage.END );
 	
 	return inst;
-} ())
+} ());
+*/
+
+/*
+var DealerStage = {};
+DealerStage.START = 'START';
+DealerStage.MOVE = 'MOVE';
+DealerStage.ATTACK_A = 'ATTACK_A';
+DealerStage.ATTACK_B = 'ATTACK_B';
+DealerStage.END = 'END';
+
+var createDealerModel = function () {
+	var inst = {};
+	
+	var round = 0;
+	var stage = '';
+	var cardLeft = null;
+	var cardStore = null;
+	var cardUsed = null;
+	var cardSend = null;
+	
+	var reset = function () {
+		round = 0;
+		stage = DealerStage.START;
+		cardLeft = [];
+		cardStore = [];
+		cardUsed = [];
+		cardSend = {};
+		cardSend.a = [];
+		cardSend.b = [];
+	};
+	
+	var setup = function ( actionCardList ) {
+		reset();
+		round = 1;
+		cardLeft = actionCardList;
+	};
+	
+	inst.setup = setup;
+	
+	return inst;
+};
+*/
+
+/*
+var createPlayerModel = function () {
+	var inst = {};
+	
+	var charCard = null;
+	
+	return inst;
+};
+
+var createFightModel = function () {
+	var inst = {};
+	
+	var dealerModel = createDealerModel();
+	var p1Model = createPlayerModel();
+	var p2Model = createPlayerModel();
+	
+	var setup = function ( actionCardList, p1CardList, p2CardList ) {
+		dealerModel.setup( actionCardList );
+		p1Model.setup( p1CardList );
+		p2Model.setup( p2CardList );
+	};
+	
+	inst.setup = setup;
+	
+	return inst;
+};
+*/
+
+var GameState = utils.createConst([ 'START', 'MOVE', 'EXCHANGE_A', 'EXCHANGE_B', 'ATTACK_A', 'ATTACK_B', 'DEFENCE_A', 'DEFENCE_B' ]);
 
 var createModel = function () {
 	var inst = {};
 	
-	var setNewGame = function ( cardSetId, playerCardsA, playerCardsB ) {
-		inst.data = {};
-		inst.data.cardSet = {};
-		inst.data.cardSet.id = cardSetId;
-		inst.data.cardSet.storeList = [];
-		inst.data.cardSet.usedInStageList = [];
-		inst.data.cardSet.usedInRoundList = [];
-		
-	//	inst.stage = 
+	var data = {};
+	
+	var dispose = function () {
+		inst = null;
+		data = null;
 	};
 	
-	setNewGame( 0, null, null );
+	var getState = function () { return utils.findElement( data, ['state'], GameState.START ); };
 	
-	inst.setNewGame = setNewGame;
+	inst.dispose = dispose;
+	inst.getState = getState;
 	
 	return inst;
 };
@@ -626,6 +805,51 @@ var createCtrl = function () {
 	var inst = {};
 	
 	var model = createModel();
+	/*
+	var playGame = function () {
+		model.setNewGame( 1, [105, 205, 305], [405, 505, 605] );
+	};
+	*/
+	var actStart = function () {};
+	var actMove = function () {};
+	var actExchangeA = function () {};
+	var actExchangeB = function () {};
+	var actAttackA = function () {};
+	var actAttackB = function () {};
+	var actDefenceA = function () {};
+	var actDefenceB = function () {};
+	
+	var run = function () {
+		var state = model.getState();
+		switch( state ) {
+		case GameState.START:
+			actStart();
+			break;
+		case GameState.MOVE:
+			actMove();
+			break;
+		case GameState.EXCHANGE_A:
+			actExchangeA();
+			break;
+		case GameState.EXCHANGE_B:
+			actExchangeB();
+			break;
+		case GameState.ATTACK_A:
+			actAttackA();
+			break;
+		case GameState.ATTACK_B:
+			actAttackB();
+			break;
+		case GameState.DEFENCE_A:
+			actDefenceA();
+			break;
+		case GameState.DEFENCE_B:
+			actDefenceB();
+			break;
+		}
+	};
+	
+	inst.run = run;
 	
 	return inst;
 };
@@ -640,6 +864,8 @@ var main = (function () {
 	log( 'init Controller ready' );
 	
 	log( 'init ready' );
+	
+	ctrl.run();
 }());
 </script>
 </html>
