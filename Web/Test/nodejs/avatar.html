@@ -1,0 +1,573 @@
+<html>
+<head>
+</head>
+<body>
+</body>
+<script>
+
+var eventDispatcher = (function () {
+	var inst = {};
+	var map = {};
+	var dispose = function () {
+		inst = null;
+		map = null;
+	};
+	var add = function ( action, listener ) {
+		if ( !map || typeof action !== 'string' || action === '' || typeof listener !== 'function' ) {
+			return;
+		}
+		if ( !map[action] ) {
+			map[action] = [];
+		}
+		map[action].push( listener );
+	};
+	var remove = function ( action, listener ) {
+		if ( !map ) {
+			return;
+		}
+		if ( typeof action !== 'string' || action === '' ) {
+			map = {};
+			return;
+		}
+		if ( !map[action] ) {
+			return;
+		}
+		if ( typeof listener !== 'function' ) {
+			map[action] = [];
+			return;
+		}
+		var i = 0;
+		var list = map[action];
+		for(i = 0; i < list.length; i++) {
+			if ( list[i] === listener ) {
+				list.splice( i, 1 );
+				return;
+			}
+		}
+	};
+	var dispatch = function ( action, data ) {
+		if ( !map || typeof action !== 'string' || action === '' || !map[action] ) {
+			return;
+		}
+		var i = 0;
+		var list = map[action];
+		for(i = 0; i < list.length; i++) {
+			var listener = list[i];
+			listener( data );
+		}
+	};
+	inst.dispose = dispose;
+	inst.add = add;
+	inst.dispatch = dispatch;
+	inst.remove = remove;
+	return inst;
+} ());
+
+const ButtonAction = {};
+ButtonAction.ADD = 'ADD';
+ButtonAction.REMOVE = 'REMOVE';
+
+const GameEvent = {};
+GameEvent.BUTTON_CLICKED = 'BUTTON_CLICKED';
+GameEvent.SWF_DATA_RECEIVED = 'SWF_DATA_RECEIVED';
+
+const GameData = {};
+GameData.LAYER_MAX = 120;
+
+function onSwfDataReceived( data ) {
+	eventDispatcher.dispatch( GameEvent.SWF_DATA_RECEIVED, data );
+}
+
+var createAvatar = function () {
+	var inst = {};
+	
+	var swf = null;
+	
+	var init = function () {
+		swf = document.createElement( 'object' );
+		swf.setAttribute( 'id', 'avatar' );
+		swf.setAttribute( 'type', 'application/x-shockwave-flash' );
+		swf.setAttribute( 'data', './assets.swf' );
+		
+		swf.style.position = 'absolute';
+		swf.style.left = '0px';
+		swf.style.top = '0px';
+		swf.style.pointerEvents = 'none';
+		
+		var param = null;
+		
+		param = document.createElement( 'param' );
+		param.setAttribute( 'name', 'allowscriptaccess' );
+		param.setAttribute( 'value', 'always' );
+		swf.appendChild( param );
+		
+		param = document.createElement( 'param' );
+		param.setAttribute( 'name', 'wmode' );
+		param.setAttribute( 'value', 'transparent' );
+		swf.appendChild( param );
+		
+		document.body.appendChild( swf );
+	};
+	
+	var clear = function ( body ) {
+		swf.execute( { action: 'clear', body: body } );
+	};
+	
+	var clearLayer = function ( layer, body ) {
+		swf.execute( { action: 'clearLayer', layer: layer, body: body } );
+	};
+	
+	var initLayer = function ( layer ) {
+		swf.execute( { action: 'init', layer: layer } );
+	};
+	
+	var resize = function ( width, height ) {
+		swf.width = '' + width + 'px';
+		swf.height = '' + height + 'px';
+	};
+	
+	var setVisible = function ( value ) {
+		if ( value ) {
+			dom.style.display = 'inline-block';
+		} else {
+			dom.style.display = 'none';
+		}
+	};
+	
+	var show = function ( name, layer, x, y, body ) {
+		swf.execute( { action: 'show', name: name, layer: layer, x: x, y: y, body } );
+	};
+	
+	inst.init = init;
+	inst.clear = clear;
+	inst.clearLayer = clearLayer;
+	inst.initLayer = initLayer;
+	inst.resize = resize;
+	inst.setVisible = setVisible;
+	inst.show = show;
+	
+	return inst;
+};
+
+var createButton = function () {
+	var inst = {};
+	var dom = null;
+	
+	var onClick = function () {
+		eventDispatcher.dispatch( GameEvent.BUTTON_CLICKED, { action: dom.value } );
+	};
+	
+	var init = function ( name, action ) {
+		dom = document.createElement( 'button' );
+		dom.value = action;
+		dom.style.position = 'absolute';
+		dom.style.left = '0px';
+		dom.style.top = '0px';
+		dom.style.width = '150px';
+		dom.style.height = '20px';
+		var txt = document.createTextNode( name );
+		dom.appendChild( txt );
+		dom.onclick = onClick;
+		document.body.appendChild( dom );
+	};
+	
+	var getInstance = function () {
+		return dom;
+	};
+	
+	inst.init = init;
+	inst.getInstance = getInstance;
+	
+	return inst;
+};
+
+var createSelectBox = function () {
+	var inst = {};
+	var dom = null;
+	var map = {};
+	
+	var init = function () {
+		dom = document.createElement( 'select' );
+		dom.style.position = 'absolute';
+		dom.style.left = '0px';
+		dom.style.top = '0px';
+		dom.style.width = '150px';
+		dom.style.height = '20px';
+		document.body.appendChild( dom );
+	};
+	
+	var add = function ( value ) {
+		if ( typeof value !== 'string' || !value || map.hasOwnProperty( value ) ) {
+			return;
+		}
+		
+		var option = document.createElement( 'option' );
+		option.value = value;
+		var txt = document.createTextNode( value );
+		option.appendChild( txt );
+		map[value] = option;
+		dom.appendChild( option );
+	};
+	
+	var getInstance = function () {
+		return dom;
+	};
+	
+	var getValue = function () {
+		return dom.value;
+	};
+	
+	var remove = function ( value ) {
+		if ( typeof value !== 'string' || !value || !map.hasOwnProperty( value ) ) {
+			return;
+		}
+		
+		var option = map[value];
+		dom.removeChild( option );
+		
+		delete map[value];
+	};
+	
+	var setVisible = function ( value ) {
+		if ( value ) {
+			dom.style.display = 'inline-block';
+		} else {
+			dom.style.display = 'none';
+		}
+	};
+	
+	inst.init = init;
+	inst.add = add;
+	inst.getInstance = getInstance;
+	inst.getValue = getValue;
+	inst.remove = remove;
+	inst.setVisible = setVisible;
+	
+	return inst;
+};
+
+var createAvatarModel = function () {
+	var inst = {};
+	
+	var addMap = {};
+	var assetsMap = {};
+	
+	var clear = function () {
+	};
+	
+	var dressing = function ( name ) {
+		var rslt = [];
+		if ( addMap.hasOwnProperty( name ) || !assetsMap.hasOwnProperty( name ) ) {
+			return rslt;
+		}
+		
+		var addData = assetsMap[name];
+		
+		for(var key in addMap) {
+			var item = addMap[key];
+			for(var i = 0; i < addData.list.length; i++) {
+				var idx = addData.list[i];
+				if ( item[idx] === true ) {
+					var remove_rslt = undress( key );
+					for(var j = 0; j < remove_rslt.length; j++) {
+						rslt.push( remove_rslt[j] );
+					}
+					break;
+				}
+			}
+		}
+		
+		addMap[name] = {};
+		rslt.push( { action: 'add_grp', name: name } );
+		
+		for(var i = 0; i < addData.list.length; i++) {
+			var idx = addData.list[i];
+			addMap[name][idx] = true;
+			rslt.push( { action: 'add_item', layer: idx, name: name + '_p' + idx, body: ( name === 'base_a000' ) } );
+		}
+		
+		return rslt;
+	};
+	
+	var undress = function ( name ) {
+		var rslt = [];
+		if ( !addMap.hasOwnProperty( name ) || !assetsMap.hasOwnProperty( name ) ) {
+			return rslt;
+		}
+		
+		rslt.push( { action: 'remove_grp', name: name } );
+		
+		var removeData = assetsMap[name];
+		delete addMap[name];
+		for(var j = 0; j < removeData.list.length; j++) {
+			var idx = removeData.list[j];
+			rslt.push( { action: 'clear_layer', layer: idx } );
+		}
+		
+		return rslt;
+	};
+	
+	var setMap = function ( data ) {
+		if ( !data || typeof data !== 'object' ) {
+			return;
+		}
+		
+		assetsMap = data;
+	};
+	
+	inst.clear = clear;
+	inst.dressing = dressing;
+	inst.setMap = setMap;
+	inst.undress = undress;
+	
+	return inst;
+};
+
+var avatar_pos = {};
+// avatar_pos[27] = { x: 200, y: 0 };
+// avatar_pos[31] = { x: 200, y: 0 };
+avatar_pos[33] = { x: -113, y: -69 };
+avatar_pos[44] = { x: -116, y: 12 };
+// avatar_pos[48] = { x: 200, y: 0 };
+// avatar_pos[51] = { x: 200, y: 0 };
+avatar_pos[53] = { x: -106, y: -31 };
+avatar_pos[55] = { x: -90, y: 14 };
+// avatar_pos[59] = { x: 200, y: 0 };
+// avatar_pos[62] = { x: 200, y: 0 };
+avatar_pos[67] = { x: -99, y: -45 };
+avatar_pos[81] = { x: -72, y: 12 };
+// avatar_pos[85] = { x: 200, y: 0 };
+avatar_pos[87] = { x: -83, y: -68 }; // Testing, blouse_z019a
+avatar_pos[97] = { x: -99, y: -91 };
+
+
+avatar_pos[48] = avatar_pos[44];
+
+avatar_pos[43] = avatar_pos[53];
+
+avatar_pos[59] = avatar_pos[55];
+
+avatar_pos[40] = avatar_pos[67];
+avatar_pos[74] = avatar_pos[67];
+avatar_pos[77] = avatar_pos[67];
+
+avatar_pos[78] = avatar_pos[81];
+
+avatar_pos[17] = avatar_pos[97];
+avatar_pos[18] = avatar_pos[97];
+avatar_pos[75] = avatar_pos[97];
+avatar_pos[94] = avatar_pos[97];
+avatar_pos[101] = avatar_pos[97];
+avatar_pos[102] = avatar_pos[97];
+avatar_pos[105] = avatar_pos[97];
+avatar_pos[107] = avatar_pos[67];
+avatar_pos[108] = avatar_pos[97];
+avatar_pos[111] = avatar_pos[97];
+avatar_pos[112] = avatar_pos[97];
+avatar_pos[114] = avatar_pos[97];
+avatar_pos[117] = avatar_pos[97];
+
+/*
+33
+44
+53
+55
+67
+81
+97
+*/
+
+var main = (function () {
+	var inst = {};
+	var avatar = createAvatar();
+	var selectBoxAdd = createSelectBox();
+	var selectBoxDel = createSelectBox();
+	var btnAdd = createButton();
+	var btnDel = createButton();
+	var model = createAvatarModel();
+	
+	var actDressingRslt = function ( rslt ) {
+		for(var i = 0; i < rslt.length; i++) {
+			var item = rslt[i];
+			console.log( '' + JSON.stringify( item ) );
+			
+			var action = item.action;
+			switch ( action ) {
+			case 'add_grp':
+				var name = item.name;
+				if ( name !== 'base_a000' ) {
+					selectBoxDel.add( name );
+				}
+				break;
+			case 'add_item':
+				var name = item.name;
+				var layer = item.layer;
+				var pos = { x: 200, y: 0 };
+				if ( avatar_pos.hasOwnProperty( '' + layer ) ) {
+					pos = avatar_pos[layer];
+				}
+				avatar.show( name, layer, 250 + pos.x, 250 + pos.y, item.body );
+				break;
+			case 'clear':
+				avatar.clear( false );
+				break;
+			case 'clear_layer':
+				var layer = item.layer;
+				avatar.clearLayer( layer, false );
+				break;
+			case 'remove_grp':
+				var name = item.name;
+				selectBoxDel.remove( name );
+				break;
+			}
+		}
+	};
+	
+	var sigBtnAdd = function ( value ) {
+		console.log( 'sigBtnAdd >> ' + value );
+		
+		var rslt = model.dressing( value );
+		actDressingRslt( rslt );
+	};
+	
+	var sigBtnDel = function ( value ) {
+		console.log( 'sigBtnDel >> ' + value );
+		
+		if ( value === 'base_a000' ) {
+			console.log( 'skip >> ' + value );
+			return;
+		}
+		
+		var rslt = model.undress( value );
+		actDressingRslt( rslt );
+	};
+	
+	var sigSwfInit = function ( data ) {
+		if ( !data.hasOwnProperty( 'width' ) || !data.hasOwnProperty( 'height' ) || !data.hasOwnProperty( 'assets' ) ) {
+			console.log( 'sigSwfInit failed' );
+			return;
+		}
+	
+		console.log( 'sigSwfInit' );
+		
+		var width = data.width;
+		var height = data.height;
+		avatar.resize( width, height );
+		avatar.initLayer( GameData.LAYER_MAX );
+		
+		var assetsMap = data.assets;
+		model.setMap( assetsMap );
+		
+		var list = [];
+		var testMap = {};
+		for(var key in assetsMap) {
+			var item = assetsMap[key];
+			item.name = key;
+			if ( true ) {
+				var isTest = false;
+				for(var i = 0; i < item.list.length; i++) {
+					if ( testMap.hasOwnProperty( '' + item.list[i] ) ) {
+						continue;
+					}
+					isTest = true;
+					testMap['' + item.list[i]] = true;
+					console.log( 'add ' + key + ' for testing ' + item.list[i] );
+				}
+				if ( !isTest ) {
+					continue;
+				}
+			}
+			list.push( item );
+		}
+		
+		console.log( 'assets found >> ' + list.length );
+		list.sort( function ( a, b ) {
+			if ( a.name > b.name ) {
+				return 1;
+			}
+			if ( a.name < b.name ) {
+				return -1;
+			}
+			return 0;
+		});
+		
+		for(var i = 0; i < list.length; i++) {
+			selectBoxAdd.add( list[i].name );
+		}
+		
+		selectBoxAdd.setVisible( true );
+		selectBoxDel.setVisible( true );
+		
+		sigBtnAdd( 'base_a000' );
+	
+	//	avatar.show( 'basket_x002a_p78', 2, 100, 100 );
+	//	avatar.show( 'basket_z101a_p78', 3, 130, 130 );
+	//	avatar.show( 'basket_z102a_p78', 4, 160, 160 );
+	};
+	
+	var sigSwfLog = function ( data ) {
+		if ( data.hasOwnProperty( 'msg' ) ) {
+			console.log( 'avatar log :: ' + msg );
+		} else {
+			console.log( 'sigSwfLog failed' );
+		}
+	};
+	
+	var onButtonClicked = function ( data ) {
+		if ( !data || !data.hasOwnProperty( 'action' ) ) {
+			console.log( 'onButtonClicked failed' );
+			return;
+		}
+		
+		var action = data.action;
+		switch ( action ) {
+		case ButtonAction.ADD:
+			sigBtnAdd( selectBoxAdd.getValue() );
+			break;
+		case ButtonAction.REMOVE:
+			sigBtnDel( selectBoxDel.getValue() );
+			break;
+		default:
+			console.log( 'onSwfDataReceived failed, unknown action >> ' + action );
+		}
+	};
+	
+	var onSwfDataReceived = function ( data ) {
+		if ( !data || !data.hasOwnProperty( 'action' ) ) {
+			console.log( 'onSwfDataReceived failed' );
+			return;
+		}
+		
+		var action = data.action;
+		switch ( action ) {
+		case 'init':
+			sigSwfInit( data );
+			break;
+		case 'log':
+			sigSwfLog( data );
+			break;
+		default:
+			console.log( 'onSwfDataReceived failed, unknown action >> ' + action );
+		}
+	};
+	
+	eventDispatcher.add( GameEvent.BUTTON_CLICKED, onButtonClicked );
+	eventDispatcher.add( GameEvent.SWF_DATA_RECEIVED, onSwfDataReceived );
+	
+	selectBoxAdd.init();
+	selectBoxAdd.setVisible( false );
+	selectBoxAdd.getInstance().style.top = '20px';
+	selectBoxDel.init();
+	selectBoxDel.setVisible( false );
+	selectBoxDel.getInstance().style.left = '150px';
+	selectBoxDel.getInstance().style.top = '20px';
+	btnAdd.init( 'Add', ButtonAction.ADD );
+	btnDel.init( 'Remove',ButtonAction.REMOVE );
+	btnDel.getInstance().style.left = '150px';
+	
+	avatar.init();
+	
+} ());
+
+</script>
+</html>

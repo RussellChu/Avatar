@@ -1,0 +1,1 @@
+mklink /D assets D:\Russell\Projects\Web\Test\nodejs\assets
