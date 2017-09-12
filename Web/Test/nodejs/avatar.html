@@ -1,5 +1,6 @@
 <html>
 <head>
+<meta charset="utf-8">
 </head>
 <body>
 </body>
@@ -74,7 +75,85 @@ GameEvent.SWF_DATA_RECEIVED = 'SWF_DATA_RECEIVED';
 
 const GameData = {};
 GameData.BODY_ASSETS = 'base_a000';
+GameData.CACHE_DATE = '201709121720';
 GameData.LAYER_MAX = 130;
+GameData.MOVE_POS = { x: 150, y: 200 };
+
+const AssetName = {
+	'basket_z101a': '艾伯李斯特的手提公仔'
+};
+
+const AvatarPos = {};
+
+AvatarPos[2] = { x: 13, y: 245 };
+AvatarPos[27] = { x: 0, y: 0 }; // Nothing found
+AvatarPos[31] = { x: 0, y: 0 }; // Nothing found
+AvatarPos[33] = { x: 15, y: 23 };
+AvatarPos[34] = { x: 0, y: 99 };
+AvatarPos[44] = { x: 12, y: 103 };
+AvatarPos[48] = { x: 11, y: 174 };
+AvatarPos[51] = { x: 11, y: 242 };
+AvatarPos[53] = { x: 22, y: 60 };
+AvatarPos[55] = { x: 38, y: 105 };
+AvatarPos[59] = { x: 43, y: 172 };
+AvatarPos[62] = { x: 53, y: 242 };
+AvatarPos[67] = { x: 27, y: 46 };
+AvatarPos[81] = { x: 56, y: 103 };
+AvatarPos[85] = { x: 53, y: 61 };
+AvatarPos[87] = { x: 46, y: 24 };
+AvatarPos[97] = { x: 29, y: 0 };
+
+AvatarPos[3] = AvatarPos[2];
+AvatarPos[4] = AvatarPos[2];
+AvatarPos[8] = AvatarPos[2];
+AvatarPos[120] = AvatarPos[2];
+AvatarPos[124] = AvatarPos[2];
+AvatarPos[125] = AvatarPos[2];
+AvatarPos[126] = AvatarPos[2];
+
+AvatarPos[36] = AvatarPos[33];
+
+AvatarPos[42] = AvatarPos[51];
+AvatarPos[52] = AvatarPos[51];
+
+AvatarPos[41] = AvatarPos[53];
+AvatarPos[43] = AvatarPos[53];
+AvatarPos[45] = AvatarPos[53];
+AvatarPos[56] = AvatarPos[53];
+AvatarPos[64] = AvatarPos[53];
+AvatarPos[69] = AvatarPos[53];
+
+AvatarPos[10] = AvatarPos[67]; // Testing
+AvatarPos[12] = AvatarPos[67];
+AvatarPos[13] = AvatarPos[67]; // Testing
+AvatarPos[21] = AvatarPos[67];
+AvatarPos[40] = AvatarPos[67];
+AvatarPos[72] = AvatarPos[67];
+AvatarPos[74] = AvatarPos[67];
+AvatarPos[75] = AvatarPos[67];
+AvatarPos[77] = AvatarPos[67];
+AvatarPos[91] = AvatarPos[67];
+AvatarPos[107] = AvatarPos[67];
+
+AvatarPos[78] = AvatarPos[81];
+AvatarPos[82] = AvatarPos[81];
+
+AvatarPos[16] = AvatarPos[97];
+AvatarPos[17] = AvatarPos[97];
+AvatarPos[18] = AvatarPos[97];
+AvatarPos[37] = AvatarPos[97];
+AvatarPos[94] = AvatarPos[97];
+AvatarPos[98] = AvatarPos[97];
+AvatarPos[101] = AvatarPos[97];
+AvatarPos[102] = AvatarPos[97];
+AvatarPos[103] = AvatarPos[97];
+AvatarPos[104] = AvatarPos[97];
+AvatarPos[105] = AvatarPos[97];
+AvatarPos[108] = AvatarPos[97];
+AvatarPos[111] = AvatarPos[97];
+AvatarPos[112] = AvatarPos[97];
+AvatarPos[114] = AvatarPos[97];
+AvatarPos[117] = AvatarPos[97];
 
 function onSwfDataReceived( data ) {
 	eventDispatcher.dispatch( GameEvent.SWF_DATA_RECEIVED, data );
@@ -89,7 +168,7 @@ var createAvatar = function () {
 		swf = document.createElement( 'object' );
 		swf.setAttribute( 'id', 'avatar' );
 		swf.setAttribute( 'type', 'application/x-shockwave-flash' );
-		swf.setAttribute( 'data', './assets.swf' );
+		swf.setAttribute( 'data', './assets.swf?t=' + GameData.CACHE_DATE );
 		
 		swf.style.position = 'absolute';
 		swf.style.left = '0px';
@@ -198,14 +277,19 @@ var createSelectBox = function () {
 		document.body.appendChild( dom );
 	};
 	
-	var add = function ( value ) {
+	var add = function ( value, _caption ) {
 		if ( typeof value !== 'string' || !value || map.hasOwnProperty( value ) ) {
 			return;
 		}
 		
 		var option = document.createElement( 'option' );
 		option.value = value;
-		var txt = document.createTextNode( value );
+		
+		var caption = value;
+		if ( typeof _caption === 'string' ) {
+			caption = _caption;
+		}
+		var txt = document.createTextNode( caption );
 		option.appendChild( txt );
 		map[value] = option;
 		dom.appendChild( option );
@@ -325,78 +409,6 @@ var createAvatarModel = function () {
 	return inst;
 };
 
-var avatar_pos = {};
-avatar_pos[2] = { x: 13, y: 195 };
-avatar_pos[27] = { x: 0, y: 0 }; // Nothing found
-avatar_pos[31] = { x: 0, y: 0 }; // Nothing found
-avatar_pos[33] = { x: 15, y: -27 };
-avatar_pos[34] = { x: 0, y: 49 };
-avatar_pos[44] = { x: 12, y: 53 };
-avatar_pos[48] = { x: 11, y: 124 };
-avatar_pos[51] = { x: 11, y: 192 };
-avatar_pos[53] = { x: 22, y: 10 };
-avatar_pos[55] = { x: 38, y: 55 };
-avatar_pos[59] = { x: 43, y: 122 };
-avatar_pos[62] = { x: 53, y: 192 };
-avatar_pos[67] = { x: 27, y: -4 };
-avatar_pos[81] = { x: 56, y: 53 };
-avatar_pos[85] = { x: 53, y: 11 };
-avatar_pos[87] = { x: 46, y: -26 };
-avatar_pos[97] = { x: 29, y: -50 };
-
-// [120] = [8]
-// to do
-// avatar_pos[10] = { x: 0, y: 0 };
-// avatar_pos[12] = { x: 0, y: 0 };
-// avatar_pos[13] = { x: 0, y: 0 };
-// avatar_pos[124] = { x: 0, y: 0 };
-// avatar_pos[125] = { x: 0, y: 0 };
-// avatar_pos[126] = { x: 0, y: 0 };
-
-avatar_pos[3] = avatar_pos[2];
-avatar_pos[4] = avatar_pos[2];
-
-avatar_pos[36] = avatar_pos[33];
-
-avatar_pos[42] = avatar_pos[51];
-avatar_pos[52] = avatar_pos[51];
-
-avatar_pos[41] = avatar_pos[53];
-avatar_pos[43] = avatar_pos[53];
-avatar_pos[45] = avatar_pos[53];
-avatar_pos[56] = avatar_pos[53];
-avatar_pos[64] = avatar_pos[53];
-avatar_pos[69] = avatar_pos[53];
-
-avatar_pos[21] = avatar_pos[67];
-avatar_pos[40] = avatar_pos[67];
-avatar_pos[72] = avatar_pos[67];
-avatar_pos[74] = avatar_pos[67];
-avatar_pos[75] = avatar_pos[67];
-avatar_pos[77] = avatar_pos[67];
-avatar_pos[91] = avatar_pos[67];
-avatar_pos[107] = avatar_pos[67];
-
-avatar_pos[78] = avatar_pos[81];
-avatar_pos[82] = avatar_pos[81];
-
-avatar_pos[16] = avatar_pos[97];
-avatar_pos[17] = avatar_pos[97];
-avatar_pos[18] = avatar_pos[97];
-avatar_pos[37] = avatar_pos[97];
-avatar_pos[94] = avatar_pos[97];
-avatar_pos[98] = avatar_pos[97];
-avatar_pos[101] = avatar_pos[97];
-avatar_pos[102] = avatar_pos[97];
-avatar_pos[103] = avatar_pos[97];
-avatar_pos[104] = avatar_pos[97];
-avatar_pos[105] = avatar_pos[97];
-avatar_pos[108] = avatar_pos[97];
-avatar_pos[111] = avatar_pos[97];
-avatar_pos[112] = avatar_pos[97];
-avatar_pos[114] = avatar_pos[97];
-avatar_pos[117] = avatar_pos[97];
-
 var main = (function () {
 	var inst = {};
 	var avatar = createAvatar();
@@ -416,17 +428,22 @@ var main = (function () {
 			case 'add_grp':
 				var name = item.name;
 				if ( name !== GameData.BODY_ASSETS ) {
+				var caption = name;
+				if ( AssetName.hasOwnProperty( name ) ) {
+					caption = AssetName[name];
+				}
+				selectBoxAdd.add( list[i].name, caption );
 					selectBoxDel.add( name );
 				}
 				break;
 			case 'add_item':
 				var name = item.name;
 				var layer = item.layer;
-				var pos = { x: 200, y: 200 };
-				if ( avatar_pos.hasOwnProperty( '' + layer ) ) {
-					pos = avatar_pos[layer];
+				var pos = { x: 0, y: 0 };
+				if ( AvatarPos.hasOwnProperty( '' + layer ) ) {
+					pos = AvatarPos[layer];
 				}
-				avatar.show( name, layer, 250 + pos.x, 250 + pos.y, item.body );
+				avatar.show( name, layer, GameData.MOVE_POS.x + pos.x, GameData.MOVE_POS.y + pos.y, item.body );
 				break;
 			case 'clear':
 				avatar.clear( false );
@@ -479,27 +496,9 @@ var main = (function () {
 		model.setMap( assetsMap );
 		
 		var list = [];
-		var testMap = {};
 		for(var key in assetsMap) {
 			var item = assetsMap[key];
 			item.name = key;
-			if ( false ) {
-				var isTest = false;
-				var testId = 0;
-				for(var i = 0; i < item.list.length; i++) {
-					if ( ( testMap.hasOwnProperty( '' + item.list[i] ) && item.list[i] !== testId ) ||
-					( avatar_pos.hasOwnProperty( '' + item.list[i] ) && item.list[i] !== testId
-					) ) {
-						continue;
-					}
-					isTest = true;
-					testMap['' + item.list[i]] = true;
-					console.log( 'add ' + key + ' for testing ' + item.list[i] );
-				}
-				if ( !isTest ) {
-					continue;
-				}
-			}
 			list.push( item );
 		}
 		
@@ -518,7 +517,11 @@ var main = (function () {
 			if ( list[i].name === GameData.BODY_ASSETS ) {
 				continue;
 			}
-			selectBoxAdd.add( list[i].name );
+			var caption = list[i].name;
+			if ( AssetName.hasOwnProperty( list[i].name ) ) {
+				caption = AssetName[list[i].name];
+			}
+			selectBoxAdd.add( list[i].name, caption );
 		}
 		
 		selectBoxAdd.setVisible( true );
