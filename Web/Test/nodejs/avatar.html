@@ -80,7 +80,8 @@ GameData.LAYER_MAX = 130;
 GameData.MOVE_POS = { x: 150, y: 200 };
 
 const AssetName = {
-	'basket_z101a': '艾伯李斯特的手提公仔'
+  'default': ''
+, 'basket_z101a': '艾伯李斯特的手提公仔'
 };
 
 const AvatarPos = {};
@@ -428,11 +429,11 @@ var main = (function () {
 			case 'add_grp':
 				var name = item.name;
 				if ( name !== GameData.BODY_ASSETS ) {
-				var caption = name;
-				if ( AssetName.hasOwnProperty( name ) ) {
-					caption = AssetName[name];
-				}
-				selectBoxAdd.add( list[i].name, caption );
+					var caption = name;
+					if ( AssetName.hasOwnProperty( name ) ) {
+						caption = AssetName[name];
+					}
+					selectBoxAdd.add( list[i].name, caption );
 					selectBoxDel.add( name );
 				}
 				break;
@@ -593,6 +594,18 @@ var main = (function () {
 	avatar.init();
 	
 } ());
+
+/*
+var xhttp = new XMLHttpRequest();
+xhttp.onreadystatechange = function() {
+    if (this.readyState == 4 && this.status == 200) {
+        document.getElementById("demo").innerHTML =
+            this.responseText;
+    }
+};
+xhttp.open("GET", "https://avatar-touken.rhcloud.com/api?act=assets_group_name_list", true);
+xhttp.send();
+*/
 
 </script>
 </html>
