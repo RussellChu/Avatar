@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Pixel Drawing Example - Rembound.com</title>
+<script>
+
+var changeColor = function ( value, v2 ) {
+	var light = value.r * 0.299 + value.g * 0.587 + value.b * 0.114;
+	var ref = {};
+	ref.r = v2.r / 255;
+	ref.g = v2.g / 255;
+	ref.b = v2.b / 255;
+	var cmax = ref.r;
+	var cmin = ref.r;
+	if ( ref.g > cmax ) {
+		cmax = ref.g;
+	}
+	if ( ref.g < cmin ) {
+		cmin = ref.g;
+	}
+	if ( ref.b > cmax ) {
+		cmax = ref.b;
+	}
+	if ( ref.b < cmin ) {
+		cmin = ref.b;
+	}
+	var delta = cmax - cmin;
+//	console.log( 'delta >> ' + delta );
+	var hue = 0;
+	if ( delta > 0 ) {
+		if ( cmax === ref.r ) {
+		//	console.log( 'cmax === ref.r' );
+			hue = ( ( ( ref.g - ref.b ) / delta ) % 6 + 6 ) % 6;
+		} else if ( cmax === ref.g ) {
+		//	console.log( 'cmax === ref.g' );
+			hue = ( ( ref.b - ref.r ) / delta + 2 );
+		} else if ( cmax === ref.b ) {
+		//	console.log( 'cmax === ref.b' );
+			hue = ( ( ref.r - ref.g ) / delta + 4 );
+		}
+	}
+//	console.log( 'hue >> ' + hue );
+//	var ln = ( cmax + cmin ) * 0.5;
+//	console.log( 'ln >> ' + ln );
+//	var s = 0;
+//	if ( delta > 0 ) {
+//		s = delta / ( 1 - Math.abs( 2 * ln - 1 ) );
+//	}
+//	console.log( 's >> ' + s );
+	var x = delta * ( 1 - Math.abs( ( hue % 2 + 2 ) % 2 - 1 ) );
+	var rslt = { r: 0, g : 0, b: 0 };
+	if ( hue < 1 ) {
+		rslt.r = delta;
+		rslt.g = x;
+	} else if ( hue < 2 ) {
+		rslt.r = x;
+		rslt.g = delta;
+	} else if ( hue < 3 ) {
+		rslt.g = delta;
+		rslt.b = x;
+	} else if ( hue < 4 ) {
+		rslt.g = x;
+		rslt.b = delta;
+	} else if ( hue < 5 ) {
+		rslt.b = delta;
+		rslt.r = x;
+	} else {
+		rslt.b = x;
+		rslt.r = delta;
+	}
+	/*
+	ln = 0.5;
+	var m = ln - delta * 0.5;
+	*/
+	var l2 = rslt.r * 0.299 + rslt.g * 0.587 + rslt.b * 0.114;
+	var m = light / 255 - l2;
+	
+	rslt.r = Math.round( ( rslt.r + m ) * 255 );
+	rslt.g = Math.round( ( rslt.g + m ) * 255 );
+	rslt.b = Math.round( ( rslt.b + m ) * 255 );
+	return rslt;
+};
+
+window.onload = function() {
+	// Get the canvas and context
+	var canvas = document.getElementById("viewport"); 
+	var context = canvas.getContext("2d");
+ 
+	// Define the image dimensions
+	var width = canvas.width;
+	var height = canvas.height;
+ 
+	// Create an ImageData object
+	var imagedata = context.createImageData(width, height);
+ 
+	// Create the image
+	function createImage(offset) {
+		// Loop over all of the pixels
+		for (var x=0; x<width; x++) {
+			for (var y=0; y<height; y++) {
+				// Get the pixel index
+				var pixelindex = (y * width + x) * 4;
+ 
+				// Generate a xor pattern with some random noise
+				var red = ((x+offset) % 256) ^ ((y+offset) % 256);
+				var green = ((2*x+offset) % 256) ^ ((2*y+offset) % 256);
+				var blue = 50 + Math.floor(Math.random()*100);
+ 
+				// Rotate the colors
+				blue = (blue + offset) % 256;
+ 
+				// Set the pixel data
+				imagedata.data[pixelindex] = red;	 // Red
+				imagedata.data[pixelindex+1] = green; // Green
+				imagedata.data[pixelindex+2] = blue;  // Blue
+				imagedata.data[pixelindex+3] = 255;   // Alpha
+			}
+		}
+	}
+
+	// Main loop
+	function main(tframe) {
+		// Request animation frames
+		window.requestAnimationFrame(main);
+ 
+		var ctx=canvas.getContext("2d");
+		var img=document.getElementById("scream");
+		ctx.drawImage(img, 0, 0);
+ 
+		var imgd = ctx.getImageData( 0, 0, width, height );
+		var pix = imgd.data;
+		for (var x=0; x<width; x++) {
+			for (var y=0; y<height; y++) {
+				// Get the pixel index
+				var pixelindex = (y * width + x) * 4;
+ 
+				// Generate a xor pattern with some random noise
+				var red = pix[pixelindex];
+				var green = pix[pixelindex+1];
+				var blue = pix[pixelindex+2];
+				
+				var r = changeColor( { r: red, g: green, b: blue }, { r: 255 * Math.random(), g: 255 * Math.random(), b: 255 * Math.random() } );
+ 
+				// Set the pixel data
+				imagedata.data[pixelindex] = r.r * 0.5 + red * 0.5;	 // Red
+				imagedata.data[pixelindex+1] = r.g * 0.5 + green * 0.5; // Green
+				imagedata.data[pixelindex+2] = r.b * 0.5 + blue * 0.5;  // Blue
+				imagedata.data[pixelindex+3] = 255;   // Alpha
+			}
+		}
+		
+		// Create the image
+	//	createImage(Math.floor(tframe / 10));
+ 
+		// Draw the image data to the canvas
+		context.putImageData(imagedata, 0, 0);
+	}
+ 
+	// Call the main loop
+	main(0);
+};
+
+</script>
+</head>
+<body>
+<canvas id="viewport" width="640" height="480"></canvas>
+<img id="scream" src="./test.png" />
+</body>
+</html>
